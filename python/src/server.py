@@ -821,7 +821,7 @@ if __name__ == "__main__":
     created_and_running_tests = get_tests_by_state('state-index', states_to_query, test_instances)
     get_running_instances_and_run()
     
-    app.run(host="0.0.0.0", port=8000,debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=8000,debug=False, use_reloader=False)
  
 
 #    result =  {
