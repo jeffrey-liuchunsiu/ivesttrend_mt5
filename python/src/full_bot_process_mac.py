@@ -44,7 +44,7 @@ timeframe_minutes = {
 
 
 class Test:
-    def __init__(self, test_strategy_name="SuperTrend", test_id="TESTING", bt_symbol='BTC-USD', bt_atr_period=6,bt_multiplier=10,
+    def __init__(self, test_strategy_name="SuperTrend", strategy_type = "Trend Following", test_id="TESTING", bt_symbol='BTC-USD', bt_atr_period=6,bt_multiplier=10,
                  bt_start_date=datetime(2020, 1, 1), bt_end_date=datetime(2023, 3, 1),
                  bt_2nd_start_date=datetime(2023, 3, 1), bt_2nd_end_date=datetime(2023, 6, 30), 
                  bt_time_frame_backward='1d', bt_initial_investment=100000000,
@@ -53,6 +53,7 @@ class Test:
                  ft_time_frame_forward=mt5.TIMEFRAME_M3, ft_initial_investment=100000, ft_lot_size=0.1,
                  ft_sl_size=5000, ft_tp_size=5000):
         self.test_strategy_name = test_strategy_name
+        self.strategy_type = strategy_type
         self.bt_symbol = bt_symbol
         self.bt_start_date = datetime.strptime(bt_start_date, "%Y-%m-%d") if isinstance(bt_start_date, str) else bt_start_date
         self.bt_end_date = datetime.strptime(bt_end_date, "%Y-%m-%d") if isinstance(bt_end_date, str) else bt_end_date
@@ -117,6 +118,10 @@ class Test:
         self.state = "Created"
         self.stop_flag_live_trade = False
         self.stop_flag_check_status = False
+        
+        self.overall_market_roi = None
+        self.overall_max_drawdown = None
+        self.overall_win_loss_ratio = None
         
         
     # Method to update attributes from a dictionary
@@ -189,57 +194,11 @@ class Test:
         response = requests.post(url, data=json_data, headers=headers)
         self.bt_atr_period = float(response.json()['ATR Period'])
         self.bt_multiplier = float(response.json()['Multiplier'])
-        # self.bt_first_roi  = response.json()['ROI']
+
         print(self.bt_start_date.strftime("%Y-%m-%d"))
         print(self.bt_end_date.strftime("%Y-%m-%d"))
         print('self.bt_atr_period: ', self.bt_atr_period)
         print('self.bt_multiplier: ', self.bt_multiplier)
-        # print('self.bt_first_roi: ', self.bt_first_roi)
-        
-        # second_data = {
-        #     "symbol": self.bt_symbol,
-        #     "investment": self.bt_initial_investment,
-        #     "commission": 0,
-        #     "start_date": self.bt_2nd_start_date.strftime("%Y-%m-%d"),
-        #     "end_date": self.bt_2nd_end_date.strftime("%Y-%m-%d"),
-        #     "interval": self.bt_time_frame_backward,
-        #     "lot_size": self.bt_lot_size,
-        #     "sl_size": self.bt_sl_size,
-        #     "tp_size": self.bt_tp_size,
-        #     "atr": self.bt_atr_period,
-        #     "multiplier": self.bt_multiplier
-        # }
-        
-        # json_second_data = json.dumps(second_data)
-        # second_response = requests.post(url, data=json_second_data, headers=headers)
-        
-        # self.bt_second_roi  = second_response.json()['ROI']
-        # print(self.bt_2nd_start_date.strftime("%Y-%m-%d"))
-        # print(self.bt_2nd_end_date.strftime("%Y-%m-%d"))
-        # print('self.bt_second_roi: ', self.bt_second_roi)
-        
-        
-        # overall_data = {
-        #     "symbol": self.bt_symbol,
-        #     "investment": self.bt_initial_investment,
-        #     "commission": 0,
-        #     "start_date": self.bt_start_date.strftime("%Y-%m-%d"),
-        #     "end_date": self.bt_2nd_end_date.strftime("%Y-%m-%d"),
-        #     "interval": self.bt_time_frame_backward,
-        #     "lot_size": self.bt_lot_size,
-        #     "sl_size": self.bt_sl_size,
-        #     "tp_size": self.bt_tp_size,
-        #     "atr": self.bt_atr_period,
-        #     "multiplier": self.bt_multiplier
-        # }
-        
-        # json_overall_data = json.dumps(overall_data)
-        # overall_response = requests.post(url, data=json_overall_data, headers=headers)
-        
-        # self.bt_overall_roi  = overall_response.json()['ROI']
-        # print(self.bt_start_date.strftime("%Y-%m-%d"))
-        # print(self.bt_2nd_end_date.strftime("%Y-%m-%d"))
-        # print('self.bt_overall_roi: ', self.bt_overall_roi)
         
 
     def _update_end_date(self, end_date):
@@ -364,7 +323,6 @@ class Test:
             self.ft_initial_investment, self.ft_lot_size,
             self.ft_time_frame_forward, self.test_id)
         if history_orders:
-            print('c')
             self.ft_roi = history_orders[str(self.ft_symbol)]['roi']
             self.ft_entries = history_orders[str(self.ft_symbol)]['entry_of_deals']
             self.ft_exits = history_orders[str(self.ft_symbol)]['exit_of_deals']
