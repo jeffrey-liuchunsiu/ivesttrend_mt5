@@ -119,6 +119,7 @@ def create_test_instance(data):
     try:
         return full.Test(
             test_strategy_name=data["test_strategy_name"],
+            strategy_type=data["strategy_type"],
             test_id=data["test_id"],
             bt_symbol=data["bt_symbol"],
             bt_atr_period=data["bt_atr_period"],
@@ -153,6 +154,7 @@ def save_test_instance(table, instance, user):
             'test_id': instance.test_id,
             'user': user,
             'test_strategy_name': instance.test_strategy_name,
+            'strategy_type': instance.strategy_type,
             'bt_symbol': instance.bt_symbol,
             'bt_atr_period': instance.bt_atr_period,
             'bt_multiplier': instance.bt_multiplier,
