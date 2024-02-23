@@ -91,6 +91,8 @@ def create_test():
         if test_instance is None:
             return jsonify({"error": "Invalid test instance data"}), 400
         
+        test_instance.fetch_stock_close_price()
+        
         update_response = save_test_instance(tests_table, test_instance, user)
         if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
             # Add test instance to in-memory list and DynamoDB
@@ -176,6 +178,7 @@ def save_test_instance(table, instance, user):
             'ft_lot_size': instance.ft_lot_size,
             'ft_sl_size': instance.ft_sl_size,
             'ft_tp_size': instance.ft_tp_size,
+            'stock_close_price': instance.stock_close_price,
             'create_time': current_time,
             'state': "Created"
         })

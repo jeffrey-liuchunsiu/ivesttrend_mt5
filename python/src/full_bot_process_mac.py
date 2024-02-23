@@ -3,6 +3,7 @@ import mt5_tradingbot_mac as ft
 import backtesting_mac as bt
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import yfinance as yf
 import schedule
 import time
 import threading
@@ -122,6 +123,7 @@ class Test:
         self.overall_market_roi = None
         self.overall_max_drawdown = None
         self.overall_win_loss_ratio = None
+        self.stock_close_price = None
         
         
     # Method to update attributes from a dictionary
@@ -236,6 +238,38 @@ class Test:
             elif period_upper == "ALL":
                 self._fetch_and_visualize_data(self.bt_start_date, self.bt_2nd_end_date, 'bt_price_data_with_indicator_all',visualize)
 
+    def fetch_stock_close_price(self, symbol=None, start_date=None, end_date=None):
+        symbol = self.bt_symbol if symbol == None else symbol
+        start_date = self.bt_start_date if start_date == None else start_date
+        end_date = self.bt_2nd_end_date if end_date == None else end_date
+        try:
+           
+            # Fetch historical data from Yahoo Finance
+            data = yf.download(symbol, start=start_date, end=end_date)
+
+            # Check if the data is empty
+            if data.empty:
+                return json.dumps({"error": "No data found for the given date range."})
+
+            # Prepare the JSON structure
+            stock_close_price_json = {
+                "stock_close_price": {
+                        "name": "Stock Close Price",
+                        "type": "line",
+                        "data": [
+                            {"x": date.strftime('%Y-%m-%d'), "y": str(price)}
+                            for date, price in data['Close'].dropna().items()
+                        ],
+                    },
+            }
+
+            self.stock_close_price = stock_close_price_json["stock_close_price"]["data"]
+
+        except Exception as e:
+            # Handle general exceptions
+            error_message = f"An error occurred: {str(e)}"
+            return json.dumps({"error": error_message})
+    
     def backtest(self, period):
         # Mapping of period keys to their respective data_frame attributes
         period_map = {
