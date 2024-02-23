@@ -257,7 +257,7 @@ class Test:
                         "name": "Stock Close Price",
                         "type": "line",
                         "data": [
-                            {"x": date.strftime('%Y-%m-%d'), "y": "{:.2f}".format(price)}
+                            {"date": date.strftime('%Y-%m-%d'), "price": "{:.2f}".format(price)}
                             for date, price in data['Close'].dropna().items()
                         ],
                     },
