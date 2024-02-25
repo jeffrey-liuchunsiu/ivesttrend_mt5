@@ -2,6 +2,7 @@ boto3==1.28.62
 botocore==1.31.65
 Flask==1.1.4
 Flask_Cors==4.0.0
+markupSafe==2.0.1
 matplotlib==3.7.5
 mt5linux==0.1.9
 numpy==1.21.4
@@ -9,4 +10,4 @@ pandas==2.0.3
 python-dotenv==1.0.1
 Requests==2.26.0
 schedule==1.2.1
-yfinance==0.2.31
+yfinance==0.2.18

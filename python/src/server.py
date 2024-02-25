@@ -13,10 +13,11 @@ from botocore.exceptions import ClientError
 import json
 from mt5linux import MetaTrader5
 from schedule import Scheduler
+import uuid
 
 mt5 = MetaTrader5(
-    host = 'localhost',
-    # host = '18.141.245.200',
+    # host = 'localhost',
+    host = '18.141.245.200',
     port = 18812      
 )  
 
@@ -62,7 +63,7 @@ dynamodb = boto3.resource('dynamodb',
                           region_name=region_name)
 
 # table = dynamodb.Table('test_by_users-dev')
-tests_table = dynamodb.Table('testInstance-dev')
+tests_table = dynamodb.Table('TestInstance-hj4kjln2cvcg5cjw6tik2b2grq-dev')
 
 
 
@@ -71,58 +72,63 @@ def create_test():
     try:
         # Parse request data
         data = request.get_json()
-        test_id = data.get("test_id")
+        # test_id = data.get("test_id")
         user = data.get("user")
+        uuid_id = str(uuid.uuid4())
 
         # Validate required fields
-        if not test_id or not user:
-            return jsonify({"error": "Missing 'test_id' or 'user' field"}), 400
+        if  not user:
+            return jsonify({"error": "Missing 'user' field"}), 400
 
         # Check if test_id already exists
-        if test_id_exists(tests_table, test_id):
-            return jsonify({"error": "Test instance already exists in DynamoDB"}), 400
+        # if test_id_exists(tests_table, test_id):
+        #     return jsonify({"error": "Test instance already exists in DynamoDB"}), 400
 
-        if test_id_exists_in_memory(test_instances, test_id):
+        if test_id_exists_in_memory(test_instances, uuid_id):
             return jsonify({"error": "Test instance already exists"}), 400
 
         # Create test instance
-        test_instance = create_test_instance(data)
+        test_instance = create_test_instance(data,uuid_id)
         
         if test_instance is None:
             return jsonify({"error": "Invalid test instance data"}), 400
         
         test_instance.fetch_stock_close_price()
         
-        update_response = save_test_instance(tests_table, test_instance, user)
+        update_response = save_test_instance(tests_table, test_instance, user, uuid_id)
         if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
             # Add test instance to in-memory list and DynamoDB
             test_instance.parse_and_convert_parameters()
-            test_instances.append({"test_id": test_id, "test_instance": test_instance})
+            test_instances.append({"test_id": uuid_id, "test_instance": test_instance})
 
     
         
 
-        return jsonify({"message": "Test instance created successfully"}), 201
+        return jsonify({
+                        "test_id":uuid_id,
+                        "message": "Test instance created successfully and saved in DynamoDB"
+                        }), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 def test_id_exists(table, test_id):
     """Check if a test ID already exists in the provided DynamoDB table."""
-    response = table.get_item(Key={'test_id': test_id})
+    response = table.get_item(Key={'id': test_id})
     return 'Item' in response
 
 def test_id_exists_in_memory(test_instances, test_id):
     """Check if a test ID exists in the in-memory list."""
     return any(instance["test_id"] == test_id for instance in test_instances)
 
-def create_test_instance(data):
+def create_test_instance(data,uuid_id):
     """Create and return a new test instance from request data."""
     try:
         return full.Test(
             test_strategy_name=data["test_strategy_name"],
             strategy_type=data["strategy_type"],
-            test_id=data["test_id"],
+            test_id=uuid_id,
+            test_name=data["test_name"],
             bt_symbol=data["bt_symbol"],
             bt_atr_period=data["bt_atr_period"],
             bt_multiplier=data["bt_multiplier"],
@@ -148,12 +154,15 @@ def create_test_instance(data):
     except KeyError:  # Missing data fields will raise KeyError
         return None
     
-def save_test_instance(table, instance, user):
+def save_test_instance(table, instance, user, uuid_id):
     """Save a test instance to the provided DynamoDB table."""
     try:
         current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+       
         update_response = table.put_item(Item={
-            'test_id': instance.test_id,
+            'id': uuid_id,
+            'test_id': uuid_id,
+            "test_name": instance.test_name,
             'user': user,
             'test_strategy_name': instance.test_strategy_name,
             'strategy_type': instance.strategy_type,
@@ -201,7 +210,7 @@ def find_best_parameters():
             return jsonify({"error": "Missing test_id or user"}), 400
 
         # Query DynamoDB to find the item based on test_id
-        response = tests_table.get_item(Key={'test_id': test_id})
+        response = tests_table.get_item(Key={'id': test_id})
         if 'Item' not in response:
             return jsonify({"error": "Test instance not found in DynamoDB"}), 404
 
@@ -226,7 +235,7 @@ def find_best_parameters():
         test_instance.find_best_parameters_api(atr=atr, multiplier=multiplier)
         
         update_response = tests_table.update_item(
-        Key={'test_id': test_id},
+        Key={'id': test_id},
         UpdateExpression='SET #bt_atr_period = :val1, #bt_multiplier = :val2',
         ExpressionAttributeNames={
             '#bt_atr_period': 'bt_atr_period',
@@ -271,7 +280,7 @@ def start_test():
         return jsonify({"error": "Missing test_id"}), 400
 
     # Query DynamoDB to find the item based on test_id
-    response = tests_table.get_item(Key={'test_id': test_id})
+    response = tests_table.get_item(Key={'id': test_id})
     if 'Item' not in response:
         return jsonify({"error": "Test instance not found in DynamoDB"}), 404
 
@@ -307,7 +316,7 @@ def start_test():
     # Format the time to the desired string format
     formatted_time = hong_kong_time.strftime('%Y-%m-%d')  # ISO 8601 format in UTC
     update_response = tests_table.update_item(
-        Key={'test_id': test_id},
+        Key={'id': test_id},
         UpdateExpression='SET #state = :val1, #ft_start_date = :val2',
         ExpressionAttributeNames={
             '#state': 'state',
@@ -340,7 +349,7 @@ def stop_test():
         return jsonify({"error": "Missing test_id or user"}), 400
 
     # Query DynamoDB to find the item based on user and test_id
-    response = tests_table.get_item(Key={'test_id': test_id})
+    response = tests_table.get_item(Key={'id': test_id})
     if 'Item' not in response:
         return jsonify({"error": "Test instance not found"}), 404
 
@@ -368,7 +377,7 @@ def stop_test():
     # Format the time to the desired string format
     formatted_time = hong_kong_time.strftime('%Y-%m-%d')
     update_response = tests_table.update_item(
-        Key={'test_id': test_id},
+        Key={'id': test_id},
         UpdateExpression='SET #state = :val1, #ft_end_date = :val2',
         ExpressionAttributeNames={
             '#state': 'state',
@@ -395,7 +404,7 @@ def get_test_instances():
     test_id = request.json.get("test_id")
 
         # Perform the scan operation to retrieve all items from the table
-    response = tests_table.get_item(Key={'test_id': test_id})
+    response = tests_table.get_item(Key={'id': test_id})
     # Extract the items from the response
     test_instances = response.get('Item', [])    
 
@@ -522,8 +531,8 @@ def backtesting():
             }
     
     try:
-        update_response = tests_table.update_item(
-            Key={'test_id': test_id},
+        tests_table.update_item(
+            Key={'id': test_id},
             UpdateExpression='SET bt_1st_roi = :1st_roi, bt_2nd_roi = :2nd_roi, bt_overall_roi = :overall_roi, '
                             'bt_1st_entries = :first_entries, bt_2nd_entries = :second_entries, bt_overall_entries = :overall_entries, '
                             'bt_1st_exits = :first_exits, bt_2nd_exits = :second_exits, bt_overall_exits = :overall_exits, '
@@ -631,7 +640,7 @@ def get_test_result():
               }
     try:
         tests_table.update_item(
-        Key={'test_id': test_id},
+        Key={'id': test_id},
         UpdateExpression='SET ft_roi = :ft_roi, ft_entries = :ft_entries, ft_exits = :ft_exits, '
                         'ft_equity_per_day = :ft_equity_per_day, ft_final_equity = :ft_final_equity',
         ExpressionAttributeValues={
@@ -681,7 +690,7 @@ def remove_test():
         # Delete the item from DynamoDB table
         response = tests_table.delete_item(
             Key={
-                'test_id': test_id  # Assuming 'test_id' is the partition key
+                'id': test_id  # Assuming 'test_id' is the partition key
             }
         )
         # Check if the item was actually deleted
@@ -791,7 +800,7 @@ def delete_tests_by_state(index_name, states, test_instances):
             if 'Items' in response:
                 for item in response['Items']:
 
-                    tests_table.delete_item(Key={'test_id':item['test_id']})
+                    tests_table.delete_item(Key={'id':item['test_id']})
 
                 # Handle the potential for paginated results
                 while 'LastEvaluatedKey' in response:
@@ -802,7 +811,7 @@ def delete_tests_by_state(index_name, states, test_instances):
                     )
                     test_instances_data.extend(response['Items'])
                     for item in response['Items']:
-                        tests_table.delete_item(Key={'test_id':item['test_id']})
+                        tests_table.delete_item(Key={'id':item['test_id']})
 
         print("Done Del all data in Dynamodb")
 
