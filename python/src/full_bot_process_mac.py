@@ -12,8 +12,8 @@ import requests
 import json
 from mt5linux import MetaTrader5
 mt5 = MetaTrader5(
-    # host = 'localhost',
-    host = '18.141.245.200',
+    host = 'localhost',
+    # host = '18.141.245.200',
     port = 18812      
 )  
 

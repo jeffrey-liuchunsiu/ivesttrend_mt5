@@ -16,8 +16,8 @@ from schedule import Scheduler
 import uuid
 
 mt5 = MetaTrader5(
-    # host = 'localhost',
-    host = '18.141.245.200',
+    host = 'localhost',
+    # host = '18.141.245.200',
     port = 18812      
 )  
 
