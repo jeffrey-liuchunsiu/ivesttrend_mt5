@@ -14,6 +14,7 @@ import json
 from mt5linux import MetaTrader5
 from schedule import Scheduler
 import uuid
+import shortuuid
 
 mt5 = MetaTrader5(
     host = 'localhost',
@@ -74,7 +75,8 @@ def create_test():
         data = request.get_json()
         # test_id = data.get("test_id")
         user = data.get("user")
-        uuid_id = str(uuid.uuid4())
+        # uuid_id = str(uuid.uuid4())
+        uuid_id = shortuuid.uuid()
 
         # Validate required fields
         if  not user:
