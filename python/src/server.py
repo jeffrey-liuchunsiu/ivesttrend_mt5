@@ -17,8 +17,8 @@ import uuid
 import shortuuid
 
 mt5 = MetaTrader5(
-    host = 'localhost',
-    # host = '18.141.245.200',
+    # host = 'localhost',
+    host = '18.141.245.200',
     port = 18812      
 )  
 
@@ -82,12 +82,9 @@ def create_test():
         if  not user:
             return jsonify({"error": "Missing 'user' field"}), 400
 
-        # Check if test_id already exists
-        # if test_id_exists(tests_table, test_id):
-        #     return jsonify({"error": "Test instance already exists in DynamoDB"}), 400
-
-        if test_id_exists_in_memory(test_instances, uuid_id):
-            return jsonify({"error": "Test instance already exists"}), 400
+        # Check if test_id already exists and generate new uuid
+        if test_id_exists(tests_table, uuid_id) or test_id_exists_in_memory(test_instances, uuid_id):
+            uuid_id = shortuuid.uuid()
 
         # Create test instance
         test_instance = create_test_instance(data,uuid_id)
@@ -234,7 +231,8 @@ def find_best_parameters():
         test_instance = test_instance_data["test_instance"]
         
         test_instance.parse_and_convert_parameters()
-        test_instance.find_best_parameters_api(atr=atr, multiplier=multiplier)
+        # test_instance.find_best_parameters_api(atr=atr, multiplier=multiplier)
+        test_instance.find_best_parameters(atr=atr, atr_multiplier=multiplier)
         
         update_response = tests_table.update_item(
         Key={'id': test_id},

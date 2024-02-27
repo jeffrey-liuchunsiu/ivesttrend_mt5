@@ -11,9 +11,10 @@ import threading
 import requests
 import json
 from mt5linux import MetaTrader5
+import find_best as mst
 mt5 = MetaTrader5(
-    host = 'localhost',
-    # host = '18.141.245.200',
+    # host = 'localhost',
+    host = '18.141.245.200',
     port = 18812      
 )  
 
@@ -202,6 +203,41 @@ class Test:
         print(self.bt_end_date.strftime("%Y-%m-%d"))
         print('self.bt_atr_period: ', self.bt_atr_period)
         print('self.bt_multiplier: ', self.bt_multiplier)
+        
+    def find_best_parameters(self,atr=None, atr_multiplier=None):
+        # data = json.loads(event["body"])
+        # print('data: ', data)
+
+        symbol = str(self.bt_symbol)
+        investment = int(self.bt_initial_investment)
+        commission = int(self.bt_commission)
+        start_date = self.bt_start_date.strftime("%Y-%m-%d")
+        end_date = self.bt_end_date.strftime("%Y-%m-%d")
+        interval = str(self.bt_time_frame_backward)
+        lot_size = int(self.bt_lot_size)
+        sl_size = int(self.bt_sl_size)
+        tp_size = int(self.bt_tp_size)
+
+        atr_period = int(atr) if atr is not None else None
+        multiplier = float(atr_multiplier) if atr_multiplier is not None else None
+        
+        strategy = mst.Supertrend
+        backtest = mst.backtest
+        
+        if atr_period == None or multiplier == None:
+            fy_df = mst.get_yf_df(symbol, start_date, end_date, interval)
+
+            atr_period, multiplier, ROI = mst.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
+
+        self.bt_atr_period = atr_period
+        self.bt_multiplier = multiplier
+        
+        print(self.bt_start_date.strftime("%Y-%m-%d"))
+        print(self.bt_end_date.strftime("%Y-%m-%d"))
+        print('self.bt_atr_period: ', self.bt_atr_period)
+        print('self.bt_multiplier: ', self.bt_multiplier)
+
+
         
 
     def _update_end_date(self, end_date):
