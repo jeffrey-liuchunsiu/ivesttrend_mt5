@@ -77,7 +77,7 @@ def create_test():
         # test_id = data.get("test_id")
         user = data.get("user")
         # uuid_id = str(uuid.uuid4())
-        uuid_id = shortuuid.uuid()[:12]
+        uuid_id = shortuuid.uuid()[:16]
 
         # Validate required fields
         if  not user:
@@ -85,7 +85,7 @@ def create_test():
 
         # Check if test_id already exists and generate new uuid
         if test_id_exists(tests_table, uuid_id) or test_id_exists_in_memory(test_instances, uuid_id):
-            uuid_id = shortuuid.uuid()[:12]
+            uuid_id = shortuuid.uuid()[:16]
 
         # Create test instance
         test_instance = create_test_instance(data,uuid_id)
