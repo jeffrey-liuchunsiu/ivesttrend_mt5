@@ -15,6 +15,7 @@ from mt5linux import MetaTrader5
 from schedule import Scheduler
 import uuid
 import shortuuid
+from threading import Thread
 
 mt5 = MetaTrader5(
     # host = 'localhost',
@@ -76,7 +77,7 @@ def create_test():
         # test_id = data.get("test_id")
         user = data.get("user")
         # uuid_id = str(uuid.uuid4())
-        uuid_id = shortuuid.uuid()
+        uuid_id = shortuuid.uuid()[:12]
 
         # Validate required fields
         if  not user:
@@ -84,7 +85,7 @@ def create_test():
 
         # Check if test_id already exists and generate new uuid
         if test_id_exists(tests_table, uuid_id) or test_id_exists_in_memory(test_instances, uuid_id):
-            uuid_id = shortuuid.uuid()
+            uuid_id = shortuuid.uuid()[:12]
 
         # Create test instance
         test_instance = create_test_instance(data,uuid_id)
@@ -478,7 +479,7 @@ def get_in_memory_test_instances():
             'ft_roi': test_instance.ft_roi
         }
 
-    return jsonify(result)
+    return jsonify(result), 200
 
 
 @app.route("/backtesting", methods=["POST"])
@@ -615,9 +616,38 @@ def process_over_all(over_all):
     return processed_list
 from datetime import datetime, timedelta
 
+
+def update_test_instance(test_id, test_instance):
+    try:
+        test_instance.get_forward_test_result()
+        result = {
+          "ft_roi": test_instance.ft_roi,
+          "ft_entries": test_instance.ft_entries,
+          "ft_exits": test_instance.ft_exits,
+          "ft_equity_per_day": test_instance.ft_equity_per_day,
+          "ft_final_equity": test_instance.ft_final_equity
+        }
+        tests_table.update_item(
+            Key={'id': test_id},
+            UpdateExpression='SET ft_roi = :ft_roi, ft_entries = :ft_entries, ft_exits = :ft_exits, '
+                            'ft_equity_per_day = :ft_equity_per_day, ft_final_equity = :ft_final_equity',
+            ExpressionAttributeValues={
+                ':ft_roi': str(result["ft_roi"]),
+                ':ft_entries': result["ft_entries"],
+                ':ft_exits': result["ft_exits"],
+                ':ft_equity_per_day': result["ft_equity_per_day"],
+                ':ft_final_equity': str(result["ft_final_equity"])
+            },
+            ReturnValues='NONE'
+        )
+        setattr(test_instance, "ft_result_processing", False)
+    except Exception as e:
+        print(f"Failed to update DynamoDB: {e}")
+        for key in ["ft_roi", "ft_entries", "ft_exits", "ft_equity_per_day", "ft_final_equity"]:
+            setattr(test_instance, key, None)
+
 @app.route("/get_test_result", methods=["POST"])
 def get_test_result():
-
     test_id = request.json.get("test_id")
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400
@@ -627,48 +657,33 @@ def get_test_result():
     if test_instance_data is None:
         return jsonify({"error": "Test instance not found"}), 400
 
-    # Retrieve the test_instance from the stored data
+    # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
+    thread = Thread(target=update_test_instance, args=(test_id, test_instance))
+    thread.start()
+    setattr(test_instance, "ft_result_processing", True)
 
-    test_instance.get_forward_test_result()
+    # Return an immediate response
+    return jsonify({"message": "Test result processing has been started."}), 202
+
+@app.route("/get_test_result_processing", methods=["POST"])
+def get_test_result_processing():
+    test_id = request.json.get("test_id")
+    if test_id is None:
+        return jsonify({"error": "Missing test_id"}), 400
+
+    test_instance_data = next(
+        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+    if test_instance_data is None:
+        return jsonify({"error": "Test instance not found"}), 400
+    
+    test_instance = test_instance_data["test_instance"]
     result = {
-              "ft_roi":test_instance.ft_roi,
-              "ft_entries":test_instance.ft_entries,
-              "ft_exits": test_instance.ft_exits,
-              "ft_equity_per_day": test_instance.ft_equity_per_day,
-              "ft_final_equity": test_instance.ft_final_equity
-              }
-    try:
-        tests_table.update_item(
-        Key={'id': test_id},
-        UpdateExpression='SET ft_roi = :ft_roi, ft_entries = :ft_entries, ft_exits = :ft_exits, '
-                        'ft_equity_per_day = :ft_equity_per_day, ft_final_equity = :ft_final_equity',
-        ExpressionAttributeValues={
-            ':ft_roi': str(result["ft_roi"]),
-            ':ft_entries': result["ft_entries"],
-            ':ft_exits': result["ft_exits"],
-            ':ft_equity_per_day': result["ft_equity_per_day"],
-            ':ft_final_equity': str(result["ft_final_equity"])
-        },
-        ReturnValues='NONE'
-)
-    except Exception as e:
-        # If DynamoDB update fails, log the exception and revert the results to None
-        print(f"Failed to update DynamoDB: {e}")
-        
-        # Revert all result attributes to None
-        result = {key: None for key in result}
-        
-        # Revert all test_instance attributes to None
-        test_instance.ft_roi = None
-        test_instance.ft_entries = None
-        test_instance.ft_exits = None
-        test_instance.ft_equity_per_day = None
-        test_instance.ft_final_equity = None
-        
-        return jsonify({"error": "Failed to update DynamoDB"}), 500
+        "test_id": getattr(test_instance, "test_id"),
+        "is_processing": getattr(test_instance, "ft_result_processing")
+    }
 
-    # If the update was successful, return the results
+    # Return an immediate response
     return jsonify(result), 200
  
     

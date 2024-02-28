@@ -121,6 +121,7 @@ class Test:
         self.state = "Created"
         self.stop_flag_live_trade = False
         self.stop_flag_check_status = False
+        self.ft_result_processing = False
         
         self.overall_market_roi = None
         self.overall_max_drawdown = None
