@@ -419,23 +419,6 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
             else:
                 equity_of_day = equity_minus_investment + lot_size * close[i]
                 equity_per_day.append({date_str:str(equity_of_day)})
-            # if equity == initial_investment and not in_position:
-            #     equity_per_day.append({date_str:initial_investment})
-            # elif equity == initial_investment and in_position:
-            #     equity_of_day = equity_minus_investment + lot_size * close[i]
-            #     equity_per_day.append({date_str:equity_of_day})
-            # elif equity != initial_investment and not in_position:
-            #     equity_of_day = equity
-            #     equity_per_day.append({date_str:equity_of_day})
-            # elif equity != initial_investment and in_position:
-            #     equity_of_day = equity_minus_investment + lot_size * close[i]
-            #     equity_per_day.append({date_str:equity_of_day})
-
-    # # if still in position -> sell all share
-    # if in_position:
-    #     # equity += share * close[i] - commission
-    #     equity = equity_minus_investment + share * close.iloc[-1] - commission
-
     earning = equity - initial_investment
     if initial_investment != 0:
         roi = round(earning/initial_investment*100, 2)
@@ -444,6 +427,4 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
     final_equity = equity
     formatted_investment_value = _format_investment_value(initial_investment)
     print(f'Earning from investing ${formatted_investment_value} is ${round(earning, 2)} (ROI = {roi}%)')
-    # print(
-    #     f'Earning from investing $100k is ${round(earning,2)} (ROI = {roi}%)')
     return entry, exit, equity_per_day, final_equity, roi
