@@ -66,7 +66,7 @@ dynamodb = boto3.resource('dynamodb',
 
 # table = dynamodb.Table('test_by_users-dev')
 # tests_table = dynamodb.Table('TestInstance-hj4kjln2cvcg5cjw6tik2b2grq-dev')
-tests_table = dynamodb.Table('TestInstance-afsbvz5hwbafvjm72dwephdq4y-dev')
+tests_table = dynamodb.Table('TestInstance-ambqia6vxrcgzfv4zl44ahmlp4-dev')
 
 
 

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "storage": {
+      "TestInstance:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}
