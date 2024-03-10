@@ -273,7 +273,7 @@ def find_best_parameters():
         return jsonify({'error': 'An error occurred while processing your request.'}), 500  # HTTP 500 Internal Server Error
     
     
-@app.route("/start_test", methods=["POST"])
+@app.route("/start_forward_test", methods=["POST"])
 def start_test():
     # Extract test_id and user from the request data
     test_id = request.json.get("test_id")
@@ -344,7 +344,7 @@ def start_test():
 
 
 
-@app.route("/stop_test", methods=["POST"])
+@app.route("/stop_forward_test", methods=["POST"])
 def stop_test():
     # Extract test_id and user from the request data
     test_id = request.json.get("test_id")
@@ -648,7 +648,7 @@ def update_test_instance(test_id, test_instance):
         for key in ["ft_roi", "ft_entries", "ft_exits", "ft_equity_per_day", "ft_final_equity"]:
             setattr(test_instance, key, None)
 
-@app.route("/get_test_result", methods=["POST"])
+@app.route("/get_forward_test_result", methods=["POST"])
 def get_test_result():
     test_id = request.json.get("test_id")
     if test_id is None:
