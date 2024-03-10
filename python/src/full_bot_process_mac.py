@@ -314,7 +314,7 @@ class Test:
             }
 
             self.stock_close_price = stock_close_price_json["stock_close_price"]["data"]
-            self.stock_volume = stock_volume_json["stock_volume_json"]["data"]
+            self.stock_volume = stock_volume_json["stock_volume"]["data"]
 
         except Exception as e:
             # Handle general exceptions
