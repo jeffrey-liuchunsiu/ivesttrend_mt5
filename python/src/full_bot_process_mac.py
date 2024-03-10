@@ -285,6 +285,7 @@ class Test:
            
             # Fetch historical data from Yahoo Finance
             data = yf.download(symbol, start=start_date, end=end_date)
+            print('data: ', data)
 
             # Check if the data is empty
             if data.empty:
