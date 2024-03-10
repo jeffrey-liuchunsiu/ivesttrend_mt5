@@ -127,6 +127,7 @@ class Test:
         self.overall_max_drawdown = None
         self.overall_win_loss_ratio = None
         self.stock_close_price = None
+        self.stock_volume = None
         
         
     # Method to update attributes from a dictionary
@@ -276,7 +277,7 @@ class Test:
             elif period_upper == "ALL":
                 self._fetch_and_visualize_data(self.bt_start_date, self.bt_2nd_end_date, 'bt_price_data_with_indicator_all',visualize)
 
-    def fetch_stock_close_price(self, symbol=None, start_date=None, end_date=None):
+    def fetch_stock_price_and_volume(self, symbol=None, start_date=None, end_date=None):
         symbol = self.bt_symbol if symbol == None else symbol
         start_date = self.bt_start_date if start_date == None else start_date
         end_date = self.bt_2nd_end_date if end_date == None else end_date
@@ -300,13 +301,27 @@ class Test:
                         ],
                     },
             }
+            
+            stock_volume_json = {
+                "stock_volume": {
+                        "name": "Stock Volume",
+                        "type": "line",
+                        "data": [
+                            {"date": date.strftime('%Y-%m-%d'), "volume": "{:.2f}".format(price)}
+                            for date, price in data['volume'].dropna().items()
+                        ],
+                    },
+            }
 
             self.stock_close_price = stock_close_price_json["stock_close_price"]["data"]
+            self.stock_volume = stock_volume_json["stock_volume_json"]["data"]
 
         except Exception as e:
             # Handle general exceptions
             error_message = f"An error occurred: {str(e)}"
             return json.dumps({"error": error_message})
+        
+    
     
     def backtest(self, period):
         # Mapping of period keys to their respective data_frame attributes
