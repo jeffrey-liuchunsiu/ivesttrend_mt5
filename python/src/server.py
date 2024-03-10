@@ -95,6 +95,8 @@ def create_test():
             return jsonify({"error": "Invalid test instance data"}), 400
         
         test_instance.fetch_stock_price_and_volume()
+        print('test_instance_stock_volume: ', test_instance.stock_volume)
+        print('test_instance_stock_close_price: ', test_instance.stock_close_price)
         
         update_response = save_test_instance(tests_table, test_instance, user, uuid_id)
         if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
