@@ -15,7 +15,7 @@ from mt5linux import MetaTrader5
 from schedule import Scheduler
 import uuid
 import shortuuid
-# from threading import Thread
+from threading import Thread
 
 mt5 = MetaTrader5(
     # host = 'localhost',
@@ -647,25 +647,25 @@ def update_test_instance(test_id, test_instance):
         for key in ["ft_roi", "ft_entries", "ft_exits", "ft_equity_per_day", "ft_final_equity"]:
             setattr(test_instance, key, None)
 
-# @app.route("/get_test_result", methods=["POST"])
-# def get_test_result():
-#     test_id = request.json.get("test_id")
-#     if test_id is None:
-#         return jsonify({"error": "Missing test_id"}), 400
+@app.route("/get_test_result", methods=["POST"])
+def get_test_result():
+    test_id = request.json.get("test_id")
+    if test_id is None:
+        return jsonify({"error": "Missing test_id"}), 400
 
-#     test_instance_data = next(
-#         (inst for inst in test_instances if inst["test_id"] == test_id), None)
-#     if test_instance_data is None:
-#         return jsonify({"error": "Test instance not found"}), 400
+    test_instance_data = next(
+        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+    if test_instance_data is None:
+        return jsonify({"error": "Test instance not found"}), 400
 
-#     # Start the background task for updating the test instance
-#     test_instance = test_instance_data["test_instance"]
-#     thread = Thread(target=update_test_instance, args=(test_id, test_instance))
-#     thread.start()
-#     setattr(test_instance, "ft_result_processing", True)
+    # Start the background task for updating the test instance
+    test_instance = test_instance_data["test_instance"]
+    thread = Thread(target=update_test_instance, args=(test_id, test_instance))
+    thread.start()
+    setattr(test_instance, "ft_result_processing", True)
 
-#     # Return an immediate response
-#     return jsonify({"message": "Test result processing has been started."}), 202
+    # Return an immediate response
+    return jsonify({"message": "Test result processing has been started."}), 202
 
 @app.route("/get_test_result_processing", methods=["POST"])
 def get_test_result_processing():
