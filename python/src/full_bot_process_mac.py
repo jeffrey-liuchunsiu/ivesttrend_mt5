@@ -308,13 +308,12 @@ class Test:
                         "name": "Stock Volume",
                         "type": "line",
                         "data": [
-                            {"date": date.strftime('%Y-%m-%d'), "volume": "{:.2f}".format(price)}
+                            {"date": date.strftime('%Y-%m-%d'), "volume": str(int(price)) }
                             for date, price in data['Volume'].dropna().items()
                         ],
                     },
             }
-            print('stock_close_price_json: ', stock_close_price_json)
-            print('stock_volume_json: ', stock_volume_json)
+
             self.stock_close_price = stock_close_price_json["stock_close_price"]["data"]
             self.stock_volume = stock_volume_json["stock_volume"]["data"]
 
