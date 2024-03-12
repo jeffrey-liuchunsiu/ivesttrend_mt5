@@ -689,7 +689,7 @@ def get_test_result_processing():
     return jsonify(result), 200
  
     
-@app.route('/remove_test', methods=['POST'])
+@app.route('/remove_forward_test', methods=['POST'])
 def remove_test():
     # Get test_id from the request body
     data = request.json
