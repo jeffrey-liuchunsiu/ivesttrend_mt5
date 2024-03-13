@@ -396,9 +396,8 @@ class Test:
 
 
     def progress_report(self,percentage):
-        
         self.ft_getting_result_progress_percentage = round(percentage,2)
-        print(f"Function is {percentage:.2f}% complete.")
+        # print(f"Function is {percentage:.2f}% complete.")
 
 
     def get_forward_test_result(self):
