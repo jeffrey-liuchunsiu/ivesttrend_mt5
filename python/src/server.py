@@ -681,9 +681,9 @@ def get_forward_test_progress_percentage():
 
     # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
-    processing = test_instance['ft_result_processing']
+    processing = test_instance.ft_result_processing
     if processing:
-        result = test_instance['ft_getting_result_progress_percentage']
+        result = test_instance.ft_getting_result_progress_percentage
 
         # Return an immediate response
         return jsonify({"percentage": result}), 200
