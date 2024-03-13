@@ -285,7 +285,7 @@ class Test:
            
             # Fetch historical data from Yahoo Finance
             data = yf.download(symbol, start=start_date, end=end_date)
-            print('data: ', data)
+            
 
             # Check if the data is empty
             if data.empty:
@@ -394,6 +394,10 @@ class Test:
         ft.check_mt5_trade_status(self.ft_symbol, self.test_id)
 
 
+    def progress_report(percentage):
+        print(f"Function is {percentage:.2f}% complete.")
+
+
     def get_forward_test_result(self):
         # self.ft_start_date = datetime.now()
         ft.start_mt5()
@@ -409,7 +413,7 @@ class Test:
             self.ft_symbol, self.bt_symbol, self.ft_start_date, end_date, 
             
             self.ft_initial_investment, self.ft_lot_size,
-            self.ft_time_frame_forward, self.test_id)
+            self.ft_time_frame_forward, self.test_id, progress_callback=self.progress_report)
         if history_orders:
             self.ft_roi = history_orders[str(self.ft_symbol)]['roi']
             self.ft_entries = history_orders[str(self.ft_symbol)]['entry_of_deals']

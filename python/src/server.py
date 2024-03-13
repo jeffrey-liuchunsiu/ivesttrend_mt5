@@ -668,8 +668,8 @@ def get_test_result():
     # Return an immediate response
     return jsonify({"message": "Test result processing has been started."}), 202
 
-@app.route("/get_test_result_processing", methods=["POST"])
-def get_test_result_processing():
+@app.route("/get_test_result_not_thread", methods=["POST"])
+def get_test_result_not_thread():
     test_id = request.json.get("test_id")
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400

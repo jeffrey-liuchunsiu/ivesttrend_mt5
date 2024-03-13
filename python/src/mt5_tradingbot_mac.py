@@ -448,7 +448,7 @@ def get_past_data_yfinance(symbol, start_date, end_date, time_frame):
         else:
             return None
         
-def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id):
+def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id, progress_callback=None):
     deal_data = dict()
 
     def check_test_id(deal):
@@ -501,21 +501,27 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     entry_price = None
     # share = lot_size
     equity_per_day = []
-
+    
+    total_steps = len(class_history_deals)
+    print('total_steps: ', total_steps)
+    steps_completed = 0
+    
     for deal in class_history_deals:
-        print('deal: ', deal)
-        print(deal['position_id'])
-        print(type(deal['position_id']))
+        steps_completed += 1
+        if progress_callback:
+            progress_percentage = (steps_completed / total_steps) * 100
+            progress_callback(progress_percentage)
+
         if previous_position_id != deal['position_id']:
             # print(deal.position_id)
             # print(type(deal.position_id))
             deals = mt5.history_deals_get(position=deal['position_id'])
-            print('deals: ', deals)
+
             # deals = trade_deals_to_json(deal)
             # print(deals)
             # deals_array = deals_array+deals
             for deal_item in deals:
-                print('deal_item: ', deal_item)
+
                 # deal = trade_deals_to_json(deal)
                 # print(deal)
                 # print(deal.position_id)
@@ -548,17 +554,17 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
                 json_deal = json.dumps(deal_dict)
                 if deal_item.entry == 0:
                     entry_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
-                    print('df_mt5_deals: ', df_mt5_deals)
-                    print('df_mt5_deals_type: ', type(df_mt5_deals))
-                    print('len(df_mt5_deals): ', len(df_mt5_deals))
+                    # print('df_mt5_deals: ', df_mt5_deals)
+                    # print('df_mt5_deals_type: ', type(df_mt5_deals))
+                    # print('len(df_mt5_deals): ', len(df_mt5_deals))
                     #!!!!!!!!!!!!!!!!!!!!!!!!!
                     # df_mt5_deals = df_mt5_deals.append(deal_dict, ignore_index=True)
                     df_mt5_deals.loc[len(df_mt5_deals)] = deal_dict
                 elif deal_item.entry == 1:
                     exit_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
-                    print('df_mt5_deals: ', df_mt5_deals)
-                    print('df_mt5_deals_type: ', type(df_mt5_deals))
-                    print('len(df_mt5_deals): ', len(df_mt5_deals))
+                    # print('df_mt5_deals: ', df_mt5_deals)
+                    # print('df_mt5_deals_type: ', type(df_mt5_deals))
+                    # print('len(df_mt5_deals): ', len(df_mt5_deals))
                     # df_mt5_deals = df_mt5_deals.append(deal_dict, ignore_index=True)
                     df_mt5_deals.loc[len(df_mt5_deals)] = deal_dict
         current_deal_position_id = deal['position_id']
@@ -619,7 +625,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
                 df_yfinance['Time'] = pd.to_datetime(df_yfinance['Date']).apply(lambda x: int(x.timestamp()))
                 df_yfinance.rename(columns={'Volume': 'Market_Volume'}, inplace=True)
                 df_yfinance['Symbol'] = symbol_bt
-                print('df_yfinance: ', df_yfinance)
+                # print('df_yfinance: ', df_yfinance)
    
                 combined_df = pd.concat([df_yfinance, df_mt5_deals], axis=0, ignore_index=True, sort=False)
 
@@ -627,7 +633,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
 
                 # after merge past data with deal data, then sort based on time
                 combined_df = combined_df.sort_values('Time').reset_index(drop=True)
-                print('combined_df: ', combined_df)
+                # print('combined_df: ', combined_df)
                 # print(combined_df)
                 # filtered_df = combined_df[combined_df['Position_id'].notna()]
                 # print(filtered_df)
@@ -718,7 +724,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     final_equity = equity
     deal_data[symbol_ft] = {"roi": str(roi), "equity_per_day":equity_per_day, "final_equity":str(final_equity),
                             "entry_of_deals": entry_of_deals, "exit_of_deals": exit_of_deals}
-    print('deal_data', deal_data)
+    # print('deal_data', deal_data)
 
     return deal_data
 
