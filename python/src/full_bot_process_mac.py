@@ -122,7 +122,7 @@ class Test:
         self.stop_flag_live_trade = False
         self.stop_flag_check_status = False
         self.ft_result_processing = False
-        self.ft_getting_result_progress_percentage = None
+        self.ft_getting_result_progress_percentage = 0
         
         self.overall_market_roi = None
         self.overall_max_drawdown = None
