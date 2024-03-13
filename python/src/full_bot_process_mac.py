@@ -394,7 +394,7 @@ class Test:
         ft.check_mt5_trade_status(self.ft_symbol, self.test_id)
 
 
-    def progress_report(percentage):
+    def progress_report(self,percentage):
         print(f"Function is {percentage:.2f}% complete.")
 
 
