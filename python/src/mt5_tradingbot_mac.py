@@ -503,14 +503,13 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     equity_per_day = []
     
     total_steps = len(class_history_deals)
-    print('total_steps: ', total_steps)
+
     steps_completed = 0
     
     for deal in class_history_deals:
         steps_completed += 1
         if progress_callback:
             progress_percentage = (steps_completed / total_steps) * 100
-            print('progress_percentage: ', progress_percentage)
             progress_callback(progress_percentage)
 
         if previous_position_id != deal['position_id']:

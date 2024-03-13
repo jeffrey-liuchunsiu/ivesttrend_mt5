@@ -112,7 +112,7 @@ class Test:
         self.ft_exits = None
         self.ft_final_equity = None
         self.ft_equity_per_day = None
-        self.ft_roi = None
+        self.ft_roi = None  
 
         self.test_id = test_id
         self.test_name = test_name
@@ -122,6 +122,7 @@ class Test:
         self.stop_flag_live_trade = False
         self.stop_flag_check_status = False
         self.ft_result_processing = False
+        self.ft_getting_result_progress_percentage = None
         
         self.overall_market_roi = None
         self.overall_max_drawdown = None
@@ -395,6 +396,8 @@ class Test:
 
 
     def progress_report(self,percentage):
+        
+        self.ft_getting_result_progress_percentage = round(percentage)
         print(f"Function is {percentage:.2f}% complete.")
 
 
@@ -420,6 +423,7 @@ class Test:
             self.ft_exits = history_orders[str(self.ft_symbol)]['exit_of_deals']
             self.ft_equity_per_day = history_orders[str(self.ft_symbol)]['equity_per_day']
             self.ft_final_equity = history_orders[str(self.ft_symbol)]['final_equity']
+            self.ft_result_processing = False
         else:
             return None
         

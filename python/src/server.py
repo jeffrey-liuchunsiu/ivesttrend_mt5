@@ -668,6 +668,29 @@ def get_test_result():
     # Return an immediate response
     return jsonify({"message": "Test result processing has been started."}), 202
 
+@app.route("/get_forward_test_progress_percentage", methods=["POST"])
+def get_forward_test_progress_percentage():
+    test_id = request.json.get("test_id")
+    if test_id is None:
+        return jsonify({"error": "Missing test_id"}), 400
+
+    test_instance_data = next(
+        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+    if test_instance_data is None:
+        return jsonify({"error": "Test instance not found"}), 400
+
+    # Start the background task for updating the test instance
+    test_instance = test_instance_data["test_instance"]
+    processing = test_instance['ft_result_processing']
+    if processing:
+        result = test_instance['ft_getting_result_progress_percentage']
+
+        # Return an immediate response
+        return jsonify({"percentage": result}), 200
+    
+    return jsonify({"message": "No getting any result"}), 500
+    
+
 @app.route("/get_test_result_not_thread", methods=["POST"])
 def get_test_result_not_thread():
     test_id = request.json.get("test_id")
