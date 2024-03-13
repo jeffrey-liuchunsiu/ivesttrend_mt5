@@ -686,9 +686,9 @@ def get_forward_test_progress_percentage():
         result = test_instance.ft_getting_result_progress_percentage
 
         # Return an immediate response
-        return jsonify({"percentage": result}), 200
+        return jsonify({"processing":True, "percentage": result}), 200
     
-    return jsonify({"message": "No getting any result"}), 500
+    return jsonify({"processing":False, "percentage": None}), 500
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
