@@ -398,8 +398,8 @@ class Test:
 
 
     def progress_report(self,percentage, elapsed_time, estimated_remaining_time):
-        self.elapsed_time = elapsed_time
-        self.estimated_remaining_time = estimated_remaining_time
+        self.elapsed_time = round(elapsed_time,2)
+        self.estimated_remaining_time = round(estimated_remaining_time,2)
         self.ft_getting_result_progress_percentage = round(percentage,2)
         # print(f"Function is {percentage:.2f}% complete.")
 
