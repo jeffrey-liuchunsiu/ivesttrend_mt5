@@ -449,7 +449,7 @@ def get_past_data_yfinance(symbol, start_date, end_date, time_frame):
             return None
         
 def calculate_time_metrics(start_time, steps_completed, total_steps):
-    elapsed_time = time.time() - start_time
+    elapsed_time = time.time() - start_time 
     progress_fraction = steps_completed / total_steps
     estimated_total_time = elapsed_time / progress_fraction if progress_fraction > 0 else float('inf')
     estimated_remaining_time = estimated_total_time - elapsed_time
@@ -512,12 +512,12 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     total_steps = len(class_history_deals)
 
     steps_completed = 0
-    start_time = time.time()
+    test_start_time = time.time()
     
     for deal in class_history_deals:
         steps_completed += 1
         if progress_callback:
-            elapsed_time, estimated_remaining_time = calculate_time_metrics(start_time, steps_completed, total_steps)
+            elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
             progress_percentage = (steps_completed / total_steps) * 100
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
 
