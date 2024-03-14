@@ -449,6 +449,7 @@ def get_past_data_yfinance(symbol, start_date, end_date, time_frame):
             return None
         
 def calculate_time_metrics(start_time, steps_completed, total_steps):
+    import time
     elapsed_time = time.time() - start_time 
     progress_fraction = steps_completed / total_steps
     estimated_total_time = elapsed_time / progress_fraction if progress_fraction > 0 else float('inf')
@@ -512,8 +513,9 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     total_steps = len(class_history_deals)
 
     steps_completed = 0
+    import time
     test_start_time = time.time()
-    
+    print("Test start")
     for deal in class_history_deals:
         steps_completed += 1
         if progress_callback:
