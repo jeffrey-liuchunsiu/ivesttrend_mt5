@@ -683,12 +683,14 @@ def get_forward_test_progress_percentage():
     test_instance = test_instance_data["test_instance"]
     processing = test_instance.ft_result_processing
     if processing:
-        result = test_instance.ft_getting_result_progress_percentage
+        percentage = test_instance.ft_getting_result_progress_percentage
+        elapsed_time = test_instance.elapsed_time
+        estimated_remaining_time = test_instance.estimated_remaining_time
 
         # Return an immediate response
-        return jsonify({"processing":True, "percentage": result}), 200
+        return jsonify({"processing":True, "percentage": percentage, "elapsed_time":elapsed_time, "estimated_remaining_time":estimated_remaining_time}), 200
     
-    return jsonify({"processing":False, "percentage": None}), 500
+    return jsonify({"processing":False, "percentage": None,"elapsed_time":None, "estimated_remaining_time":None}), 500
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])

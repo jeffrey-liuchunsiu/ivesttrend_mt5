@@ -123,6 +123,8 @@ class Test:
         self.stop_flag_check_status = False
         self.ft_result_processing = False
         self.ft_getting_result_progress_percentage = 0
+        self.elapsed_time = None
+        self.estimated_remaining_time = None
         
         self.overall_market_roi = None
         self.overall_max_drawdown = None
@@ -395,7 +397,9 @@ class Test:
         ft.check_mt5_trade_status(self.ft_symbol, self.test_id)
 
 
-    def progress_report(self,percentage):
+    def progress_report(self,percentage, elapsed_time, estimated_remaining_time):
+        self.elapsed_time = elapsed_time
+        self.estimated_remaining_time = estimated_remaining_time
         self.ft_getting_result_progress_percentage = round(percentage,2)
         # print(f"Function is {percentage:.2f}% complete.")
 
