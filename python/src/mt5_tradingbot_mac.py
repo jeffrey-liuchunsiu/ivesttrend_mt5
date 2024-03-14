@@ -516,8 +516,8 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     
     for deal in class_history_deals:
         steps_completed += 1
-        elapsed_time, estimated_remaining_time = calculate_time_metrics(start_time, steps_completed, total_steps)
         if progress_callback:
+            elapsed_time, estimated_remaining_time = calculate_time_metrics(start_time, steps_completed, total_steps)
             progress_percentage = (steps_completed / total_steps) * 100
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
 
