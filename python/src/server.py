@@ -730,7 +730,7 @@ def get_analyze_news():
     test_instance = test_instance_data["test_instance"]
     
     symbol = getattr(test_instance, "ft_symbol")
-    start_date = getattr(test_instance, "start_date").strftime("%Y-%m-%d")
+    start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
     
     news_results = analyze_news(symbol, start_date, end_date, limit)
