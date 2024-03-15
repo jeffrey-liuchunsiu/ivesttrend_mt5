@@ -55,6 +55,7 @@ def analyze_news(symbol, start_date, end_date, limit=3):
         )
 
         data = response.json()
+        print('data: ', data)
         company_impact = int(data["choices"][0]["message"]["content"])
         item_result["headline_impact"] = company_impact
 
