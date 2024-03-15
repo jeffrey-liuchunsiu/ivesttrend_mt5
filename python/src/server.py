@@ -17,7 +17,7 @@ import uuid
 import shortuuid
 from threading import Thread
 
-from python.src.get_news_history_for_OpenAI import analyze_news
+from get_news_history_for_OpenAI import analyze_news
 
 mt5 = MetaTrader5(
     # host = 'localhost',
