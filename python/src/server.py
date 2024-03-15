@@ -17,6 +17,8 @@ import uuid
 import shortuuid
 from threading import Thread
 
+from python.src.get_news_history_for_OpenAI import analyze_news
+
 mt5 = MetaTrader5(
     # host = 'localhost',
     host = '18.141.245.200',
@@ -712,6 +714,29 @@ def get_test_result_not_thread():
 
     # Return an immediate response
     return jsonify(result), 200
+
+@app.route("/get_analyze_news", methods=["POST"])
+def get_test_result_not_thread():
+    test_id = request.json.get("test_id")
+    limit = request.json.get("limit")
+    if test_id is None:
+        return jsonify({"error": "Missing test_id"}), 400
+    
+    test_instance_data = next(
+        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+    if test_instance_data is None:
+        return jsonify({"error": "Test instance not found"}), 400
+    
+    test_instance = test_instance_data["test_instance"]
+    
+    symbol = getattr(test_instance, "ft_symbol")
+    start_date = getattr(test_instance, "ft_symbol")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    
+    news_results = analyze_news(symbol, start_date, end_date, limit)
+
+    # Return an immediate response
+    return jsonify(news_results), 200
  
     
 @app.route('/remove_forward_test', methods=['POST'])
