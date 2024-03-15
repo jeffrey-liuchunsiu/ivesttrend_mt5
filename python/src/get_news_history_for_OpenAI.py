@@ -5,25 +5,19 @@ import json
 import websocket
 from alpaca_trade_api import REST
 import requests
-import constants
+import os
+from dotenv import load_dotenv
 
-
-os.environ["OPENAI_API_KEY"] = constants.OPENAI_API_KEY
-os.environ["APCA_API_KEY_ID"] = constants.APCA_API_KEY_ID
-os.environ["APCA_API_SECRET_KEY"] = constants.APCA_API_SECRET_KEY
 
 news_result = []
-
-rest_client = REST(os.environ["APCA_API_KEY_ID"],
-                   os.environ["APCA_API_SECRET_KEY"])
 # news = rest_client.get_news("AAPL", "2023-12-01", "2023-12-10", limit=3)
-
+load_dotenv()
 
 def analyze_news(symbol, start_date, end_date, limit=3):
-    os.environ["OPENAI_API_KEY"] = constants.OPENAI_API_KEY
-    os.environ["APCA_API_KEY_ID"] = constants.APCA_API_KEY_ID
-    os.environ["APCA_API_SECRET_KEY"] = constants.APCA_API_SECRET_KEY
-    rest_client = REST(os.environ["APCA_API_KEY_ID"], os.environ["APCA_API_SECRET_KEY"])
+    os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+    os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
+    os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
+    rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
 
     news_result = []
 

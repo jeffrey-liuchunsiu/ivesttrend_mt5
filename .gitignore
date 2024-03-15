@@ -4,3 +4,4 @@ env39
 __pycache__/
 *.py[cod]
 constants.py
+.env
