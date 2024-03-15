@@ -12,8 +12,6 @@ from botocore.exceptions import ClientError
 # import mt5_tradingbot_mac as ft
 import json
 from mt5linux import MetaTrader5
-from schedule import Scheduler
-import uuid
 import shortuuid
 from threading import Thread
 
