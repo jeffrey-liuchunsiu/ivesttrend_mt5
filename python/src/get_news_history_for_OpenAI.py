@@ -102,6 +102,7 @@ def analyze_news(symbol, start_date, end_date, limit=3):
                 "headline": current_event["headline"],
                 "headline_impact": str(company_impact),
                 "ticker_symbol": current_event["symbols"],
+                "url": current_event["url"],
                 "excerpt": "No action"
             }
 
