@@ -716,7 +716,7 @@ def get_test_result_not_thread():
     return jsonify(result), 200
 
 @app.route("/get_analyze_news", methods=["POST"])
-def get_test_result_not_thread():
+def get_analyze_news():
     test_id = request.json.get("test_id")
     limit = request.json.get("limit")
     if test_id is None:
