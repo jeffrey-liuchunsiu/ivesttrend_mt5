@@ -8,6 +8,7 @@ import boto3
 import requests
 import os
 from dotenv import load_dotenv
+import time
 
 
 news_result = []
@@ -20,16 +21,29 @@ load_dotenv()
 def get_dynamodb_item(table, news_id):
     try:
         response = table.get_item(Key={'id': news_id})
-        return response.get('Item', None)
+        item = response.get('Item', None)
+        if item is None:
+            print(f"No item found in DynamoDB with news_id: {news_id}")
+        return item
     except Exception as e:
         print(f"Error retrieving item from DynamoDB: {e}")
         return None
 
 def put_dynamodb_item(table, item):
-    try:
-        table.put_item(Item=item)
-    except Exception as e:
-        print(f"Error saving item to DynamoDB: {e}")
+    # Set the number of retries and the delay between retries
+    retries = 3
+    delay = 1
+
+    for i in range(retries):
+        try:
+            table.put_item(Item=item)
+            return
+        except Exception as e:
+            print(f"Error saving item to DynamoDB: {e}")
+            # Sleep for the specified delay before retrying
+            time.sleep(delay)
+            # Increase the delay between retries
+            delay *= 2
 
 def analyze_news(symbol, start_date, end_date, limit=3):
     # Set API keys from environment variables
