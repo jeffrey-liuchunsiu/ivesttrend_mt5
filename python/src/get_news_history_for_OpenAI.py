@@ -85,6 +85,7 @@ def analyze_news(symbol, start_date, end_date, limit=3):
             # print("Analyze the headline using OpenAI")
             api_request_body = {
                 "model": "gpt-3.5-turbo",
+                "temperature": 0,
                 "messages": [
                     {
                         "role": "system",
