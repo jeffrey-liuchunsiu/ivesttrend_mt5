@@ -427,6 +427,9 @@ class Test:
             self.ft_equity_per_day = history_orders[str(self.ft_symbol)]['equity_per_day']
             self.ft_final_equity = history_orders[str(self.ft_symbol)]['final_equity']
             self.ft_result_processing = False
+            self.elapsed_time = None
+            self.estimated_remaining_time = None
+            self.ft_getting_result_progress_percentage = 0
         else:
             return None
         
