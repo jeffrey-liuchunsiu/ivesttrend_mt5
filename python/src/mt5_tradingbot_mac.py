@@ -298,118 +298,6 @@ def get_rate_data_mt5(symbol, time_frame, start_date):
         print("mt5 return empty past data")
         return None    
      
-    #! old version
-    # pairs = ['XAUUSD','HK50','NAS100','USDJPY']
-    # pair_data = dict()
-    # print('pair_data: ', pair_data)
-    # for pair in pairs:
-    #     timezone = pytz.timezone("Etc/UTC")
-    #     utc_from = start_date - timedelta(days=180)
-        
-    #     utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
-    #                        hour=utc_from.hour, minute=utc_from.minute,tzinfo=timezone)
-    #     utc_form_timestamp = utc_from.timestamp()
-        
-    #     # utc_from = datetime(2023, 1, 1, tzinfo=pytz.timezone('Hongkong'))
-    #     date_to = datetime.now().astimezone(pytz.timezone("Etc/UTC"))
-    #     date_to = datetime(date_to.year, date_to.month, date_to.day,
-    #                        hour=date_to.hour, minute=date_to.minute)
-    #     date_to_timestamp = date_to.timestamp()
-
-
-    #     # # date_to_unix = int(date_to.timestamp())
-        
-    #     # # utc_from_test = datetime(2023, 7, 10, tzinfo=timezone)
-    #     # # utc_from_test_timestamp = utc_from_test.timestamp()
-    #     # # date_from = datetime.fromtimestamp(utc_from_test_timestamp)
-    #     # # utc_to = datetime(2023, 7, 11, hour = 13, tzinfo=timezone)
-    #     rates = mt5.copy_rates_range(pair, time_frame, utc_form_timestamp, date_to_timestamp)
-        
-    #     # # set time zone to UTC
-    #     # timezone = pytz.timezone("Etc/UTC")
-    #     # # create 'datetime' objects in UTC time zone to avoid the implementation of a local time zone offset
-    #     # utc_from = datetime(2020, 1, 10, tzinfo=timezone)
-    #     # utc_to = datetime(2020, 1, 11, hour = 13, tzinfo=timezone)
-    #     # # get bars from USDJPY M5 within the interval of 2020.01.10 00:00 - 2020.01.11 13:00 in UTC time zone
-    #     # rates = mt5.copy_rates_range(pair, mt5.TIMEFRAME_M5, utc_from, utc_to)
-    #     rates_frame = pd.DataFrame(rates)
-    #     print('rates_frame: ', rates_frame)
-    #     rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')
-    #     rates_frame.drop(rates_frame.tail(1).index, inplace=True)
-    #     pair_data[pair] = rates_frame
-    # return pair_data
-
-
-# def get_data(pairs, time_frame, start_date):
-#     print('start_date: ', start_date)
-#     pair_data = dict()
-#     for pair in pairs:
-#         # Calculate the beginning of the time range
-#         utc_from = start_date - timedelta(days=180)
-#         utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
-#                            hour=utc_from.hour, minute=utc_from.minute)
-
-#         # Get the current date and time in the Hong Kong timezone
-#         date_to = datetime(date_to.year, date_to.month, date_to.day,
-#                            hour=date_to.hour, minute=date_to.minute) 
-#         date_to_unix = int(date_to.timestamp())
-
-#         # Fetch data for the pair in the given time range and time frame
-#         rates = mt5.copy_rates_range(pair, time_frame, utc_from, date_to_unix)
-        
-#         # Convert the fetched data into a DataFrame 
-#         rates_frame = pd.DataFrame(rates)
-#         # Convert the 'time' column to a datetime format
-#         rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')
-#         # Drop the last row of the DataFrame
-#         rates_frame.drop(rates_frame.tail(1).index, inplace=True)
-        
-#         # Add the DataFrame to the pair_data dictionary
-#         pair_data[pair] = rates_frame
-    
-#     # Return the pair_data dictionary
-#     return pair_data
-
-
-
-# def check_trades(time_frame, pair_data):
-#     for pair, data in pair_data.items():
-#         data['EMA1'] = ta.EMA(data["close"], 8)
-#         data['EMA2'] = ta.EMA(data["close"], 15)
-#         data['EMA3'] = ta.EMA(data["close"], 30)
-
-#         data = add_super_trend_indicator(data)
-#         data = add_squeeze_momentum_indicator(data)
-
-#         data["time"] = pd.to_datetime(data["time"], unit="s")
-#         data.rename(columns={'time': "date"}, inplace=True)
-
-#         last_row = data.iloc[-1, :]
-#         for index, last in last_row.iterrows():
-#             if (last["close"] > last['EMA1'] and last["open"] < last['EMA1'] and last["EMA1"] > last["EMA2"]):
-#                 res1 = open_pending_position(pair, lot_size, "BUY")
-#                 if res1.retcode == 10009:
-#                     ticket1 = res1.order
-#                     size1 = res1.volume
-#                     res2 = update_position(
-#                         ticket1, size1, tp_distance=tp_size, sl_distance=sl_size)
-#                     if res2.retcode != 10009:
-#                         print("Error in update SL and TP for order "+str(ticket1))
-#                 else:
-#                     print("Failed to send BUY order")
-#                     print("The failure code is: "+str(res1.retcode))
-#             if (last["close"] < last['EMA1'] and last["open"] > last['EMA1'] and last["EMA1"] < last["EMA2"]):
-#                 res1 = open_pending_position(pair, lot_size, "SELL")
-#                 if res1.retcode == 10009:
-#                     ticket1 = res1.order
-#                     size1 = res1.volume
-#                     res2 = update_position(
-#                         ticket1, size1, tp_distance=tp_size, sl_distance=sl_size)
-#                     if res2.retcode != 10009:
-#                         print("Error in update SL and TP for order "+str(ticket1))
-#                 else:
-#                     print("Failed to send SELL order")
-#                     print("The failure code is: "+str(res1.retcode))
 
 def get_past_data_yfinance(symbol, start_date, end_date, time_frame):
     # use mt5 to get data?
@@ -515,7 +403,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     steps_completed = 0
     import time
     test_start_time = time.time()
-    print("Test start")
+    print(f"Test start - {len(class_history_deals)}")
     for deal in class_history_deals:
         steps_completed += 1
         if progress_callback:
@@ -914,36 +802,6 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id,a
                         f'Closed sell at {target_profit} on {date.strftime("%Y/%m/%d")}, reason "Sell reached Profit Target"')
 
 
-        # # if not in position & had deal before and //was in buy position// & price was below stop loss -> have closed buy, mark Stop loss
-        # if not in_position and had_deal_before and order_type == 0 and close_price <= stop_loss:
-
-        #     exit.append((date, close_price))
-
-        #     print(
-        #         f'Close buy at {stop_loss} on {date.strftime("%Y/%m/%d")}, reason "Buy reached Stop Loss"')
-
-        # # if not in position & had deal before and //was in buy position// & price was above Target Profit -> have closed buy, mark Profit Target
-        # elif not in_position and had_deal_before and order_type == 0 and close_price >= target_profit:
-
-        #     exit.append((date, close_price))
-        #     print(
-        #         f'Close buy at {target_profit} on {date.strftime("%Y/%m/%d")}, reason "Buy reached Profit Target"')
-
-        # # if not in position & had deal before and //was in sell position// & price was above stop loss -> have closed sell, mark Stop loss
-        # elif not in_position and had_deal_before and order_type == 1 and stop_loss <= close_price:
-        #     exit.append((date, close_price))
-        #     # trade_CloseDate.append(date)
-        #     print(
-        #         f'Close sell at {stop_loss} on {date.strftime("%Y/%m/%d")}, reason "Sell reached Stop Loss"')
-
-        # # if not in position & had deal before and //was in sell position// & price was below Target Profit -> have closed sell, mark Profit Target
-        # elif not in_position and had_deal_before and order_type == 1 and target_profit >= close_price:
-        #     exit.append((date, close_price))
-        #     # trade_CloseDate.append(date)
-        #     print(
-        #         f'Close sell at {target_profit} on {date.strftime("%Y/%m/%d")}, reason "Sell reached Profit Target"')
-
-
         check_completed = False
 
         # if not in position & price is on uptrend -> buy and entry in
@@ -965,25 +823,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id,a
                     print("Failed to send BUY order")
                     print("The failure code is: "+str(res1.retcode))
 
-                # direction = 'Buy'
 
-                # max_of_consecutive_2_high_prices = max(high.iloc[i], high.iloc[i-1])
-                # min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
-                # entry_price = close.iloc[i]
-
-                # # share = math.floor(equity / close[i] / 100) * 100
-                # # equity -= share * close[i]
-                
-                # equity_per_day.append({date_str:equity- commission})
-                # equity_minus_investment = equity - lot_size * close[i] 
-
-                # entry.append({"Date":date_str, "Type": "Buy", "Entry":"Entry in","Price": close[i], 
-                #             "Volume": lot_size, "Reason":"SuperTrend_is_uptrend",
-                #             "Strategy":"SuperTrend", "Reason_type":"Long"})
-                # in_position = True
-                # print(
-                #     f'Long {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
-                
                 check_completed = True
 
             elif in_position and order_type == 1: 
@@ -1007,38 +847,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id,a
                     print("Failed to send BUY order")
                     print("The failure code is: "+str(res1.retcode))
                 
-                # # if in position & price is on uptrend -> stop short and entry out
-                # profit_per_share = -(close[i] - entry_price)
-                # equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                # equity_per_day.append({date_str:equity})
 
-                # exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": close[i], 
-                #             "Volume": lot_size, "Reason":"SuperTrend_not_downtrend",
-                #             "Strategy":"SuperTrend", "Reason_type":"Stop short"})
-                # in_position = False
-                # direction = None
-
-                # print(
-                #     f'Stop Short at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Not DownTrend"')
-
-
-                # # then long and entry in
-
-                # direction = 'Buy'
-
-                # max_of_consecutive_2_high_prices = max(high.iloc[i], high.iloc[i-1])
-                # min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
-                # entry_price = close.iloc[i]
-
-                # equity_per_day.append({date_str:equity- commission})
-                # equity_minus_investment = equity - lot_size * close[i] 
-
-                # entry.append({"Date":date_str, "Type": "Buy", "Entry":"Entry in","Price": close[i], 
-                #             "Volume": lot_size, "Reason":"SuperTrend_is_uptrend",
-                #             "Strategy":"SuperTrend", "Reason_type":"Long"})
-                # in_position = True
-                # print(
-                #     f'Long {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
 
                 check_completed = True  
 
@@ -1060,79 +869,6 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id,a
                     print("Failed to send SELL order")
                     print("The failure code is: "+str(res1.retcode))
 
-                # direction = 'Sell'
-
-                # max_of_consecutive_2_high_prices = max(high.iloc[i], high.iloc[i-1])
-                # min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
-                # entry_price = close.iloc[i]
-
-                # # share = math.floor(equity / close[i] / 100) * 100
-                # # equity -= share * close[i]
-                
-                # equity_per_day.append({date_str:equity- commission})
-                # equity_minus_investment = equity - lot_size * close[i] 
-
-                # entry.append({"Date":date_str, "Type": "Sell", "Entry":"Entry in","Price": close[i], 
-                #             "Volume": lot_size, "Reason":"SuperTrend_is_downtrend",
-                #             "Strategy":"SuperTrend", "Reason_type":"Short"})
-                # in_position = True
-                # print(
-                #     f'Short {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
-
-                check_completed = True
-
-            # if in position & price is not on uptrend -> stop long and entry out
-            elif in_position and order_type == 0: 
-
-                # if downtrend and in sell position then "Close buy, then sell"
-                ticket = class_order_in_position[0].ticket
-                close_open_position(ticket, symbol_ft, lot_size, "SELL", test_id)
-
-                res1 = open_pending_position(
-                    symbol_ft, lot_size, "SELL", test_id, tp_distance=tp_size, sl_distance=sl_size)
-                if res1.retcode == 10009:
-                    ticket1 = res1.order
-                    size1 = res1.volume
-                    entry.append((date, res1.price))
-                    # trade_OpenDate.append(date)
-                    print(
-                        f'Close Buy {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend Not UpTrend anymore"')
-
-                else:
-                    print("Failed to send SELL order")
-                    print("The failure code is: "+str(res1.retcode))
-
-                # # equity += share * close[i] - commission
-                # profit_per_share = close[i] - entry_price
-                # equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                # equity_per_day.append({date_str:equity})
-
-                # exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": close[i], 
-                #             "Volume": lot_size, "Reason":"SuperTrend_not_uptrend",
-                #             "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
-                # in_position = False
-                # direction = None
-                # print(
-                #     f'Stop Long at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Not UpTrend"')
-
-
-                # # then short and entry in
-
-                # direction = 'Sell'
-
-                # max_of_consecutive_2_high_prices = max(high.iloc[i], high.iloc[i-1])
-                # min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
-                # entry_price = close.iloc[i]
-
-                # equity_per_day.append({date_str:equity- commission})
-                # equity_minus_investment = equity - lot_size * close[i] 
-
-                # entry.append({"Date":date_str, "Type": "Sell", "Entry":"Entry in","Price": close[i], 
-                #             "Volume": lot_size, "Reason":"SuperTrend_is_downtrend",
-                #             "Strategy":"SuperTrend", "Reason_type":"Short"})
-                # in_position = True
-                # print(
-                #     f'Short {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
 
                 check_completed = True
 
@@ -1145,84 +881,6 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id,a
                 print("### No indicator triggered action ###")
 
 
-        # # if not in position & price is on uptrend and squeeze off and momentum bar going up-> buy
-        # if not in_position and is_uptrend and squeeze_off and squeeze_momentum_bar_up:
-        #     res1 = open_pending_position(
-        #         symbol, lot_size, "BUY", test_id, tp_distance=tp_size, sl_distance=sl_size)
-        #     if res1.retcode == 10009:
-        #         ticket1 = res1.order
-        #         size1 = res1.volume
-        #         entry.append((date, res1.price))
-        #         # trade_OpenDate.append(date)
-        #         print(
-        #             f'Buy {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend UpTrend"')
-        #     else:
-        #         print("Failed to send BUY order")
-        #         print("The failure code is: "+str(res1.retcode))
-
-        # elif in_position and order_type == 0 and not is_uptrend:
-
-        #     "Close buy, then sell"
-        #     ticket = class_order_in_position[0].ticket
-        #     close_open_position(ticket, symbol, lot_size, "SELL", test_id)
-
-        #     res1 = open_pending_position(
-        #         symbol, lot_size, "SELL", test_id, tp_distance=tp_size, sl_distance=sl_size)
-        #     if res1.retcode == 10009:
-        #         ticket1 = res1.order
-        #         size1 = res1.volume
-        #         entry.append((date, res1.price))
-        #         # trade_OpenDate.append(date)
-        #         print(
-        #             f'Close Buy {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend Not UpTrend anymore"')
-
-        #     else:
-        #         print("Failed to send SELL order")
-        #         print("The failure code is: "+str(res1.retcode))
-
-        # # if not in position & price is on downtrend and squeeze off and momentum bar going down-> sell
-        # elif not in_position and not is_uptrend and squeeze_off and not squeeze_momentum_bar_up:
-        #     # "sell"
-        #     res1 = open_pending_position(
-        #         symbol, lot_size, "SELL", test_id, tp_distance=tp_size, sl_distance=sl_size)
-        #     if res1.retcode == 10009:
-        #         ticket1 = res1.order
-        #         size1 = res1.volume
-        #         entry.append((date, res1.price))
-        #         # trade_OpenDate.append(date)
-        #         print(
-        #             f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend DownTrend"')
-        #     else:
-        #         print("Failed to send SELL order")
-        #         print("The failure code is: "+str(res1.retcode))
-        # # if in position & sell & price is on uptrend -> close sell, then buy
-        # elif in_position and order_type == 1 and is_uptrend:
-        #     "Close sell, then buy"
-        #     ticket = class_order_in_position[0].ticket
-        #     close_open_position(ticket, symbol, lot_size, "BUY", test_id)
-
-        #     res1 = open_pending_position(
-        #         symbol, lot_size, "BUY", test_id, tp_distance=tp_size, sl_distance=sl_size)
-        #     if res1.retcode == 10009:
-        #         ticket1 = res1.order
-        #         size1 = res1.volume
-        #         entry.append((date, res1.price))
-        #         # trade_OpenDate.append(date)
-        #         print(
-        #             f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend Not DownTrend anymore"')
-
-        #     else:
-        #         print("Failed to send BUY order")
-        #         print("The failure code is: "+str(res1.retcode))
-        # else:
-        #     if not in_position:
-        #         print("Currently: Not in position")
-        #         print("### No indicator triggered action ###")
-        #     else:
-        #         print(f"Currently: In position {order_in_position}")
-        #         print("### No indicator triggered action ###")
-
-# lot_size, sl_size, tp_size, atr_period,multiplier
 def check_mt5_trade_status(symbol_ft, test_id):
     date = None
     stop_loss = 0

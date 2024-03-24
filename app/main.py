@@ -2,10 +2,11 @@
 from fastapi import FastAPI, Depends
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from test_instance_dependencies import get_test_instances  # Import from dependencies.py
-
+# Import from dependencies.py
+from test_instance_dependencies import get_test_instances  
+# Import from routers
 from routers.create_test import router as create_test_router
+from routers.find_best_parameters import find_best_parameters
 
 app = FastAPI()
 
@@ -27,6 +28,7 @@ app = FastAPI()
 
 
 app.include_router(create_test_router, dependencies=[Depends(get_test_instances)])
+app.include_router(find_best_parameters, dependencies=[Depends(get_test_instances)])
 
 
 # You may also include additional routers or middleware heres

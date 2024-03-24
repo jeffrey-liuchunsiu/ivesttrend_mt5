@@ -73,6 +73,7 @@ def analyze_news(symbol, start_date, end_date, limit=3):
 
     for item_news in news:
         current_event = item_news.__dict__["_raw"]
+        print('current_event: ', current_event)
         news_id = str(current_event["id"])
 
         # Check if news ID is in DynamoDB
