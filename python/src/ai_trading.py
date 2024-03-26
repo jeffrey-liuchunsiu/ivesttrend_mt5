@@ -39,7 +39,7 @@ check_interval = 60 * 5 * 12
 
 # Initialize MT5 connection
 def start_mt5():
-    if not mt5.initialize(login=int(mt5_username), password=str(password), server=str(server), path=str(path)):
+    if not mt5.initialize(login=int(username), password=str(password), server=str(server), path=str(path)):
         print("initialize() failed, error code =", mt5.last_error())
         quit()
 
