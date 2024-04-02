@@ -80,7 +80,7 @@ def create_test():
         # uuid_id = str(uuid.uuid4())
         uuid_id = shortuuid.uuid()[:16]
         
-        mt5_magic_id = 1
+        mt5_magic_id = create_new_magic_id(tests_table)
 
         # Validate required fields
         if  not user:
@@ -108,12 +108,14 @@ def create_test():
         
 
         return jsonify({
+                        "success":True,
                         "test_id":uuid_id,
+                        "magic_id":mt5_magic_id,
                         "message": "Test instance created successfully and saved in DynamoDB"
                         }), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"success":False,"error": str(e)}), 500
     
 def create_new_magic_id(table):
     response = table.query(
@@ -131,7 +133,7 @@ def create_new_magic_id(table):
 
     print(f"The largest mt5_magic_id is: {largest_mt5_magic_id}")
     
-    return largest_mt5_magic_id + 1
+    return int(largest_mt5_magic_id) + 1
 
 def test_id_exists(table, test_id):
     """Check if a test ID already exists in the provided DynamoDB table."""
