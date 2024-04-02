@@ -46,7 +46,7 @@ timeframe_minutes = {
 
 
 class Test:
-    def __init__(self, test_strategy_name="SuperTrend", strategy_type = "Trend Following", test_id="TESTING", test_name = "Test", bt_symbol='BTC-USD', bt_atr_period=6,bt_multiplier=10,
+    def __init__(self, test_strategy_name="SuperTrend", strategy_type = "Trend Following", test_id="TESTING", test_name = "Test", mt5_magic_id = None, bt_symbol='BTC-USD', bt_atr_period=6,bt_multiplier=10,
                  bt_start_date=datetime(2020, 1, 1), bt_end_date=datetime(2023, 3, 1),
                  bt_2nd_start_date=datetime(2023, 3, 1), bt_2nd_end_date=datetime(2023, 6, 30), 
                  bt_time_frame_backward='1d', bt_initial_investment=100000000,
@@ -116,6 +116,7 @@ class Test:
 
         self.test_id = test_id
         self.test_name = test_name
+        self.mt5_magic_id = mt5_magic_id
 
         self.scheduler = schedule.Scheduler()
         self.state = "Created"

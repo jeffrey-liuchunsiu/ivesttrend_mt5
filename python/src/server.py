@@ -79,6 +79,8 @@ def create_test():
         user = data.get("user")
         # uuid_id = str(uuid.uuid4())
         uuid_id = shortuuid.uuid()[:16]
+        
+        mt5_magic_id = 1
 
         # Validate required fields
         if  not user:
@@ -89,14 +91,14 @@ def create_test():
             uuid_id = shortuuid.uuid()[:16]
 
         # Create test instance
-        test_instance = create_test_instance(data,uuid_id)
+        test_instance = create_test_instance(data,uuid_id,mt5_magic_id)
         
         if test_instance is None:
             return jsonify({"error": "Invalid test instance data"}), 400
         
         test_instance.fetch_stock_price_and_volume()
         
-        update_response = save_test_instance(tests_table, test_instance, user, uuid_id)
+        update_response = save_test_instance(tests_table, test_instance, user, uuid_id,mt5_magic_id)
         if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
             # Add test instance to in-memory list and DynamoDB
             test_instance.parse_and_convert_parameters()
@@ -112,6 +114,24 @@ def create_test():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+def create_new_magic_id(table):
+    response = table.query(
+    IndexName='mt5_magic_id-index',  # Name of the global secondary index
+    KeyConditionExpression='mt5_magic_id > :val',  # Replace ':val' with a value that is sure to be less than any possible mt5_magic_id
+    ExpressionAttributeValues={
+        ':val': 0
+    },
+    ScanIndexForward=False,  # This makes DynamoDB return the results in descending order
+    Limit=1  # We only want the top result
+)
+
+    # Extract the largest mt5_magic_id
+    largest_mt5_magic_id = response['Items'][0]['mt5_magic_id'] if response['Items'] else None
+
+    print(f"The largest mt5_magic_id is: {largest_mt5_magic_id}")
+    
+    return largest_mt5_magic_id + 1
 
 def test_id_exists(table, test_id):
     """Check if a test ID already exists in the provided DynamoDB table."""
@@ -122,7 +142,7 @@ def test_id_exists_in_memory(test_instances, test_id):
     """Check if a test ID exists in the in-memory list."""
     return any(instance["test_id"] == test_id for instance in test_instances)
 
-def create_test_instance(data,uuid_id):
+def create_test_instance(data,uuid_id, mt5_magic_id):
     """Create and return a new test instance from request data."""
     try:
         return full.Test(
@@ -130,6 +150,7 @@ def create_test_instance(data,uuid_id):
             strategy_type=data["strategy_type"],
             test_id=uuid_id,
             test_name=data["test_name"],
+            mt5_magic_id=mt5_magic_id,
             bt_symbol=data["bt_symbol"],
             bt_atr_period=data["bt_atr_period"],
             bt_multiplier=data["bt_multiplier"],
@@ -155,7 +176,7 @@ def create_test_instance(data,uuid_id):
     except KeyError:  # Missing data fields will raise KeyError
         return None
     
-def save_test_instance(table, instance, user, uuid_id):
+def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
     """Save a test instance to the provided DynamoDB table."""
     try:
         current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -164,6 +185,7 @@ def save_test_instance(table, instance, user, uuid_id):
             'id': uuid_id,
             'test_id': uuid_id,
             "test_name": instance.test_name,
+            "mt5_magic_id": mt5_magic_id,
             'user': user,
             'test_strategy_name': instance.test_strategy_name,
             'strategy_type': instance.strategy_type,
