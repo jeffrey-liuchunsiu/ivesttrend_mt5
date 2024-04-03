@@ -421,6 +421,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
         
         deal_item = deal   
         if deal_item.magic == magic & deal_item.comment != test_id:
+            print('deal_item.magic : ', deal_item.magic )
             
             
         # if previous_position_id != deal['position_id']:
@@ -462,6 +463,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
                         "External_id": deal_item.external_id
                         }
             # Convert dictionary to JSON
+            print('deal_dict: ', deal_dict)
             json_deal = json.dumps(deal_dict)
             if deal_item.entry == 0:
                 entry_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
