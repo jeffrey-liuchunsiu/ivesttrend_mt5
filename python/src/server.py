@@ -119,7 +119,7 @@ def create_test():
     
 def create_new_magic_id():
     
-    largest_mt5_magic = None
+    largest_mt5_magic = 0
 
     # Scan operation parameters
     scan_kwargs = {
@@ -938,7 +938,7 @@ def get_running_instances_and_run():
 if __name__ == "__main__":
  
     states_to_query = ['Created', 'Running', 'End']
-    # delete_tests_by_state('state-index', states_to_query, test_instances)
+    delete_tests_by_state('state-index', states_to_query, test_instances)
     created_and_running_tests = get_tests_by_state('state-index', states_to_query, test_instances)
     get_running_instances_and_run()
     
