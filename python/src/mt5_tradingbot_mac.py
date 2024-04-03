@@ -413,11 +413,11 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     print(f"Test start - {len(class_history_deals)}")
     for deal in class_history_deals:
         print('deal: ', deal)
-        steps_completed += 1
-        if progress_callback:
-            elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
-            progress_percentage = (steps_completed / total_steps) * 100
-            progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
+        # steps_completed += 1
+        # if progress_callback:
+        #     elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
+        #     progress_percentage = (steps_completed / total_steps) * 100
+        #     progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
         
         deal_item = deal   
         if deal_item.magic == magic & deal_item.comment != test_id:
