@@ -377,9 +377,9 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     
     history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
     class_history_deals = filter(check_test_id, history_deals)
-    class_history_deals = trade_deals_to_json(class_history_deals)
+    # class_history_deals = trade_deals_to_json(class_history_deals)
     # print('class_history_deals: ', class_history_deals)
-    # class_history_deals = tuple(class_history_deals)
+    class_history_deals = tuple(class_history_deals)
     # print('class_history_deals: ', class_history_deals)
 
     # class_history_deals = tuple(class_history_deals)
