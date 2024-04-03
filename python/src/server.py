@@ -881,7 +881,9 @@ def get_tests_by_state(index_name, states, test_instances):
             test.edit_parameters(test_instance_data)
             test.parse_and_convert_parameters()
             test_instances.append({"test_id": test.test_id, "test_instance": test})
-        print('test_instances: ', test_instances)
+            
+        print_test = [test['test_id'] for test in test_instances]
+        print('test_instances: ', print_test)
             
         print("Done re-create test instances.")
     except ClientError as e:
