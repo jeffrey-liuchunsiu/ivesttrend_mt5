@@ -5,7 +5,7 @@ import boto3
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from boto3 import resource
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key,Attr
 import pytz 
 from datetime import datetime, timedelta
 from botocore.exceptions import ClientError
@@ -80,7 +80,7 @@ def create_test():
         # uuid_id = str(uuid.uuid4())
         uuid_id = shortuuid.uuid()[:16]
         
-        mt5_magic_id = create_new_magic_id(tests_table)
+        mt5_magic_id = create_new_magic_id()
 
         # Validate required fields
         if  not user:
@@ -117,23 +117,39 @@ def create_test():
     except Exception as e:
         return jsonify({"success":False,"error": str(e)}), 500
     
-def create_new_magic_id(table):
-    response = table.query(
-    IndexName='mt5_magic_id-index',  # Name of the global secondary index
-    KeyConditionExpression='mt5_magic_id > :val',  # Replace ':val' with a value that is sure to be less than any possible mt5_magic_id
-    ExpressionAttributeValues={
-        ':val': 0
-    },
-    ScanIndexForward=False,  # This makes DynamoDB return the results in descending order
-    Limit=1  # We only want the top result
-)
-
-    # Extract the largest mt5_magic_id
-    largest_mt5_magic_id = response['Items'][0]['mt5_magic_id'] if response['Items'] else None
-
-    print(f"The largest mt5_magic_id is: {largest_mt5_magic_id}")
+def create_new_magic_id():
     
-    return int(largest_mt5_magic_id) + 1
+    largest_mt5_magic = None
+
+    # Scan operation parameters
+    scan_kwargs = {
+        'ProjectionExpression': "mt5_magic_id",  # Only retrieve the 'mt5_magic' column
+        'FilterExpression': Attr('mt5_magic_id').exists()  # Filter out items where 'mt5_magic' may not exist
+    }
+
+    done = False
+    start_key = None
+
+    # Perform the scan
+    while not done:
+        if start_key:
+            scan_kwargs['ExclusiveStartKey'] = start_key
+        response = tests_table.scan(**scan_kwargs)
+        items = response.get('Items', [])
+
+        for item in items:
+            mt5_magic_value = item['mt5_magic_id']
+            if largest_mt5_magic is None or mt5_magic_value > largest_mt5_magic:
+                largest_mt5_magic = mt5_magic_value
+        
+        start_key = response.get('LastEvaluatedKey', None)
+        done = start_key is None
+
+
+    # Print the largest value
+    # print(largest_value)
+    
+    return int(largest_mt5_magic) + 1
 
 def test_id_exists(table, test_id):
     """Check if a test ID already exists in the provided DynamoDB table."""
@@ -152,7 +168,7 @@ def create_test_instance(data,uuid_id, mt5_magic_id):
             strategy_type=data["strategy_type"],
             test_id=uuid_id,
             test_name=data["test_name"],
-            mt5_magic_id=mt5_magic_id,
+            mt5_magic_id=int(mt5_magic_id),
             bt_symbol=data["bt_symbol"],
             bt_atr_period=data["bt_atr_period"],
             bt_multiplier=data["bt_multiplier"],
@@ -187,7 +203,7 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'id': uuid_id,
             'test_id': uuid_id,
             "test_name": instance.test_name,
-            "mt5_magic_id": mt5_magic_id,
+            "mt5_magic_id": int(mt5_magic_id),
             'user': user,
             'test_strategy_name': instance.test_strategy_name,
             'strategy_type': instance.strategy_type,
