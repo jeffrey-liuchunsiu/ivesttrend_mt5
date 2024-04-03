@@ -389,7 +389,7 @@ class Test:
         if stock_data:
             #! add bt atr and multi -- done
             ft.forward_trade(stock_data, self.ft_lot_size,
-                            self.ft_sl_size, self.ft_tp_size, self.ft_start_date, self.test_id,atr_period,multiplier)
+                            self.ft_sl_size, self.ft_tp_size, self.ft_start_date, self.test_id,self.mt5_magic_id,atr_period,multiplier)
         else:
             return None
         
@@ -420,7 +420,7 @@ class Test:
             self.ft_symbol, self.bt_symbol, self.ft_start_date, end_date, 
             
             self.ft_initial_investment, self.ft_lot_size,
-            self.ft_time_frame_forward, self.test_id, progress_callback=self.progress_report)
+            self.ft_time_frame_forward, self.test_id, self.mt5_magic_id, progress_callback=self.progress_report)
         if history_orders:
             self.ft_roi = history_orders[str(self.ft_symbol)]['roi']
             self.ft_entries = history_orders[str(self.ft_symbol)]['entry_of_deals']

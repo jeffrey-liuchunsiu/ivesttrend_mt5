@@ -349,7 +349,7 @@ def calculate_time_metrics(start_time, steps_completed, total_steps):
     estimated_remaining_time = estimated_total_time - elapsed_time
     return elapsed_time, estimated_remaining_time
         
-def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id, magic_id, progress_callback=None):
+def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id, progress_callback=None):
     deal_data = dict()
 
     def check_test_id(deal):
@@ -406,7 +406,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     total_steps = len(class_history_deals)
 
     steps_completed = 0
-
+    import time
     test_start_time = time.time()
     print(f"Test start - {len(class_history_deals)}")
     for deal in class_history_deals:
@@ -415,18 +415,16 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
             elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
             progress_percentage = (steps_completed / total_steps) * 100
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
-            
-        if deal.magic == magic_id & deal.comment != test_id:
-            deal_item = deal
-        # if previous_position_id != deal['position_id']:
+
+        if previous_position_id != deal['position_id']:
             # print(deal.position_id)
             # print(type(deal.position_id))
-            # deals = mt5.history_deals_get(position=deal['position_id'])
+            deals = mt5.history_deals_get(position=deal['position_id'])
 
             # deals = trade_deals_to_json(deal)
             # print(deals)
             # deals_array = deals_array+deals
-            # for deal_item in deals:
+            for deal_item in deals:
 
                 # deal = trade_deals_to_json(deal)
                 # print(deal)
@@ -434,47 +432,47 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
                 # print(type(deal))
                 # print(deal.position_id)
                 # print(type(deal.position_id))
-            profit_per_share += deal_item.profit
-            # Convert tuple to dictionary
-            deal_dict =  {
-                        "Ticket": deal_item.ticket,
-                        "Order": deal_item.order,
-                        "Time": deal_item.time,
-                        "Time_msc": deal_item.time_msc,
-                        "Type": deal_item.type,
-                        "Entry": deal_item.entry,
-                        "Magic": deal_item.magic,
-                        "Position_id": deal_item.position_id,
-                        "Reason": deal_item.reason,
-                        "Deal_Volume": deal_item.volume,
-                        "Price": deal_item.price,
-                        "Commission": deal_item.commission,
-                        "Swap": deal_item.swap,
-                        "Profit": deal_item.profit,
-                        "Fee": deal_item.fee,
-                        "Symbol": deal_item.symbol,
-                        "Comment": deal_item.comment,
-                        "External_id": deal_item.external_id
-                        }
-            # Convert dictionary to JSON
-            json_deal = json.dumps(deal_dict)
-            if deal_item.entry == 0:
-                entry_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
-                # print('df_mt5_deals: ', df_mt5_deals)
-                # print('df_mt5_deals_type: ', type(df_mt5_deals))
-                # print('len(df_mt5_deals): ', len(df_mt5_deals))
-                #!!!!!!!!!!!!!!!!!!!!!!!!!
-                # df_mt5_deals = df_mt5_deals.append(deal_dict, ignore_index=True)
-                df_mt5_deals.loc[len(df_mt5_deals)] = deal_dict
-            elif deal_item.entry == 1:
-                exit_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
-                # print('df_mt5_deals: ', df_mt5_deals)
-                # print('df_mt5_deals_type: ', type(df_mt5_deals))
-                # print('len(df_mt5_deals): ', len(df_mt5_deals))
-                # df_mt5_deals = df_mt5_deals.append(deal_dict, ignore_index=True)
-                df_mt5_deals.loc[len(df_mt5_deals)] = deal_dict
-        # current_deal_position_id = deal['position_id']
-        # previous_position_id = current_deal_position_id
+                profit_per_share += deal_item.profit
+                # Convert tuple to dictionary
+                deal_dict =  {
+                            "Ticket": deal_item.ticket,
+                            "Order": deal_item.order,
+                            "Time": deal_item.time,
+                            "Time_msc": deal_item.time_msc,
+                            "Type": deal_item.type,
+                            "Entry": deal_item.entry,
+                            "Magic": deal_item.magic,
+                            "Position_id": deal_item.position_id,
+                            "Reason": deal_item.reason,
+                            "Deal_Volume": deal_item.volume,
+                            "Price": deal_item.price,
+                            "Commission": deal_item.commission,
+                            "Swap": deal_item.swap,
+                            "Profit": deal_item.profit,
+                            "Fee": deal_item.fee,
+                            "Symbol": deal_item.symbol,
+                            "Comment": deal_item.comment,
+                            "External_id": deal_item.external_id
+                            }
+                # Convert dictionary to JSON
+                json_deal = json.dumps(deal_dict)
+                if deal_item.entry == 0:
+                    entry_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
+                    # print('df_mt5_deals: ', df_mt5_deals)
+                    # print('df_mt5_deals_type: ', type(df_mt5_deals))
+                    # print('len(df_mt5_deals): ', len(df_mt5_deals))
+                    #!!!!!!!!!!!!!!!!!!!!!!!!!
+                    # df_mt5_deals = df_mt5_deals.append(deal_dict, ignore_index=True)
+                    df_mt5_deals.loc[len(df_mt5_deals)] = deal_dict
+                elif deal_item.entry == 1:
+                    exit_of_deals.append({str(key): str(value) for key, value in json.loads(json_deal).items()})
+                    # print('df_mt5_deals: ', df_mt5_deals)
+                    # print('df_mt5_deals_type: ', type(df_mt5_deals))
+                    # print('len(df_mt5_deals): ', len(df_mt5_deals))
+                    # df_mt5_deals = df_mt5_deals.append(deal_dict, ignore_index=True)
+                    df_mt5_deals.loc[len(df_mt5_deals)] = deal_dict
+        current_deal_position_id = deal['position_id']
+        previous_position_id = current_deal_position_id
     # first_entry = entry[0]
     # investment = first_entry.price*first_entry.volume
     # df_mt5_deals.rename(columns={'Volume': 'Deal_Volume'}, inplace=True)
