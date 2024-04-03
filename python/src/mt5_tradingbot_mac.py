@@ -405,6 +405,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     equity_per_day = []
     
     total_steps = len(class_history_deals)
+    print('class_history_deals: ', class_history_deals)
 
     steps_completed = 0
     import time
@@ -423,6 +424,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
         print('deal_item.magic : ', deal_item.magic == magic)
         print('magic: ', magic)
         print('test_id: ', test_id)
+        print('deal_item.comment: ', deal_item.comment)
         print('deal_item.comment: ', deal_item.comment!=test_id)
         if deal_item.magic == magic and deal_item.comment != test_id:
             
