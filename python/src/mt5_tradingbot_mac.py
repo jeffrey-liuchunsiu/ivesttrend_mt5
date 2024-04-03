@@ -354,7 +354,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     deal_data = dict()
 
     def check_test_id(deal):
-        if deal.comment == test_id:
+        if deal.magic == magic:
             return True
         return False
     
