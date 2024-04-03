@@ -405,7 +405,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     equity_per_day = []
     
     total_steps = len(class_history_deals)
-    print('class_history_deals: ', class_history_deals)
+   
 
     steps_completed = 0
     import time
@@ -413,7 +413,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     test_start_time = time.time()
     print(f"Test start - {len(class_history_deals)}")
     for deal in class_history_deals:
-        # print('deal: ', deal)
+        
         steps_completed += 1
         if progress_callback:
             elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
@@ -421,30 +421,11 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
         
         deal_item = deal   
-        # print('deal_item.magic : ', deal_item.magic == magic)
-        # print('magic: ', magic)
-        # print('test_id: ', test_id)
-        # print('deal_item.comment: ', deal_item.comment)
-        # print('deal_item.comment: ', deal_item.comment!=test_id)
+
         if deal_item.magic == magic and deal_item.comment != test_id:
             
             
-        # if previous_position_id != deal['position_id']:
-            # print(deal.position_id)
-            # print(type(deal.position_id))
-            # deals = mt5.history_deals_get(position=deal['position_id'])
 
-            # deals = trade_deals_to_json(deal)
-            # print(deals)
-            # deals_array = deals_array+deals
-            # for deal_item in deals:
-
-                # deal = trade_deals_to_json(deal)
-                # print(deal)
-                # print(deal.position_id)
-                # print(type(deal))
-                # print(deal.position_id)
-                # print(type(deal.position_id))
             profit_per_share += deal_item.profit
             # Convert tuple to dictionary
             deal_dict =  {
