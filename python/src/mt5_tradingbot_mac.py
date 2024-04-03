@@ -74,7 +74,8 @@ def connect():
 start_mt5()
 
 def open_pending_position(symbol1, volume1, order_type, test_id, magic, tp_distance=None, sl_distance=None):
-
+    print('magic: ', type(magic))
+    magic = int(magic)
     # filling_type = mt5.symbol_info(symbol1).filling_mode
     filling_type = mt5.ORDER_FILLING_IOC
     type1 = None
