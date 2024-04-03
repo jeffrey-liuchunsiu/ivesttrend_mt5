@@ -420,9 +420,11 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
         
         deal_item = deal   
-        print('deal_item.magic : ', deal_item.magic )
+        print('deal_item.magic : ', deal_item.magic == magic)
         print('magic: ', magic)
-        if deal_item.magic == magic & deal_item.comment != test_id:
+        print('test_id: ', test_id)
+        print('deal_item.comment: ', deal_item.comment!=test_id)
+        if deal_item.magic == magic and deal_item.comment != test_id:
             
             
         # if previous_position_id != deal['position_id']:
