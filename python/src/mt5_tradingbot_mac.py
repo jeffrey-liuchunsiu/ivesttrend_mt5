@@ -377,9 +377,9 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     
     history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
     class_history_deals = filter(check_test_id, history_deals)
-    class_history_deals = trade_deals_to_json(class_history_deals)
+    # class_history_deals = trade_deals_to_json(class_history_deals)
     # print('class_history_deals: ', class_history_deals)
-    # class_history_deals = tuple(class_history_deals)
+    class_history_deals = tuple(class_history_deals)
     # print('class_history_deals: ', class_history_deals)
 
     # class_history_deals = tuple(class_history_deals)
@@ -418,9 +418,10 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
             elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
             progress_percentage = (steps_completed / total_steps) * 100
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
+        
+        deal_item = deal   
+        if deal_item.magic == magic & deal_item.comment != test_id:
             
-        if deal["magic"] == magic & deal['comment'] != test_id:
-            deal_item = deal
             
         # if previous_position_id != deal['position_id']:
             # print(deal.position_id)
@@ -441,24 +442,24 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
             profit_per_share += deal_item.profit
             # Convert tuple to dictionary
             deal_dict =  {
-                        "Ticket": deal_item['ticket'],
-                        "Order": deal_item['order'],
-                        "Time": deal_item['time'],
-                        "Time_msc": deal_item['time_msc'],
-                        "Type": deal_item['type'],
-                        "Entry": deal_item['entry'],
-                        "Magic": deal_item['magic'],
-                        "Position_id": deal_item['position_id'],
-                        "Reason": deal_item['reason'],
-                        "Deal_Volume": deal_item['volume'],
-                        "Price": deal_item['price'],
-                        "Commission": deal_item['commission'],
-                        "Swap": deal_item['swap'],
-                        "Profit": deal_item['profit'],
-                        "Fee": deal_item['fee'],
-                        "Symbol": deal_item['symbol'],
-                        "Comment": deal_item['comment'],
-                        "External_id": deal_item['external_id']
+                        "Ticket": deal_item.ticket,
+                        "Order": deal_item.order,
+                        "Time": deal_item.time,
+                        "Time_msc": deal_item.time_msc,
+                        "Type": deal_item.type,
+                        "Entry": deal_item.entry,
+                        "Magic": deal_item.magic,
+                        "Position_id": deal_item.position_id,
+                        "Reason": deal_item.reason,
+                        "Deal_Volume": deal_item.volume,
+                        "Price": deal_item.price,
+                        "Commission": deal_item.commission,
+                        "Swap": deal_item.swap,
+                        "Profit": deal_item.profit,
+                        "Fee": deal_item.fee,
+                        "Symbol": deal_item.symbol,
+                        "Comment": deal_item.comment,
+                        "External_id": deal_item.external_id
                         }
             # Convert dictionary to JSON
             json_deal = json.dumps(deal_dict)
