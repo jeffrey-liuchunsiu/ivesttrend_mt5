@@ -350,7 +350,7 @@ def calculate_time_metrics(start_time, steps_completed, total_steps):
     estimated_remaining_time = estimated_total_time - elapsed_time
     return elapsed_time, estimated_remaining_time
         
-def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id, magic_id, progress_callback=None):
+def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id, magic, progress_callback=None):
     deal_data = dict()
 
     def check_test_id(deal):
@@ -418,8 +418,9 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
             progress_percentage = (steps_completed / total_steps) * 100
             progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
             
-        if deal.magic == magic_id & deal.comment != test_id:
+        if deal.magic == magic & deal.comment != test_id:
             deal_item = deal
+            print('deal: ', deal)
         # if previous_position_id != deal['position_id']:
             # print(deal.position_id)
             # print(type(deal.position_id))
