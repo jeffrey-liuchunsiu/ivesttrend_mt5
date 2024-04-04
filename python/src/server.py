@@ -689,7 +689,7 @@ def update_test_instance(test_id, test_instance):
         
         s3Key = f'{test_id}/forward_test_data.json'
         save_dict_to_s3(s3_bucket_name, result, s3Key)
-        test_instance.s3Key_backtest_data = s3Key
+        test_instance.s3Key_forward_test_data = s3Key
         
         setattr(test_instance, "ft_result_processing", False)
     except Exception as e:
