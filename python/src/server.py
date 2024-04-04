@@ -16,7 +16,7 @@ import shortuuid
 from threading import Thread
 
 from get_news_history_for_OpenAI import analyze_news
-from utils.s3_utils import save_dict_to_s3
+from utils.s3_utils import save_dict_to_s3, delete_object_from_s3
 
 mt5 = MetaTrader5(
     # host = 'localhost',
@@ -539,49 +539,61 @@ def get_in_memory_test_instances():
 @app.route("/backtesting", methods=["POST"])
 def backtesting():
 
+    """
+    This function handles backtesting requests.
+    It retrieves the test instance, performs backtesting,
+    and updates the DynamoDB and S3 with the results.
+    """
+
+    # Retrieve the test_id from the request body
     test_id = request.json.get("test_id")
+
+    # Check if the test_id is provided
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400
 
+    # Find the test instance data in the test_instances list
     test_instance_data = next(
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
+
+    # Check if the test instance is found
     if test_instance_data is None:
         return jsonify({"error": "Test instance not found"}), 400
 
     # Retrieve the test_instance from the stored data
     test_instance = test_instance_data["test_instance"]
-    test_instance.bt_get_data_and_add_indicator("1ST",visualize=False)
-    test_instance.bt_get_data_and_add_indicator("2nd",visualize=False)
-    test_instance.bt_get_data_and_add_indicator("all",visualize=False)
-    
+
+    # Get data and add technical indicators for different time frames
+    test_instance.bt_get_data_and_add_indicator("1ST", visualize=False)
+    test_instance.bt_get_data_and_add_indicator("2nd", visualize=False)
+    test_instance.bt_get_data_and_add_indicator("all", visualize=False)
+
+    # Perform backtesting for different time frames
     test_instance.backtest("1ST")
     test_instance.backtest("2ND")
     test_instance.backtest("ALL")
-    
-    result = {
-       
-            "bt_first_roi" : test_instance.bt_1st_roi,
-            "bt_second_roi" :  test_instance.bt_2nd_roi,
-            "bt_overall_roi" :   test_instance.bt_overall_roi,
 
-            "bt_1st_entries" :  test_instance.bt_1st_entries,
-            "bt_2nd_entries" :   test_instance.bt_2nd_entries,
-            "bt_overall_entries" :  test_instance.bt_overall_entries,
-        
-            "bt_1st_exits" : test_instance.bt_1st_exits,
-            "bt_2nd_exits" : test_instance.bt_2nd_exits,
-            "bt_overall_exits" : test_instance.bt_overall_exits,
-            
-            "bt_1st_final_equity" : test_instance.bt_1st_final_equity,
-            "bt_2nd_final_equity" : test_instance.bt_2nd_final_equity,
-            "bt_overall_final_equity" :  test_instance.bt_overall_final_equity,
-            
-            "bt_1st_equity_per_day" :  test_instance.bt_1st_equity_per_day,
-            "bt_2nd_equity_per_day" :   test_instance.bt_2nd_equity_per_day,
-            "bt_overall_equity_per_day" :  test_instance.bt_overall_equity_per_day
-            }
-    
+    # Create a dictionary to store the backtesting results
+    result = {
+        "bt_first_roi": test_instance.bt_1st_roi,
+        "bt_second_roi": test_instance.bt_2nd_roi,
+        "bt_overall_roi": test_instance.bt_overall_roi,
+        "bt_1st_entries": test_instance.bt_1st_entries,
+        "bt_2nd_entries": test_instance.bt_2nd_entries,
+        "bt_overall_entries": test_instance.bt_overall_entries,
+        "bt_1st_exits": test_instance.bt_1st_exits,
+        "bt_2nd_exits": test_instance.bt_2nd_exits,
+        "bt_overall_exits": test_instance.bt_overall_exits,
+        "bt_1st_final_equity": test_instance.bt_1st_final_equity,
+        "bt_2nd_final_equity": test_instance.bt_2nd_final_equity,
+        "bt_overall_final_equity": test_instance.bt_overall_final_equity,
+        "bt_1st_equity_per_day": test_instance.bt_1st_equity_per_day,
+        "bt_2nd_equity_per_day": test_instance.bt_2nd_equity_per_day,
+        "bt_overall_equity_per_day": test_instance.bt_overall_equity_per_day,
+    }
+
     try:
+        # Update the DynamoDB table with the backtesting results
         tests_table.update_item(
             Key={'id': test_id},
             UpdateExpression='SET bt_1st_roi = :1st_roi, bt_2nd_roi = :2nd_roi, bt_overall_roi = :overall_roi',
@@ -591,18 +603,19 @@ def backtesting():
                 ':overall_roi': str(test_instance.bt_overall_roi),
             },
             ReturnValues='NONE')
-        
+
+        # Save the backtesting results to S3
         s3Key = f'{test_id}/backtest_data.json'
         save_dict_to_s3(s3_bucket_name, result, s3Key)
         test_instance.s3Key_backtest_data = s3Key
-        
+
     except Exception as e:
         # Log the exception
         print(f"Failed to update DynamoDB/S3: {e}")
 
         # Revert all result attributes to None
         result = {key: None for key in result}
-        
+
         # Revert all test_instance attributes related to backtesting to None
         test_instance.bt_1st_roi = None
         test_instance.bt_2nd_roi = None
@@ -619,9 +632,10 @@ def backtesting():
         test_instance.bt_1st_equity_per_day = None
         test_instance.bt_2nd_equity_per_day = None
         test_instance.bt_overall_equity_per_day = None
-        
+
         return jsonify({"error": "Failed to update DynamoDB"}), 500
 
+    # Return the backtesting results
     return jsonify(result), 200
 
 def process_over_all(over_all):
@@ -786,8 +800,10 @@ def remove_test():
     if test_instance_data is None:
         return jsonify({"error": "Test instance not found"}), 400
     
+    
     try:
         # Delete the item from DynamoDB table
+        delete_object_from_s3(s3_bucket_name, test_id)
         response = tests_table.delete_item(
             Key={
                 'id': test_id  # Assuming 'test_id' is the partition key
@@ -802,9 +818,12 @@ def remove_test():
             test_instances[:] = [inst for inst in test_instances if inst["test_id"] != test_id]
             print('test_instances: ', len(test_instances))
             return jsonify({'message': 'Test removed successfully'}), 200
+        
+            
         else:
             return jsonify({'error': 'Failed to remove test from DynamoDB'}), 500
 
+        
     except ClientError as e:
         # Handle specific DynamoDB errors or general AWS errors
         return jsonify({'error': str(e)}), 500

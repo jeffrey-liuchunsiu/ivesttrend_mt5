@@ -24,10 +24,15 @@ def get_json_data_from_s3(bucket_name, s3_key):
     response = s3.get_object(Bucket=bucket_name, Key=s3_key)
     json_data = response['Body'].read().decode('utf-8')
     return json.loads(json_data)
+
+def delete_object_from_s3(bucket_name, s3_key):
+    s3 = boto3.client('s3')
+    s3.delete_object(Bucket=bucket_name, Key=s3_key)
+    print(f"Object {s3_key} deleted from S3 bucket {bucket_name}")
     
     
 if __name__ == "__main__":
-    print("s3")
+    print("testing - s3")
     
     def generate_random_json():
         data = {
