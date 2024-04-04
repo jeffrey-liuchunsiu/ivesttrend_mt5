@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # Generate random JSON object
     random_json = generate_random_json()
     bucket_name = 'investtrend-test-data'
-    s3_key = 'test123/result.json'
-    save_dict_to_s3(bucket_name, random_json, s3_key)
+    s3_key = 'Syi7XPMBW7jdhYqL/stock_close_price.json'
+    # save_dict_to_s3(bucket_name, random_json, s3_key)
     json_data = get_json_data_from_s3(bucket_name, s3_key)
     print(json.dumps(json_data, indent=4))  # Print the JSON data

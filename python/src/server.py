@@ -240,8 +240,8 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'ft_lot_size': instance.ft_lot_size,
             'ft_sl_size': instance.ft_sl_size,
             'ft_tp_size': instance.ft_tp_size,
-            'stock_close_price': instance.s3Key_stock_close_price,
-            'stock_volume': instance.s3Key_stock_volume,
+            's3Key_stock_close_price': instance.s3Key_stock_close_price,
+            's3Key_stock_volume': instance.s3Key_stock_volume,
             'create_time': current_time,
             'state': "Created"
         })
