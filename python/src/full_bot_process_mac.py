@@ -374,6 +374,7 @@ class Test:
 
     # def start_forward_test(self):
     def start_forward_test(self,atr_period=None,multiplier=None):
+        ft.start_mt5()
         self.bt_end_date = datetime.now()
         if atr_period == None:
             atr_period = self.bt_atr_period
