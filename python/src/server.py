@@ -209,7 +209,7 @@ def create_test_instance(data,uuid_id, mt5_magic_id):
 def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
     """Save a test instance to the provided DynamoDB table."""
     try:
-        current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        current_time = datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
        
         update_response = table.put_item(Item={
             'id': uuid_id,
@@ -360,12 +360,12 @@ def start_test():
         return jsonify({"error": "Please define ATR period and Multiplier"}), 400
 
     # Update the item in DynamoDB to set active to True and add the current start_time
-    # current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    # current_time = datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
     # Define the Hong Kong timezone
     hong_kong = pytz.timezone('Asia/Hong_Kong')
 
     # Get the current time in UTC, add one day, and then convert to Hong Kong time
-    current_time = datetime.utcnow().replace(tzinfo=pytz.utc)
+    current_time = datetime.now(datetime.UTC).replace(tzinfo=pytz.utc)
     hong_kong_time = current_time.astimezone(hong_kong)
 
     # Format the time to the desired string format
@@ -426,7 +426,9 @@ def stop_test():
     hong_kong = pytz.timezone('Asia/Hong_Kong')
 
     # Update the item in DynamoDB to set active to False and add the current end_time
-    current_time = datetime.utcnow().replace(tzinfo=pytz.utc) + timedelta(days=1)
+    #!!!!!!!!!!!!!!!!!!!
+    # current_time = datetime.now(datetime.UTC).replace(tzinfo=pytz.utc) + timedelta(days=1)
+    current_time = datetime.now(datetime.UTC).replace(tzinfo=pytz.utc) 
     hong_kong_time = current_time.astimezone(hong_kong)
 
     # Format the time to the desired string format
