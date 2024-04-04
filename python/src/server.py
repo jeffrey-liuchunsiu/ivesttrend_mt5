@@ -716,13 +716,13 @@ def get_test_result():
     test_instance = test_instance_data["test_instance"]
     
     hong_kong = pytz.timezone('Asia/Hong_Kong')
-    current_time = datetime.now().replace(tzinfo=pytz.utc) + timedelta(days=1)
+    current_time = datetime.now().replace(tzinfo=pytz.utc)
     hong_kong_time = current_time.astimezone(hong_kong)
     formatted_time = hong_kong_time.strftime('%Y-%m-%d')
     
-    print('formatted_time: ', formatted_time)
-    print('test_instance.ft_start_date : ', test_instance.ft_start_date )
-    print('test_instance.ft_start_date : ', test_instance.ft_start_date == formatted_time )
+    # print('formatted_time: ', formatted_time)
+    # print('test_instance.ft_start_date : ', test_instance.ft_start_date )
+    # print('test_instance.ft_start_date : ', test_instance.ft_start_date == formatted_time )
     if test_instance.ft_start_date == formatted_time:
         
         return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
