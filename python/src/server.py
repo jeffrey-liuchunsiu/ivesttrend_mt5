@@ -803,7 +803,7 @@ def remove_test():
     
     try:
         # Delete the item from DynamoDB table
-        delete_object_from_s3(s3_bucket_name, test_id)
+        delete_object_from_s3(s3_bucket_name, f"{test_id}/")
         response = tests_table.delete_item(
             Key={
                 'id': test_id  # Assuming 'test_id' is the partition key
@@ -922,7 +922,7 @@ def delete_tests_by_state(index_name, states, test_instances):
                 for item in response['Items']:
 
                     tests_table.delete_item(Key={'id':item['test_id']})
-                    delete_object_from_s3(s3_bucket_name, item['test_id'])
+                    delete_object_from_s3(s3_bucket_name, f'{item['test_id']}/')
 
                 # Handle the potential for paginated results
                 while 'LastEvaluatedKey' in response:
