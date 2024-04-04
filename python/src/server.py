@@ -593,19 +593,20 @@ def backtesting():
     }
 
     try:
+        s3Key = f'{test_id}/backtest_data.json'
         # Update the DynamoDB table with the backtesting results
         tests_table.update_item(
             Key={'id': test_id},
-            UpdateExpression='SET bt_1st_roi = :1st_roi, bt_2nd_roi = :2nd_roi, bt_overall_roi = :overall_roi',
+            UpdateExpression='SET bt_1st_roi = :1st_roi, bt_2nd_roi = :2nd_roi, bt_overall_roi = :overall_roi, s3Key_backtest_data = :s3Key_backtest_data',
             ExpressionAttributeValues={
                 ':1st_roi': str(test_instance.bt_1st_roi),
                 ':2nd_roi': str(test_instance.bt_2nd_roi),
                 ':overall_roi': str(test_instance.bt_overall_roi),
+                ':s3Key_backtest_data': str(s3Key),
             },
             ReturnValues='NONE')
 
         # Save the backtesting results to S3
-        s3Key = f'{test_id}/backtest_data.json'
         save_dict_to_s3(s3_bucket_name, result, s3Key)
         test_instance.s3Key_backtest_data = s3Key
 
@@ -669,6 +670,7 @@ from datetime import datetime, timedelta
 
 
 def update_test_instance(test_id, test_instance):
+    s3Key = f'{test_id}/forward_test_data.json'
     try:
         test_instance.get_forward_test_result()
         result = {
@@ -680,14 +682,14 @@ def update_test_instance(test_id, test_instance):
         }
         tests_table.update_item(
             Key={'id': test_id},
-            UpdateExpression='SET ft_roi = :ft_roi',
+            UpdateExpression='SET ft_roi = :ft_roi, s3Key_forward_test_data = :s3Key_forward_test_data',
             ExpressionAttributeValues={
-                ':ft_roi': str(result["ft_roi"])
+                ':ft_roi': str(result["ft_roi"]),
+                ':s3Key_forward_test_data': str(s3Key)
             },
             ReturnValues='NONE'
         )
         
-        s3Key = f'{test_id}/forward_test_data.json'
         save_dict_to_s3(s3_bucket_name, result, s3Key)
         test_instance.s3Key_forward_test_data = s3Key
         

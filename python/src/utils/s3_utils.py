@@ -75,9 +75,11 @@ if __name__ == "__main__":
     # Generate random JSON object
     random_json = generate_random_json()
     bucket_name = 'investtrend-test-data'
-    s3_key = 'nqYMDefBwvdMpfNv/'
-    # save_dict_to_s3(bucket_name, random_json, s3_key)
-    # json_data = get_json_data_from_s3(bucket_name, s3_key)
-    # print(json.dumps(json_data, indent=4)) 
+    s3_key = 'nAbAqoXGaug98V5u/backtest_data.json'
     
-    delete_folder_from_s3(bucket_name, s3_key)# Print the JSON data
+    # save_dict_to_s3(bucket_name, random_json, s3_key)
+    
+    json_data = get_json_data_from_s3(bucket_name, s3_key)
+    print(json.dumps(json_data, indent=4)) 
+    
+    # delete_folder_from_s3(bucket_name, s3_key)# Print the JSON data
