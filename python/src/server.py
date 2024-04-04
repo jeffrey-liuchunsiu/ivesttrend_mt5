@@ -427,8 +427,8 @@ def stop_test():
 
     # Update the item in DynamoDB to set active to False and add the current end_time
     #!!!!!!!!!!!!!!!!!!!
-    # current_time = datetime.now().replace(tzinfo=pytz.utc) + timedelta(days=1)
-    current_time = datetime.now().replace(tzinfo=pytz.utc) 
+    current_time = datetime.now().replace(tzinfo=pytz.utc) + timedelta(days=1)
+    # current_time = datetime.now().replace(tzinfo=pytz.utc) 
     hong_kong_time = current_time.astimezone(hong_kong)
 
     # Format the time to the desired string format
