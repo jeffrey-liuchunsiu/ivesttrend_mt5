@@ -135,6 +135,7 @@ class Test:
         
         self.s3Key_stock_close_price = None
         self.s3Key_stock_volume = None
+        self.s3Key_backtest_data = None
         
         
     # Method to update attributes from a dictionary

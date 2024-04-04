@@ -538,10 +538,6 @@ def get_in_memory_test_instances():
 
 @app.route("/backtesting", methods=["POST"])
 def backtesting():
-    # global test_instances
-    # start_date = datetime(2020,1,1)
-    # end_date = datetime(2023,6,1)
-
 
     test_id = request.json.get("test_id")
     if test_id is None:
@@ -588,34 +584,21 @@ def backtesting():
     try:
         tests_table.update_item(
             Key={'id': test_id},
-            UpdateExpression='SET bt_1st_roi = :1st_roi, bt_2nd_roi = :2nd_roi, bt_overall_roi = :overall_roi, '
-                            'bt_1st_entries = :first_entries, bt_2nd_entries = :second_entries, bt_overall_entries = :overall_entries, '
-                            'bt_1st_exits = :first_exits, bt_2nd_exits = :second_exits, bt_overall_exits = :overall_exits, '
-                            'bt_1st_final_equity = :first_final_equity, bt_2nd_final_equity = :second_final_equity, bt_overall_final_equity = :overall_final_equity, '
-                            'bt_1st_equity_per_day = :first_equity_per_day, bt_2nd_equity_per_day = :second_equity_per_day, bt_overall_equity_per_day = :overall_equity_per_day',
-        
-                            
+            UpdateExpression='SET bt_1st_roi = :1st_roi, bt_2nd_roi = :2nd_roi, bt_overall_roi = :overall_roi',
             ExpressionAttributeValues={
                 ':1st_roi': str(test_instance.bt_1st_roi),
                 ':2nd_roi': str(test_instance.bt_2nd_roi),
                 ':overall_roi': str(test_instance.bt_overall_roi),
-                ':first_entries': test_instance.bt_1st_entries,
-                ':second_entries': test_instance.bt_2nd_entries,
-                ':overall_entries': test_instance.bt_overall_entries,
-                ':first_exits': test_instance.bt_1st_exits,
-                ':second_exits': test_instance.bt_2nd_exits,
-                ':overall_exits': test_instance.bt_overall_exits,
-                ':first_final_equity': str(test_instance.bt_1st_final_equity),
-                ':second_final_equity': str(test_instance.bt_2nd_final_equity),
-                ':overall_final_equity': str(test_instance.bt_overall_final_equity),
-                ':first_equity_per_day': test_instance.bt_1st_equity_per_day,
-                ':second_equity_per_day': test_instance.bt_2nd_equity_per_day,
-                ':overall_equity_per_day': test_instance.bt_overall_equity_per_day
             },
             ReturnValues='NONE')
+        
+        s3Key = f'{test_id}/backtest_data.json'
+        save_dict_to_s3(s3_bucket_name, result, s3Key)
+        test_instance.s3Key_backtest_data = s3Key
+        
     except Exception as e:
         # Log the exception
-        print(f"Failed to update DynamoDB: {e}")
+        print(f"Failed to update DynamoDB/S3: {e}")
 
         # Revert all result attributes to None
         result = {key: None for key in result}
