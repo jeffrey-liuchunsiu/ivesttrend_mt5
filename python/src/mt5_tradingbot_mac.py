@@ -338,6 +338,8 @@ def get_past_data_yfinance(symbol, start_date, end_date, time_frame):
     else:
         
         yf_interval = timeframe[time_frame]
+        print('fy_end_date: ', end_date)
+        print('fy_start_date: ', start_date)
         df = yf.download(symbol, start=start_date,
                         end=end_date, interval=yf_interval)
         if df is not None:
