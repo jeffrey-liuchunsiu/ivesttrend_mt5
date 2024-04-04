@@ -920,9 +920,9 @@ def delete_tests_by_state(index_name, states, test_instances):
             # Check if any items were returned and delete them
             if 'Items' in response:
                 for item in response['Items']:
-
-                    tests_table.delete_item(Key={'id':item['test_id']})
-                    delete_object_from_s3(s3_bucket_name, f'{item['test_id']}/')
+                    test_id = item['test_id']
+                    tests_table.delete_item(Key={'id':test_id})
+                    delete_object_from_s3(s3_bucket_name, f'{test_id}/')
 
                 # Handle the potential for paginated results
                 while 'LastEvaluatedKey' in response:
