@@ -720,7 +720,7 @@ def get_test_result():
     hong_kong_time = current_time.astimezone(hong_kong)
     formatted_time = hong_kong_time.strftime('%Y-%m-%d')
     
-    if test_instance['ft_start_date'] == formatted_time:
+    if test_instance.ft_start_date == formatted_time:
         return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
     
     thread = Thread(target=update_test_instance, args=(test_id, test_instance))
