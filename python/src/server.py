@@ -722,6 +722,7 @@ def get_test_result():
     
     print('formatted_time: ', formatted_time)
     print('test_instance.ft_start_date : ', test_instance.ft_start_date )
+    print('test_instance.ft_start_date : ', test_instance.ft_start_date == formatted_time )
     if test_instance.ft_start_date == formatted_time:
         
         return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
