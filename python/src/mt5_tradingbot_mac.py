@@ -74,6 +74,7 @@ def connect():
 start_mt5()
 
 def open_pending_position(symbol1, volume1, order_type, test_id, magic, tp_distance=None, sl_distance=None):
+    start_mt5()
     print('magic: ', type(magic))
     magic = int(magic)
     # filling_type = mt5.symbol_info(symbol1).filling_mode
@@ -167,6 +168,7 @@ def open_pending_position(symbol1, volume1, order_type, test_id, magic, tp_dista
 
 
 def close_open_position(ticket, symbol, volume, order_type, test_id, magic):
+    start_mt5()
     if order_type == "BUY":
         type = mt5.ORDER_TYPE_BUY
     elif order_type == "SELL":
@@ -194,7 +196,7 @@ def close_open_position(ticket, symbol, volume, order_type, test_id, magic):
 
 
 def update_position(ticket, size=None, tp_distance=None, stop_distance=None):
-
+    start_mt5()
     ticket_details = position_get_details(ticket)
     symbol = ticket_details["symbol"]
     if symbol is not None:
@@ -236,6 +238,7 @@ def update_position(ticket, size=None, tp_distance=None, stop_distance=None):
 
 
 def positions_get(symbol=None):
+    start_mt5()
     if (symbol is None):
         res = mt5.positions_get()
     else:
@@ -250,6 +253,7 @@ def positions_get(symbol=None):
 
 
 def position_get_details(ticket):
+    start_mt5()
     symbol = None
     price = None
     sl_price = None
