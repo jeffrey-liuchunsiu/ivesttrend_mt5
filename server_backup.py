@@ -16,7 +16,6 @@ import shortuuid
 from threading import Thread
 
 from get_news_history_for_OpenAI import analyze_news
-from utils.s3_utils import save_dict_to_s3
 
 mt5 = MetaTrader5(
     # host = 'localhost',
@@ -68,7 +67,6 @@ dynamodb = boto3.resource('dynamodb',
 # table = dynamodb.Table('test_by_users-dev')
 # tests_table = dynamodb.Table('TestInstance-hj4kjln2cvcg5cjw6tik2b2grq-dev')
 tests_table = dynamodb.Table('TestInstance-ambqia6vxrcgzfv4zl44ahmlp4-dev')
-s3_bucket_name = 'investtrend-test-data'
 
 
 
@@ -99,16 +97,6 @@ def create_test():
             return jsonify({"error": "Invalid test instance data"}), 400
         
         test_instance.fetch_stock_price_and_volume()
-        
-        s3Key_stock_close_price = f'{uuid_id}/stock_close_price.json'
-        save_dict_to_s3(s3_bucket_name, test_instance.stock_close_price, s3Key_stock_close_price)
-        test_instance.s3Key_stock_close_price = s3Key_stock_close_price
-        
-        s3Key_stock_volume = f'{uuid_id}/stock_volume.json'
-        save_dict_to_s3(s3_bucket_name, test_instance.stock_volume, s3Key_stock_volume)
-        test_instance.s3Key_stock_volume = s3Key_stock_volume
-        
-        
         
         update_response = save_test_instance(tests_table, test_instance, user, uuid_id,mt5_magic_id)
         if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
@@ -240,8 +228,8 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'ft_lot_size': instance.ft_lot_size,
             'ft_sl_size': instance.ft_sl_size,
             'ft_tp_size': instance.ft_tp_size,
-            'stock_close_price': instance.s3Key_stock_close_price,
-            'stock_volume': instance.s3Key_stock_volume,
+            'stock_close_price': instance.stock_close_price,
+            'stock_volume': instance.stock_volume,
             'create_time': current_time,
             'state': "Created"
         })
