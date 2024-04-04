@@ -280,6 +280,7 @@ def run_trader(symbol, time_frame, lot_size, sl_size, tp_size):
 
 
 def get_rate_data_mt5(symbol, time_frame, start_date):
+    start_mt5()
     # pairs = ['XAUUSD','HK50','NAS100','USDJPY']
     mt5_data_obj = dict()
     # for pair in pairs:
@@ -357,6 +358,7 @@ def calculate_time_metrics(start_time, steps_completed, total_steps):
     return elapsed_time, estimated_remaining_time
         
 def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_investment, lot_size, time_frame_ft, test_id, magic, progress_callback=None):
+    start_mt5()
     deal_data = dict()
 
     def check_test_id(deal):
@@ -889,6 +891,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
 
 
 def check_mt5_trade_status(symbol_ft, test_id):
+    start_mt5()
     date = None
     stop_loss = 0
     target_profit = 0

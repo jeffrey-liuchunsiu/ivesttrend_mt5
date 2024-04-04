@@ -682,6 +682,7 @@ def update_test_instance(test_id, test_instance):
           "ft_equity_per_day": test_instance.ft_equity_per_day,
           "ft_final_equity": test_instance.ft_final_equity
         }
+        
         tests_table.update_item(
             Key={'id': test_id},
             UpdateExpression='SET ft_roi = :ft_roi, s3Key_forward_test_data = :s3Key_forward_test_data',
