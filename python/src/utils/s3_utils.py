@@ -30,6 +30,30 @@ def delete_object_from_s3(bucket_name, s3_key):
     s3.delete_object(Bucket=bucket_name, Key=s3_key)
     print(f"Object {s3_key} deleted from S3 bucket {bucket_name}")
     
+def delete_folder_from_s3(bucket_name, folder_prefix):
+    s3 = boto3.client('s3')
+    objects_to_delete = []
+
+    # List objects in the folder
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=folder_prefix)
+
+    # Add objects to the delete list
+    if 'Contents' in response:
+        for obj in response['Contents']:
+            objects_to_delete.append({'Key': obj['Key']})
+
+    # Delete objects in batches of 1000 (maximum allowed per request)
+    while len(objects_to_delete) > 0:
+        delete_keys = {'Objects': objects_to_delete[:1000]}
+        response = s3.delete_objects(Bucket=bucket_name, Delete=delete_keys)
+        if 'Errors' in response:
+            print('Failed to delete some objects:')
+            for error in response['Errors']:
+                print(f" - Object: {error['Key']}, Code: {error['Code']}")
+        del objects_to_delete[:1000]
+
+    print(f"Folder {folder_prefix} and its contents deleted from S3 bucket {bucket_name}")
+    
     
 if __name__ == "__main__":
     print("testing - s3")
@@ -51,7 +75,9 @@ if __name__ == "__main__":
     # Generate random JSON object
     random_json = generate_random_json()
     bucket_name = 'investtrend-test-data'
-    s3_key = 'Syi7XPMBW7jdhYqL/stock_close_price.json'
+    s3_key = 'nqYMDefBwvdMpfNv/'
     # save_dict_to_s3(bucket_name, random_json, s3_key)
-    json_data = get_json_data_from_s3(bucket_name, s3_key)
-    print(json.dumps(json_data, indent=4))  # Print the JSON data
+    # json_data = get_json_data_from_s3(bucket_name, s3_key)
+    # print(json.dumps(json_data, indent=4)) 
+    
+    delete_folder_from_s3(bucket_name, s3_key)# Print the JSON data

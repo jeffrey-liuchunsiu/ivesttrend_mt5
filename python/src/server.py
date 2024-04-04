@@ -16,7 +16,7 @@ import shortuuid
 from threading import Thread
 
 from get_news_history_for_OpenAI import analyze_news
-from utils.s3_utils import save_dict_to_s3, delete_object_from_s3
+from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3
 
 mt5 = MetaTrader5(
     # host = 'localhost',
@@ -803,7 +803,7 @@ def remove_test():
     
     try:
         # Delete the item from DynamoDB table
-        delete_object_from_s3(s3_bucket_name, f"{test_id}/")
+        delete_folder_from_s3(s3_bucket_name, f"{test_id}/")
         response = tests_table.delete_item(
             Key={
                 'id': test_id  # Assuming 'test_id' is the partition key
@@ -922,7 +922,7 @@ def delete_tests_by_state(index_name, states, test_instances):
                 for item in response['Items']:
                     test_id = item['test_id']
                     tests_table.delete_item(Key={'id':test_id})
-                    delete_object_from_s3(s3_bucket_name, f'{test_id}/')
+                    delete_folder_from_s3(s3_bucket_name, f'{test_id}/')
 
                 # Handle the potential for paginated results
                 while 'LastEvaluatedKey' in response:
