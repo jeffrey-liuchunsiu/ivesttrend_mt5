@@ -720,10 +720,15 @@ def get_test_result():
     hong_kong_time = current_time.astimezone(hong_kong)
     formatted_time = hong_kong_time.strftime('%Y-%m-%d')
     
+    datetime_obj = datetime.strptime(test_instance.ft_start_date, "%Y-%m-%d %H:%M:%S")
+    test_instance_date_only = datetime_obj.date().strftime("%Y-%m-%d")
+    
     print('formatted_time: ', formatted_time)
     print('test_instance.ft_start_date : ', test_instance.ft_start_date )
     print('test_instance.ft_start_date : ', test_instance.ft_start_date == formatted_time )
-    if test_instance.ft_start_date == formatted_time:
+    
+    
+    if test_instance_date_only == formatted_time:
         
         return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
     
