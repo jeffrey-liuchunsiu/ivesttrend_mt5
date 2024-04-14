@@ -203,7 +203,72 @@ def analyze_news_gemini(symbol, start_date, end_date, limit=3):
 
     return news_result
 
+
+def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
+    os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
+    os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
+    rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
+    
+    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+    # genai.configure(api_key=GOOGLE_API_KEY) 
+    
+
+    news_result = []
+
+    news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
+
+    for item_news in news:
+        item_result = {}
+        current_event = item_news.__dict__["_raw"]
+        item_result["id"] = current_event["id"]
+        item_result["date_time"] = current_event["created_at"]
+        item_result["headline"] = current_event["headline"]
+
+        # Ask ChatGPT its thoughts on the headline
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
+
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        data = {
+            "contents": [{
+                "parts": [{
+                    "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
+                }]
+            }]
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        print(response.json()["candidates"][0]["content"]["parts"][0]["text"])
+
+        try:
+            company_impact = int(response.text)
+        except ValueError:
+            company_impact = 0
+
+        item_result["headline_impact"] = company_impact
+
+        ticker_symbol = current_event["symbols"]
+        item_result["ticker_symbol"] = ticker_symbol
+        
+        if company_impact:
+
+            if company_impact >= 50:
+                item_result["excerpt"] = "Buy Stock"
+                # Place buy order
+
+            elif company_impact <= -50:
+                item_result["excerpt"] = "Sell Stock"
+                # Place sell order
+
+            else:
+                item_result["excerpt"] = "No action"
+
+        news_result.append(item_result)
+
+    return news_result
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
-    analyze_news_gemini('AAPL', '2023-01-01', '2023-01-31')
+    print(analyze_news_gemini_request('AAPL', '2023-01-01', '2023-01-31'))
