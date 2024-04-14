@@ -241,7 +241,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         else:
 
             # Ask ChatGPT its thoughts on the headline
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={GOOGLE_API_KEY}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
 
             headers = {
                 'Content-Type': 'application/json'
