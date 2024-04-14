@@ -240,10 +240,11 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         }
 
         response = requests.post(url, headers=headers, json=data)
-        print(response.json()["candidates"][0]["content"]["parts"][0]["text"])
+        response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+        print('response_text: ', response_text)
 
         try:
-            company_impact = int(response.text)
+            company_impact = int(response_text)
         except ValueError:
             company_impact = 0
 
