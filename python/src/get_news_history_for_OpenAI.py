@@ -211,6 +211,16 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
     
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     # genai.configure(api_key=GOOGLE_API_KEY) 
+    aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+    region_name = os.getenv('AWS_REGION')
+
+    dynamodb = boto3.resource('dynamodb', 
+                            aws_access_key_id=aws_access_key_id, 
+                            aws_secret_access_key=aws_secret_access_key, 
+                            region_name=region_name)
+
+    table = dynamodb.Table('InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev')
     
 
     news_result = []
@@ -218,56 +228,69 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
     news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
 
     for item_news in news:
-        item_result = {}
         current_event = item_news.__dict__["_raw"]
-        item_result["id"] = current_event["id"]
-        item_result["date_time"] = current_event["created_at"]
-        item_result["headline"] = current_event["headline"]
+        # print('current_event: ', current_event)
+        news_id = str(current_event["id"])
 
-        # Ask ChatGPT its thoughts on the headline
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
-
-        headers = {
-            'Content-Type': 'application/json'
-        }
-
-        data = {
-            "contents": [{
-                "parts": [{
-                    "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
-                }]
-            }]
-        }
-
-        response = requests.post(url, headers=headers, json=data)
-        response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-        print('response_text: ', response_text)
-
-        try:
-            company_impact = int(response_text)
-        except ValueError:
-            company_impact = 0
-
-        item_result["headline_impact"] = company_impact
-
-        ticker_symbol = current_event["symbols"]
-        item_result["ticker_symbol"] = ticker_symbol
+        # Check if news ID is in DynamoDB
+        dynamo_item = get_dynamodb_item(table, news_id)
         
-        if company_impact:
+        if dynamo_item:
+            # print(" Use the data from DynamoDB")
+            item_result = dynamo_item
+        else:
+
+            # Ask ChatGPT its thoughts on the headline
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GOOGLE_API_KEY}"
+
+            headers = {
+                'Content-Type': 'application/json'
+            }
+
+            data = {
+                "contents": [{
+                    "parts": [{
+                        "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
+                    }]
+                }],
+                "generationConfig": {
+                    "temperature": 0,
+
+                }
+            }
+
+            response = requests.post(url, headers=headers, json=data)
+            response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            print('response_text: ', response_text)
+
+            try:
+                company_impact = int(response_text)
+            except ValueError:
+                company_impact = 0
+
+                        # Save analyzed data
+            item_result = {
+                "id": str(news_id),
+                "date_time": current_event["created_at"],
+                "headline": current_event["headline"],
+                "headline_impact": str(company_impact),
+                "ticker_symbol": current_event["symbols"],
+                "url": current_event["url"],
+                "excerpt": "No action"
+            }
 
             if company_impact >= 50:
                 item_result["excerpt"] = "Buy Stock"
-                # Place buy order
+                # Place buy order logic here
 
             elif company_impact <= -50:
                 item_result["excerpt"] = "Sell Stock"
-                # Place sell order
+                # Place sell order logic here
 
-            else:
-                item_result["excerpt"] = "No action"
+            # Save the result to DynamoDB
+            put_dynamodb_item(table, item_result)
 
         news_result.append(item_result)
-
     return news_result
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
