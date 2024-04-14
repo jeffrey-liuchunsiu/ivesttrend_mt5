@@ -9,7 +9,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
-import google.generativeai as genai
+# import google.generativeai as genai
 
 
 news_result = []
@@ -138,70 +138,70 @@ def analyze_news(symbol, start_date, end_date, limit=3):
 
     return news_result
 
-def analyze_news_gemini(symbol, start_date, end_date, limit=3):
-    os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
-    os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
-    rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
+# def analyze_news_gemini(symbol, start_date, end_date, limit=3):
+#     os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
+#     os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
+#     rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
     
-    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-    genai.configure(api_key=GOOGLE_API_KEY)
+#     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+#     genai.configure(api_key=GOOGLE_API_KEY)
     
 
-    news_result = []
+#     news_result = []
 
-    news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
+#     news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
 
-    for item_news in news:
-        item_result = {}
-        current_event = item_news.__dict__["_raw"]
-        item_result["id"] = current_event["id"]
-        item_result["date_time"] = current_event["created_at"]
-        item_result["headline"] = current_event["headline"]
+#     for item_news in news:
+#         item_result = {}
+#         current_event = item_news.__dict__["_raw"]
+#         item_result["id"] = current_event["id"]
+#         item_result["date_time"] = current_event["created_at"]
+#         item_result["headline"] = current_event["headline"]
 
-        # Ask ChatGPT its thoughts on the headline
-        prompt = f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
+#         # Ask ChatGPT its thoughts on the headline
+#         prompt = f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
         
-        model = genai.GenerativeModel('gemini-pro')
-        # model = genai.GenerativeModel('gemini-1.5-pro')
+#         model = genai.GenerativeModel('gemini-pro')
+#         # model = genai.GenerativeModel('gemini-1.5-pro')
         
-        response = model.generate_content(
-        prompt, 
-        generation_config=genai.types.GenerationConfig(
-            # Only one candidate for now.
+#         response = model.generate_content(
+#         prompt, 
+#         generation_config=genai.types.GenerationConfig(
+#             # Only one candidate for now.
         
-            temperature=0)
-        )
-        # response = chat.send_message("Basic on the data, Should I buy " + ticker + "?" + "Give me 1 - 100 mark."+ "just give the mark, no need other context")
+#             temperature=0)
+#         )
+#         # response = chat.send_message("Basic on the data, Should I buy " + ticker + "?" + "Give me 1 - 100 mark."+ "just give the mark, no need other context")
 
 
-        print('response.text: ', response.text)
+#         print('response.text: ', response.text)
 
-        try:
-            company_impact = int(response.text)
-        except ValueError:
-            company_impact = 0
+#         try:
+#             company_impact = int(response.text)
+#         except ValueError:
+#             company_impact = 0
 
-        item_result["headline_impact"] = company_impact
+#         item_result["headline_impact"] = company_impact
 
-        ticker_symbol = current_event["symbols"]
-        item_result["ticker_symbol"] = ticker_symbol
+#         ticker_symbol = current_event["symbols"]
+#         item_result["ticker_symbol"] = ticker_symbol
         
-        if company_impact:
+#         if company_impact:
 
-            if company_impact >= 50:
-                item_result["excerpt"] = "Buy Stock"
-                # Place buy order
+#             if company_impact >= 50:
+#                 item_result["excerpt"] = "Buy Stock"
+#                 # Place buy order
 
-            elif company_impact <= -50:
-                item_result["excerpt"] = "Sell Stock"
-                # Place sell order
+#             elif company_impact <= -50:
+#                 item_result["excerpt"] = "Sell Stock"
+#                 # Place sell order
 
-            else:
-                item_result["excerpt"] = "No action"
+#             else:
+#                 item_result["excerpt"] = "No action"
 
-        news_result.append(item_result)
+#         news_result.append(item_result)
 
-    return news_result
+#     return news_result
 
 
 def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):

@@ -15,7 +15,7 @@ from mt5linux import MetaTrader5
 import shortuuid
 from threading import Thread
 
-from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini
+from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3
 
 mt5 = MetaTrader5(
@@ -803,7 +803,7 @@ def get_analyze_news():
     start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
     
-    news_results = analyze_news_gemini(symbol, start_date, end_date, limit)
+    news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
 
     # Return an immediate response
     return jsonify(news_results), 200
