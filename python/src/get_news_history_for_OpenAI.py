@@ -49,7 +49,14 @@ def put_dynamodb_item(table, item):
             
 def get_min_date_time():
     # Initialize DynamoDB
-    dynamodb = boto3.resource('dynamodb')
+    aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+    region_name = os.getenv('AWS_REGION')
+
+    dynamodb = boto3.resource('dynamodb', 
+                            aws_access_key_id=aws_access_key_id, 
+                            aws_secret_access_key=aws_secret_access_key, 
+                            region_name=region_name)
 
     # Specify the table name
     table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
