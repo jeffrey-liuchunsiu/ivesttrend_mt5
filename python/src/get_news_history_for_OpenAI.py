@@ -9,6 +9,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
+from datetime import datetime,timedelta
 # import google.generativeai as genai
 
 
@@ -45,6 +46,45 @@ def put_dynamodb_item(table, item):
             time.sleep(delay)
             # Increase the delay between retries
             delay *= 2
+            
+def get_min_date_time():
+    # Initialize DynamoDB
+    dynamodb = boto3.resource('dynamodb')
+
+    # Specify the table name
+    table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
+    table = dynamodb.Table(table_name)
+
+    # Initialize the minimum date_time
+    min_date = None
+
+    # Scan the table
+    response = table.scan(
+        ProjectionExpression="date_time",  # Only fetch the date_time attribute
+    )
+
+    # Check and update the minimum date_time
+    for item in response['Items']:
+        current_date = datetime.strptime(item['date_time'], "%Y-%m-%dT%H:%M:%SZ").date()
+        if min_date is None or current_date < min_date:
+            min_date = current_date
+
+    # Handle pagination if the response is large
+    while 'LastEvaluatedKey' in response:
+        response = table.scan(
+            ProjectionExpression="date_time",
+            ExclusiveStartKey=response['LastEvaluatedKey']
+        )
+        for item in response['Items']:
+            current_date = datetime.strptime(item['date_time'], "%Y-%m-%dT%H:%M:%SZ").date()
+            if min_date is None or current_date < min_date:
+                min_date = current_date
+
+
+    # Add one day to the minimum date
+    next_day = min_date + timedelta(days=1)
+
+    return next_day
 
 def analyze_news(symbol, start_date, end_date, limit=3):
     # Set API keys from environment variables
@@ -133,75 +173,11 @@ def analyze_news(symbol, start_date, end_date, limit=3):
 
             # Save the result to DynamoDB
             put_dynamodb_item(table, item_result)
+            time.sleep(1)
 
         news_result.append(item_result)
 
     return news_result
-
-# def analyze_news_gemini(symbol, start_date, end_date, limit=3):
-#     os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
-#     os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
-#     rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
-    
-#     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-#     genai.configure(api_key=GOOGLE_API_KEY)
-    
-
-#     news_result = []
-
-#     news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
-
-#     for item_news in news:
-#         item_result = {}
-#         current_event = item_news.__dict__["_raw"]
-#         item_result["id"] = current_event["id"]
-#         item_result["date_time"] = current_event["created_at"]
-#         item_result["headline"] = current_event["headline"]
-
-#         # Ask ChatGPT its thoughts on the headline
-#         prompt = f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
-        
-#         model = genai.GenerativeModel('gemini-pro')
-#         # model = genai.GenerativeModel('gemini-1.5-pro')
-        
-#         response = model.generate_content(
-#         prompt, 
-#         generation_config=genai.types.GenerationConfig(
-#             # Only one candidate for now.
-        
-#             temperature=0)
-#         )
-#         # response = chat.send_message("Basic on the data, Should I buy " + ticker + "?" + "Give me 1 - 100 mark."+ "just give the mark, no need other context")
-
-
-#         print('response.text: ', response.text)
-
-#         try:
-#             company_impact = int(response.text)
-#         except ValueError:
-#             company_impact = 0
-
-#         item_result["headline_impact"] = company_impact
-
-#         ticker_symbol = current_event["symbols"]
-#         item_result["ticker_symbol"] = ticker_symbol
-        
-#         if company_impact:
-
-#             if company_impact >= 50:
-#                 item_result["excerpt"] = "Buy Stock"
-#                 # Place buy order
-
-#             elif company_impact <= -50:
-#                 item_result["excerpt"] = "Sell Stock"
-#                 # Place sell order
-
-#             else:
-#                 item_result["excerpt"] = "No action"
-
-#         news_result.append(item_result)
-
-#     return news_result
 
 
 def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
@@ -229,6 +205,8 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
     print('news: ', len(news))
 
     for item_news in news:
+        
+        item_result = None
         current_event = item_news.__dict__["_raw"]
         # print('current_event: ', current_event)
         news_id = str(current_event["id"])
@@ -261,15 +239,29 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
             }
 
             response = requests.post(url, headers=headers, json=data)
-            # print('response: ', response.text)
-            response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            print('response_text: ', response_text)
+            if response.status_code != 200:
+                print('response: ', response.text)
+                time.sleep(30)
+                response = requests.post(url, headers=headers, json=data)
+            
+            
             if response.status_code == 200:
+                response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                print('response_text: ', response_text)
+                
+                company_impact = None
 
                 try:
                     company_impact = int(response_text)
                 except ValueError:
                     company_impact = 0
+                    
+                if company_impact > 100:
+                    company_impact = 100
+                elif company_impact < -100:
+                    company_impact = -100
+                    
+                
 
                             # Save analyzed data
                 item_result = {
@@ -292,10 +284,13 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 
                 # Save the result to DynamoDB
                 put_dynamodb_item(table, item_result)
+                print(current_event["created_at"])
+                time.sleep(1)
 
         news_result.append(item_result)
     return news_result
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
-    print(analyze_news_gemini_request('BTCUSD', '2022-01-01', '2023-04-21',limit=None))
+    min_date = get_min_date_time()
+    print(analyze_news_gemini_request('BTCUSD', '2022-01-01', min_date,limit=None))
