@@ -226,6 +226,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
     news_result = []
 
     news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
+    print('news: ', len(news))
 
     for item_news in news:
         current_event = item_news.__dict__["_raw"]
@@ -297,4 +298,4 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
-    print(analyze_news_gemini_request('AAPL', '2023-01-01', '2023-02-28'))
+    print(analyze_news_gemini_request('BTCUSD', '2022-01-01', '2023-04-21',limit=None))

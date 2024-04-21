@@ -729,9 +729,9 @@ def get_test_result():
     print('test_instance.ft_start_date : ', test_instance.ft_start_date == formatted_time )
     
     
-    if test_instance_date_only == formatted_time:
+    # if test_instance_date_only == formatted_time:
         
-        return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
+    #     return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
     
     thread = Thread(target=update_test_instance, args=(test_id, test_instance))
     thread.start()

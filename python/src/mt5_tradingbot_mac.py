@@ -494,7 +494,7 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     order_type = None
     commission = None
     
-    if isinstance(df_yfinance, str) and df_yfinance == "Invalid time frame in yFinance":
+    if (isinstance(df_yfinance, str) and df_yfinance == "Invalid time frame in yFinance") or len(df_yfinance) > 0:
 
         mt5_data_obj = get_rate_data_mt5(symbol_ft, time_frame_ft, start_date)
         
