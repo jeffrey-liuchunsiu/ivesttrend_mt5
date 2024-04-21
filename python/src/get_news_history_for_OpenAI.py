@@ -300,4 +300,4 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
     min_date = get_min_date_time()
-    print(analyze_news_gemini_request('BTCUSD', '2022-01-01', min_date,limit=None))
+    print(analyze_news_gemini_request('BTCUSD', '2022-03-30', '2023-01-14',limit=None))
