@@ -820,7 +820,7 @@ def get_analyze_news():
     if impact_above == None:
         impact_above = 50 
     if impact_below == None:
-        impact_below -50
+        impact_below = -50
     if limit == None:
         limit == 10
     
