@@ -788,12 +788,12 @@ def get_test_result_not_thread():
 @app.route("/get_analyze_news", methods=["POST"])
 def get_analyze_news():
     test_id = request.json.get("test_id")
-    limit = int(request.json.get("limit"))
+    limit = request.json.get("limit")
     start_date = request.json.get("start_date")
     end_date = request.json.get("end_date")
     symbol = request.json.get("symbol")
-    impact_above = int(request.json.get("impact_above"))
-    impact_below = int(request.json.get("impact_below")) 
+    impact_above = request.json.get("impact_above")
+    impact_below = request.json.get("impact_below")
     
     table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
     table = dynamodb.Table(table_name)
