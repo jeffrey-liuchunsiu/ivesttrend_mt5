@@ -800,9 +800,9 @@ def get_analyze_news():
     
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400
-    
-    if impact_above < 0 or impact_below > 0:
-        return jsonify({"error": "Invalid values for impact_above or impact_below"}), 400
+    if impact_above or impact_below:
+        if impact_above < 0 or impact_below > 0:
+            return jsonify({"error": "Invalid values for impact_above or impact_below"}), 400
     
     test_instance_data = next(
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
