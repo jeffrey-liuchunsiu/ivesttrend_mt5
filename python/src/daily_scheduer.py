@@ -14,6 +14,7 @@ def job():
 
 def run_scheduler():
     # Schedule the job every day at 12 am
+    job()
     schedule.every().day.at("00:01").do(job)
 
     # Loop so that the scheduling task keeps running

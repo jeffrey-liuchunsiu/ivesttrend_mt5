@@ -111,9 +111,9 @@ def get_min_date_time():
 
     return next_day
 
-# # Example usage
-# next_day = get_min_date_time()
-# print("Next day:", next_day)
+# Example usage
+next_day = get_min_date_time()
+print("Next day:", next_day)
     
 def delete_item():
 
@@ -176,5 +176,5 @@ def change_column():
 if __name__ == "__main__":
     # delete_item()
     # get_item_by_date_time()
-    # get_min_date_time()
-    change_column()
+    get_min_date_time()
+    # change_column()
