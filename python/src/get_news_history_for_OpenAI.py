@@ -304,6 +304,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
                 time.sleep(1)
 
         news_result.append(item_result)
+    print("Done News Task")
     return news_result
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
