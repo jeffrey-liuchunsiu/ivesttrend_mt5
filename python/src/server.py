@@ -788,9 +788,21 @@ def get_test_result_not_thread():
 @app.route("/get_analyze_news", methods=["POST"])
 def get_analyze_news():
     test_id = request.json.get("test_id")
-    limit = request.json.get("limit")
+    limit = int(request.json.get("limit"))
+    start_date = request.json.get("start_date")
+    end_date = request.json.get("end_date")
+    symbol = request.json.get("symbol")
+    impact_above = int(request.json.get("impact_over"))
+    impact_below = int(request.json.get("impact_over"))
+    
+    table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
+    table = dynamodb.Table(table_name)
+    
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400
+    
+    if impact_above < 0 or impact_below > 0:
+        return jsonify({"error": "Invalid values for impact_above or impact_below"}), 400
     
     test_instance_data = next(
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
@@ -799,14 +811,49 @@ def get_analyze_news():
     
     test_instance = test_instance_data["test_instance"]
     
-    symbol = getattr(test_instance, "ft_symbol")
-    start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
+    if symbol == None:
+        symbol = getattr(test_instance, "ft_symbol")
+    if start_date == None:
+        start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
+    if end_date == None:    
+        end_date = datetime.now().strftime("%Y-%m-%d")
     
-    news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
+    # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
+    
+    # Paginate through the results manually to find the last 10 items
+    last_items = []
+    exclusive_start_key = None
+
+    while True:
+        scan_kwargs = {
+            'FilterExpression': Attr('date_time').between(start_date, end_date) &
+                        Attr('ticker_symbol').contains(symbol) 
+        }
+        
+        # Only add ExclusiveStartKey to arguments if it's not None
+        if exclusive_start_key:
+            scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
+
+        response = table.scan(**scan_kwargs)
+        
+        items = response.get('Items', [])
+        print('items: ', len(items))
+        
+        filtered_items = [
+                item for item in items 
+                if int(item['headline_impact']) >= impact_above or int(item['headline_impact']) <= impact_below
+            ]
+        
+        # Prepend to ensure latest items are kept if we exceed 10
+        last_items = filtered_items + last_items
+        last_items = last_items[-(limit):]  # Keep only the last 10 items
+
+        if 'LastEvaluatedKey' not in response or len(last_items) >= limit:
+            break
+        exclusive_start_key = response['LastEvaluatedKey']
 
     # Return an immediate response
-    return jsonify(news_results), 200
+    return jsonify(last_items), 200
  
     
 @app.route('/remove_forward_test', methods=['POST'])

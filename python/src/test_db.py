@@ -1,5 +1,5 @@
 import boto3
-from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Key, Attr
 from dotenv import load_dotenv
 from datetime import datetime,timedelta
 import os
@@ -49,7 +49,10 @@ def get_item_by_magic_id():
     # Output the largest 'mt5_magic' value
     print(f"The largest 'mt5_magic' value is: {largest_mt5_magic}")
     
-def get_item_by_date_time():
+def get_last_10_items_by_date_time():
+    # Initialize a DynamoDB client
+    dynamodb = boto3.resource('dynamodb')
+    
     # Specify the table name
     table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
     table = dynamodb.Table(table_name)
@@ -58,18 +61,44 @@ def get_item_by_date_time():
     start_date = '2024-04-19'
     end_date = '2024-04-20'
     ticker_symbol = 'BTCUSD'
+    limit = 3
 
-    # Perform the query
-    response = table.scan(
-        FilterExpression=Attr('date_time').between(start_date, end_date) & Attr('ticker_symbol').contains(ticker_symbol)
-    )
+    # Paginate through the results manually to find the last 10 items
+    last_items = []
+    exclusive_start_key = None
 
-    # Retrieve the items from the response
-    items = response['Items']
-    print('items: ', len(items))
+    while True:
+        scan_kwargs = {
+            'FilterExpression': Attr('date_time').between(start_date, end_date) &
+                        Attr('ticker_symbol').contains(ticker_symbol) 
+        }
+        
+        # Only add ExclusiveStartKey to arguments if it's not None
+        if exclusive_start_key:
+            scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
+
+        response = table.scan(**scan_kwargs)
+        
+        items = response.get('Items', [])
+        print('items: ', len(items))
+        
+        filtered_items = [
+                item for item in items 
+                if int(item['headline_impact']) >= 50 or int(item['headline_impact']) <= -50
+            ]
+        
+        # Prepend to ensure latest items are kept if we exceed 10
+        last_items = filtered_items + last_items
+        last_items = last_items[-(limit):]  # Keep only the last 10 items
+
+        if 'LastEvaluatedKey' not in response or len(last_items) >= limit:
+            break
+        exclusive_start_key = response['LastEvaluatedKey']
+
+    print('items: ', len(last_items))
 
     # Print the retrieved items
-    for item in items:
+    for item in last_items:
         print(item)
         
 def get_min_date_time():
@@ -154,27 +183,17 @@ def change_column():
     # Scan the table (Note: Use Query if you have specific criteria for selection)
     response = table.scan()
 
-    # Iterate over the items
-    for item in response['Items']:
-        # Assume the attribute to change is 'age' and it's currently a string
-        if 'headline_impact' in item :  # Check if 'age' is a digit-string
-            new_headline_impact = int(item['headline_impact'])  # Convert age from string to integer
-            
-            # Update the item in the table
-            table.update_item(
-                Key={
-                    'id': item['id'],
-                    # Add other components of the primary key if it's a composite key
-                },
-                UpdateExpression='SET headline_impact = :val',
-                ExpressionAttributeValues={
-                    ':val': new_headline_impact
-                }
-            )
+    attr = Attr('headline_impact').attribute_type('N')
+    response = table.scan(FilterExpression = attr)
+    items = response['Items']
+
+    while 'LastEvaluatedKey' in response:
+        response = table.scan(FilterExpression = attr, ExclusiveStartKey = response['LastEvaluatedKey'])
+        items.extend(response['Items'])
     
     
 if __name__ == "__main__":
     # delete_item()
-    # get_item_by_date_time()
-    get_min_date_time()
+    get_last_10_items_by_date_time()
+    # get_min_date_time()
     # change_column()
