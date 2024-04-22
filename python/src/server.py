@@ -792,8 +792,8 @@ def get_analyze_news():
     start_date = request.json.get("start_date")
     end_date = request.json.get("end_date")
     symbol = request.json.get("symbol")
-    impact_above = int(request.json.get("impact_over"))
-    impact_below = int(request.json.get("impact_over")) 
+    impact_above = int(request.json.get("impact_above"))
+    impact_below = int(request.json.get("impact_below")) 
     
     table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
     table = dynamodb.Table(table_name)
