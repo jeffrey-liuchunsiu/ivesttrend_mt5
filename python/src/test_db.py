@@ -111,9 +111,9 @@ def get_min_date_time():
 
     return next_day
 
-# Example usage
-next_day = get_min_date_time()
-print("Next day:", next_day)
+# # Example usage
+# next_day = get_min_date_time()
+# print("Next day:", next_day)
     
 def delete_item():
 
@@ -142,9 +142,39 @@ def delete_item():
         for item in response['Items']:
             print('item: ', item)
             table.delete_item(Key=item)
+            
+def change_column():
+    # Create a DynamoDB client
+    dynamodb = boto3.resource('dynamodb', 
+                            aws_access_key_id=aws_access_key_id, 
+                            aws_secret_access_key=aws_secret_access_key, 
+                            region_name=region_name)
+    table = dynamodb.Table('InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev')
+
+    # Scan the table (Note: Use Query if you have specific criteria for selection)
+    response = table.scan()
+
+    # Iterate over the items
+    for item in response['Items']:
+        # Assume the attribute to change is 'age' and it's currently a string
+        if 'headline_impact' in item :  # Check if 'age' is a digit-string
+            new_headline_impact = int(item['headline_impact'])  # Convert age from string to integer
+            
+            # Update the item in the table
+            table.update_item(
+                Key={
+                    'id': item['id'],
+                    # Add other components of the primary key if it's a composite key
+                },
+                UpdateExpression='SET headline_impact = :val',
+                ExpressionAttributeValues={
+                    ':val': new_headline_impact
+                }
+            )
     
     
 if __name__ == "__main__":
     # delete_item()
     # get_item_by_date_time()
-    get_min_date_time()
+    # get_min_date_time()
+    change_column()

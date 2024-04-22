@@ -246,15 +246,24 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
             }
 
             response = requests.post(url, headers=headers, json=data)
+            # print('response: ', response.text)
             if response.status_code != 200:
                 print('response: ', response.text)
                 time.sleep(30)
                 response = requests.post(url, headers=headers, json=data)
             
+            if response.json()["candidates"][0]["finishReason"] == "SAFETY":
+                print('response: ', response)
+                pass
             
-            if response.status_code == 200:
-                response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                print('response_text: ', response_text)
+            
+            if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
+                try:
+                    response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    print('response_text: ', response_text)
+                except :
+                    print('response: ', response.text)
+                    break
                 
                 company_impact = None
 
@@ -275,7 +284,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
                     "id": str(news_id),
                     "date_time": current_event["created_at"],
                     "headline": current_event["headline"],
-                    "headline_impact": str(company_impact),
+                    "headline_impact": int(company_impact),
                     "ticker_symbol": current_event["symbols"],
                     "url": current_event["url"],
                     "excerpt": "No action"
@@ -300,4 +309,5 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
     min_date = get_min_date_time()
-    print(analyze_news_gemini_request('BTCUSD', '2022-03-30', '2023-01-14',limit=None))
+    print('min_date: ', min_date)
+    print(analyze_news_gemini_request('BTCUSD', '2022-01-01', '2022-03-30',limit=None))
