@@ -793,7 +793,7 @@ def get_analyze_news():
     end_date = request.json.get("end_date")
     symbol = request.json.get("symbol")
     impact_above = int(request.json.get("impact_over"))
-    impact_below = int(request.json.get("impact_over"))
+    impact_below = int(request.json.get("impact_over")) 
     
     table_name = 'InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev'
     table = dynamodb.Table(table_name)
@@ -817,6 +817,12 @@ def get_analyze_news():
         start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
     if end_date == None:    
         end_date = datetime.now().strftime("%Y-%m-%d")
+    if impact_above == None:
+        impact_above = 50 
+    if impact_below == None:
+        impact_below -50
+    if limit == None:
+        limit == 10
     
     # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
     
