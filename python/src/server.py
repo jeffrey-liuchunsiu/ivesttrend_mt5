@@ -14,6 +14,7 @@ import json
 from mt5linux import MetaTrader5
 import shortuuid
 from threading import Thread
+import re
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3
@@ -800,9 +801,29 @@ def get_analyze_news():
     
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400
+    
+    if limit is not None and (not isinstance(limit, int) or limit <= 0):
+        return jsonify({"error": "The limit value is invalid - the limit must be an integer and <= 0"}), 400
+    
+    if start_date is not None:
+        if not isinstance(start_date, str) or not re.match(r"\d{2}-\d{2}-\d{2}", start_date):
+            return jsonify({"error": "Invalid start_date format"}), 400
+
+    if end_date is not None:
+        if not isinstance(end_date, str) or not re.match(r"\d{2}-\d{2}-\d{2}", end_date):
+            return jsonify({"error": "Invalid end_date format"}), 400
+    
     if impact_above or impact_below:
         if impact_above < 0 or impact_below > 0:
-            return jsonify({"error": "Invalid values for impact_above or impact_below"}), 400
+            return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
+        
+    if impact_above is not None:
+        if not isinstance(impact_above, int):
+            return jsonify({"error": "Invalid impact_above value"}), 400
+
+    if impact_below is not None:
+        if not isinstance(impact_below, int):
+            return jsonify({"error": "Invalid impact_below value"}), 400
     
     test_instance_data = next(
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
