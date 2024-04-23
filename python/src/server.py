@@ -813,9 +813,6 @@ def get_analyze_news():
         if not isinstance(end_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", end_date):
             return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
     
-    if impact_above or impact_below:
-        if impact_above < 0 or impact_below > 0:
-            return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
         
     if impact_above is not None:
         if not isinstance(impact_above, int):
@@ -824,6 +821,10 @@ def get_analyze_news():
     if impact_below is not None:
         if not isinstance(impact_below, int):
             return jsonify({"error": "Invalid impact_below value"}), 400
+        
+    if impact_above or impact_below:
+        if impact_above < 0 or impact_below > 0:
+            return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
     
     test_instance_data = next(
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
