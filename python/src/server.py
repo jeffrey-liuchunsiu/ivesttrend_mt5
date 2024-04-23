@@ -816,13 +816,13 @@ def get_analyze_news():
         
     if impact_above is not None:
         if not isinstance(impact_above, int):
-            return jsonify({"error": "Invalid impact_above value"}), 400
+            return jsonify({"error": "Invalid impact_above value - it must be an integer"}), 400
 
     if impact_below is not None:
         if not isinstance(impact_below, int):
-            return jsonify({"error": "Invalid impact_below value"}), 400
+            return jsonify({"error": "Invalid impact_below value - it must be an integer"}), 400
         
-    if impact_above or impact_below:
+    if impact_above and impact_below:
         if impact_above < 0 or impact_below > 0:
             return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
     
