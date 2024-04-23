@@ -822,7 +822,7 @@ def get_analyze_news():
     if impact_below == None:
         impact_below = -50
     if limit == None:
-        limit == 10
+        limit = 10
     
     # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
     
