@@ -806,12 +806,12 @@ def get_analyze_news():
         return jsonify({"error": "The limit value is invalid - the limit must be an integer and <= 0"}), 400
     
     if start_date is not None:
-        if not isinstance(start_date, str) or not re.match(r"\d{2}-\d{2}-\d{2}", start_date):
-            return jsonify({"error": "Invalid start_date format"}), 400
+        if not isinstance(start_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", start_date):
+            return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
 
     if end_date is not None:
-        if not isinstance(end_date, str) or not re.match(r"\d{2}-\d{2}-\d{2}", end_date):
-            return jsonify({"error": "Invalid end_date format"}), 400
+        if not isinstance(end_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", end_date):
+            return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
     
     if impact_above or impact_below:
         if impact_above < 0 or impact_below > 0:
