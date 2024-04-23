@@ -847,7 +847,7 @@ def get_analyze_news():
         
         filtered_items = [
                 item for item in items 
-                if int(item['headline_impact']) >= impact_above or int(item['headline_impact']) <= impact_below
+                if item['headline_impact'] >= impact_above or item['headline_impact'] <= impact_below
             ]
         
         # Prepend to ensure latest items are kept if we exceed 10
