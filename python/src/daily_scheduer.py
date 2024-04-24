@@ -19,7 +19,7 @@ def make_api_calls(test_ids):
         if response.status_code == 200:
             print(f'Successfully processed test ID {test_id}:', response.json())
         else:
-            print(f'Failed to process test ID {test_id}:', response.status_code)
+            print(f'Failed to process test ID {test_id}:', response.json())
 
 
 def job():
