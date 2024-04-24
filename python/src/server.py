@@ -1047,6 +1047,43 @@ def get_tests_by_user():
     except ClientError as e:
         return jsonify({'error': str(e)}), 500
     
+def get_tests_id_by_state(index_name, states):
+
+    test_ids = []
+    try:
+        # Iterate over the states and perform a separate query for each
+        for state in states:
+            response = tests_table.query(
+                IndexName=index_name,
+                KeyConditionExpression=Key('state').eq(state)
+            )
+
+            # Extract test_ids from the items
+            if 'Items' in response:
+                for item in response['Items']:
+                    if 'test_id' in item:  # Make sure 'test_id' exists in the item
+                        test_ids.append(item['test_id'])
+
+                # Handle the potential for paginated results
+                while 'LastEvaluatedKey' in response:
+                    response = tests_table.query(
+                        IndexName=index_name,
+                        KeyConditionExpression=Key('state').eq(state),
+                        ExclusiveStartKey=response['LastEvaluatedKey']
+                    )
+                    for item in response['Items']:
+                        if 'test_id' in item:  # Make sure 'test_id' exists in the item
+                            test_ids.append(item['test_id'])
+
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+        return None  # Return None or appropriate error handling
+    except Exception as e:
+        print(str(e))
+        return None  # Return None or appropriate error handling
+    
+    return test_ids  # Return the list of test IDs
+    
     
 def get_tests_by_state(index_name, states, test_instances):
 
@@ -1144,44 +1181,4 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000,debug=False, use_reloader=False)
  
 
-#    result =  {
-#     "test": [
-#       {
-#         "testName": "SuperTrend",
-#         "backTestRoi": test_instance.bt_roi,
-#         "forwardTestRoi": test_instance.ft_roi,
-#         "data": {
-#           "backTestResult": {
-#             "roi": "",
-#             "period": "",
-#             "investment": "",
-#             "maxDrawDown": "",
-#             "marketReturn": "",
-#             "transactions": [
-#               {
-#                 "tradeNo": "",
-#                 "tradeType": "",
-#                 "dateTime": "",
-#                 "priceUS": ""
-#               }
-#             ]
-#           },
-#           "forwardTestResult": {
-#             "roi": test_instance.ft_roi,
-#             "period": "",
-#             "investment": test_instance.ft_investment,
-#             "maxDrawDown": "lowest_exit_profit",
-#             "marketReturn": ft_roi,
-#             "transactions": [
-#               {
-#                 "tradeNo": "",
-#                 "tradeType": "",
-#                 "dateTime": "",
-#                 "priceUS": ""
-#               }
-#             ]
-#           }
-#         }
-#       }
-#     ]
-#   }
+
