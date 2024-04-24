@@ -16,7 +16,7 @@ def make_api_calls(test_ids):
         payload = {'test_id': test_id}
         response = requests.post(api_url, json=payload, headers=headers)
         
-        if response.status_code == 200:
+        if response.status_code == 202:
             print(f'Successfully processed test ID {test_id}:', response.json())
         else:
             print(f'Failed to process test ID {test_id}:', response.json())
