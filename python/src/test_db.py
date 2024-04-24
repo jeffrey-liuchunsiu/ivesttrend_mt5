@@ -70,7 +70,7 @@ def get_last_10_items_by_date_time():
     while True:
         scan_kwargs = {
             'FilterExpression': Attr('date_time').between(start_date, end_date) &
-                        Attr('ticker_symbol').contains(ticker_symbol) 
+                        Attr('ticker_symbol').contains(ticker_symbol)  
         }
         
         # Only add ExclusiveStartKey to arguments if it's not None

@@ -324,7 +324,91 @@ def find_best_parameters():
 
         # Return a JSON response with the error message and a server error status code
         return jsonify({'error': 'An error occurred while processing your request.'}), 500  # HTTP 500 Internal Server Error
-    
+
+
+@app.route('/edit_test', methods=['POST'])
+def edit_test():
+    try:
+        data = request.get_json()
+        
+
+        test_id = data.get('test_id')
+        if not test_id:
+            return jsonify({"error": "Missing test_id"}), 400
+        
+        data = {key: value for key, value in data.items() if value is not None}
+
+        # Query DynamoDB to find the item based on test_id
+        response = tests_table.get_item(Key={'id': test_id})
+        if 'Item' not in response:
+            return jsonify({"error": "Test instance not found in DynamoDB"}), 404
+
+        original_item = response['Item']
+
+        # Check if the test is either ended or already active
+        if 'test_end_date' in original_item or (original_item.get('state') != "Created"):
+            return jsonify({"error": "Test cannot be edited as it has ended or is already running"}), 403
+        
+                # Find the test instance in the global list by test_id
+        test_instance_data = next(
+            (inst for inst in test_instances if inst["test_id"] == test_id), None)
+
+        if test_instance_data is None:
+            return jsonify({"error": "Test instance not found"}), 400
+
+        # Retrieve the test_instance from the stored data
+        test_instance = test_instance_data["test_instance"]
+        
+        # Update test instance parameters with data provided
+        test_instance.edit_parameters(data)
+
+        update_expression = 'SET '
+        expression_attribute_values = {}
+
+        # Fields that may need to be updated
+        fields = [
+            'bt_start_date', 'bt_end_date', 'bt_2nd_start_date', 'bt_2nd_end_date',
+            'bt_time_frame_backward', 'bt_initial_investment', 'bt_lot_size', 
+            'bt_sl_size', 'bt_tp_size', 'bt_commission'
+        ]
+
+        for field in fields:
+            if data.get(field) is not None:
+                if isinstance(data[field], str):  # Check if the field is a string
+                    # Validate date format if the field is a date
+                    if 'date' in field and data[field]:
+                        try:
+                            datetime.strptime(data[field], '%Y-%m-%d')
+                        except ValueError:
+                            return jsonify({"error": f"Incorrect date format for '{field}'. Expected YYYY-MM-DD."}), 400
+
+                    update_expression += f"{field} = :{field}, "
+                    expression_attribute_values[f":{field}"] = data[field]
+                else:
+                    return jsonify({"error": f"Invalid type for '{field}'. Expected string or null."}), 400
+            elif field in original_item:  # Use existing value if input is None
+                data[field] = original_item[field]
+
+        if not expression_attribute_values:
+            return jsonify({"error": "No valid parameters provided to update"}), 400
+
+        # Remove trailing comma and space from update_expression
+        update_expression = update_expression.rstrip(', ')
+
+        # Update DynamoDB item with new parameters
+        update_response = tests_table.update_item(
+            Key={'id': test_id},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values
+        )
+
+        if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return jsonify({"error": "Failed to update DynamoDB"}), 500
+
+        return jsonify({"message": "Test parameters updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500   
     
 @app.route("/start_forward_test", methods=["POST"])
 def start_test():
@@ -456,6 +540,8 @@ def stop_test():
 
     # Return a success message indicating the test has stopped
     return jsonify({"message": "Test stopped and DynamoDB updated"})
+
+
 
 @app.route("/get_test_instances", methods=["POST"])
 def get_test_instances():
@@ -855,7 +941,7 @@ def get_analyze_news():
     while True:
         scan_kwargs = {
             'FilterExpression': Attr('date_time').between(start_date, end_date) &
-                        Attr('ticker_symbol').contains(symbol) 
+                        Attr('ticker_symbol').contains(symbol)
         }
         
         # Only add ExclusiveStartKey to arguments if it's not None
