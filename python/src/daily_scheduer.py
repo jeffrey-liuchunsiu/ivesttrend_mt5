@@ -9,7 +9,7 @@ from server import  get_tests_id_by_state
 
 def make_api_calls(test_ids):
     """Makes an API call for each test ID in the test_ids list."""
-    api_url = '18.141.245.200:8000/start_forward_test'  # Replace with the actual API URL
+    api_url = 'http://18.141.245.200:8000/start_forward_test'  # Replace with the actual API URL
     headers = {'Content-Type': 'application/json'}
     
     for test_id in test_ids:
