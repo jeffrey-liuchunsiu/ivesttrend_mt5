@@ -227,14 +227,55 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         #     # print(" Use the data from DynamoDB")
         #     item_result = dynamo_item
         # else:
+        
+                    # Ask ChatGPT its thoughts on the headline
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
+
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        data = {
+            "contents": [{
+                "parts": [{
+                    "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
+                }]
+            }],
+            "generationConfig": {
+                "temperature": 0,
+
+            }
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        # print('response: ', response.text)
+        if response.status_code != 200:
+            print('response: ', response.text)
+            time.sleep(30)
+            response = requests.post(url, headers=headers, json=data)
+        
+        if response.json()["candidates"][0]["finishReason"] == "SAFETY":
+            print('response: ', response)
+            pass
+        
+        
+        if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
+            try:
+                response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                print('Gemini: ', response_text)
+            except :
+                print('response: ', response.text)
+                break
             
-        response = ollama.chat(model='llama3:70B', messages=[
+        response = ollama.chat(model='llama3', messages=[
           {
             'role': 'user',
             'content': f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context",
+            'temperature': 0
           },
         ])
-        print(response['message']['content'])
+        print("Llama3: ",response['message']['content'])
+        print("")
 
     #         # print('response: ', response.text)
     #         if response.status_code != 200:

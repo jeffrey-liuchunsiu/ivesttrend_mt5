@@ -254,7 +254,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
             
             if response.json()["candidates"][0]["finishReason"] == "SAFETY":
                 print('response: ', response)
-                pass
+
             
             
             if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
@@ -263,7 +263,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
                     print('response_text: ', response_text)
                 except :
                     print('response: ', response.text)
-                    break
+
                 
                 company_impact = None
 
@@ -311,4 +311,4 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 if __name__ == '__main__':
     min_date = get_min_date_time()
     print('min_date: ', min_date)
-    analyze_news_gemini_request('BTCUSD', '2023-06-01', '2023-09-09',limit=None)
+    analyze_news_gemini_request('BTCUSD', '2023-03-01', '2023-07-01',limit=None)
