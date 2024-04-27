@@ -312,4 +312,4 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 if __name__ == '__main__':
     min_date = get_min_date_time()
     print('min_date: ', min_date)
-    analyze_news_gemini_request('BTCUSD', '2022-01-01', '2023-01-01',limit=None)
+    analyze_news_gemini_request('BTCUSD', '2022-01-01', '2023-01-13',limit=None)
