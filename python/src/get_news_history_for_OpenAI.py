@@ -252,58 +252,59 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
                 time.sleep(30)
                 response = requests.post(url, headers=headers, json=data)
             
-            if response.json()["candidates"][0]["finishReason"] == "SAFETY":
-                print('response: ', response)
-
-            
-            
-            if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
-                try:
-                    response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                    print('response_text: ', response_text)
-                except :
-                    print('response: ', response.text)
+            if 'candidates' in response.json():
+                if response.json()["candidates"][0]["finishReason"] == "SAFETY":
+                    print('response: ', response)
 
                 
-                company_impact = None
-
-                try:
-                    company_impact = int(response_text)
-                except ValueError:
-                    company_impact = 0
-                    
-                if company_impact > 100:
-                    company_impact = 100
-                elif company_impact < -100:
-                    company_impact = -100
-                    
                 
+                if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
+                    try:
+                        response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                        print('response_text: ', response_text)
+                    except :
+                        print('response: ', response.text)
 
-                            # Save analyzed data
-                item_result = {
-                    "id": str(news_id),
-                    "date_time": current_event["created_at"],
-                    "headline": current_event["headline"],
-                    "headline_impact": int(company_impact),
-                    "ticker_symbol": current_event["symbols"],
-                    "url": current_event["url"],
-                    "excerpt": "No action"
-                }
+                    
+                    company_impact = None
 
-                if company_impact >= 50:
-                    item_result["excerpt"] = "Buy Stock"
-                    # Place buy order logic here
+                    try:
+                        company_impact = int(response_text)
+                    except ValueError:
+                        company_impact = 0
+                        
+                    if company_impact > 100:
+                        company_impact = 100
+                    elif company_impact < -100:
+                        company_impact = -100
+                        
+                    
 
-                elif company_impact <= -50:
-                    item_result["excerpt"] = "Sell Stock"
-                    # Place sell order logic here
+                                # Save analyzed data
+                    item_result = {
+                        "id": str(news_id),
+                        "date_time": current_event["created_at"],
+                        "headline": current_event["headline"],
+                        "headline_impact": int(company_impact),
+                        "ticker_symbol": current_event["symbols"],
+                        "url": current_event["url"],
+                        "excerpt": "No action"
+                    }
 
-                # Save the result to DynamoDB
-                put_dynamodb_item(table, item_result)
-                print(current_event["created_at"])
-                time.sleep(1)
+                    if company_impact >= 50:
+                        item_result["excerpt"] = "Buy Stock"
+                        # Place buy order logic here
 
-        news_result.append(item_result)
+                    elif company_impact <= -50:
+                        item_result["excerpt"] = "Sell Stock"
+                        # Place sell order logic here
+
+                    # Save the result to DynamoDB
+                    put_dynamodb_item(table, item_result)
+                    print(current_event["created_at"])
+                    time.sleep(1)
+
+            news_result.append(item_result)
     print("Done News Task")
     return news_result
 # Example usage:
