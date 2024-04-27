@@ -1,3 +1,5 @@
+import ollama
+
 # https://alpaca.markets/blog/introducing-news-api-for-real-time-fiancial-news/
 
 import os
@@ -219,96 +221,84 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         news_id = str(current_event["id"])
 
         # Check if news ID is in DynamoDB
-        dynamo_item = get_dynamodb_item(table, news_id)
+        # dynamo_item = get_dynamodb_item(table, news_id)
         
-        if dynamo_item:
-            # print(" Use the data from DynamoDB")
-            item_result = dynamo_item
-        else:
-
-            # Ask ChatGPT its thoughts on the headline
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
-
-            headers = {
-                'Content-Type': 'application/json'
-            }
-
-            data = {
-                "contents": [{
-                    "parts": [{
-                        "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
-                    }]
-                }],
-                "generationConfig": {
-                    "temperature": 0,
-
-                }
-            }
-
-            response = requests.post(url, headers=headers, json=data)
-            # print('response: ', response.text)
-            if response.status_code != 200:
-                print('response: ', response.text)
-                time.sleep(30)
-                response = requests.post(url, headers=headers, json=data)
+        # if dynamo_item:
+        #     # print(" Use the data from DynamoDB")
+        #     item_result = dynamo_item
+        # else:
             
-            if response.json()["candidates"][0]["finishReason"] == "SAFETY":
-                print('response: ', response)
-                pass
+        response = ollama.chat(model='llama3:70B', messages=[
+          {
+            'role': 'user',
+            'content': f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context",
+          },
+        ])
+        print(response['message']['content'])
+
+    #         # print('response: ', response.text)
+    #         if response.status_code != 200:
+    #             print('response: ', response.text)
+    #             time.sleep(30)
+    #             response = requests.post(url, headers=headers, json=data)
+            
+    #         if response.json()["candidates"][0]["finishReason"] == "SAFETY":
+    #             print('response: ', response)
+    #             pass
             
             
-            if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
-                try:
-                    response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                    print('response_text: ', response_text)
-                except :
-                    print('response: ', response.text)
-                    break
+    #         if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
+    #             try:
+    #                 response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+    #                 print('response_text: ', response_text)
+    #             except :
+    #                 print('response: ', response.text)
+    #                 break
                 
-                company_impact = None
+    #             company_impact = None
 
-                try:
-                    company_impact = int(response_text)
-                except ValueError:
-                    company_impact = 0
+    #             try:
+    #                 company_impact = int(response_text)
+    #             except ValueError:
+    #                 company_impact = 0
                     
-                if company_impact > 100:
-                    company_impact = 100
-                elif company_impact < -100:
-                    company_impact = -100
+    #             if company_impact > 100:
+    #                 company_impact = 100
+    #             elif company_impact < -100:
+    #                 company_impact = -100
                     
                 
 
-                            # Save analyzed data
-                item_result = {
-                    "id": str(news_id),
-                    "date_time": current_event["created_at"],
-                    "headline": current_event["headline"],
-                    "headline_impact": int(company_impact),
-                    "ticker_symbol": current_event["symbols"],
-                    "url": current_event["url"],
-                    "excerpt": "No action"
-                }
+    #                         # Save analyzed data
+    #             item_result = {
+    #                 "id": str(news_id),
+    #                 "date_time": current_event["created_at"],
+    #                 "headline": current_event["headline"],
+    #                 "headline_impact": int(company_impact),
+    #                 "ticker_symbol": current_event["symbols"],
+    #                 "url": current_event["url"],
+    #                 "excerpt": "No action"
+    #             }
 
-                if company_impact >= 50:
-                    item_result["excerpt"] = "Buy Stock"
-                    # Place buy order logic here
+    #             if company_impact >= 50:
+    #                 item_result["excerpt"] = "Buy Stock"
+    #                 # Place buy order logic here
 
-                elif company_impact <= -50:
-                    item_result["excerpt"] = "Sell Stock"
-                    # Place sell order logic here
+    #             elif company_impact <= -50:
+    #                 item_result["excerpt"] = "Sell Stock"
+    #                 # Place sell order logic here
 
-                # Save the result to DynamoDB
-                put_dynamodb_item(table, item_result)
-                print(current_event["created_at"])
-                time.sleep(1)
+    #             # Save the result to DynamoDB
+    #             put_dynamodb_item(table, item_result)
+    #             print(current_event["created_at"])
+    #             time.sleep(1)
 
-        news_result.append(item_result)
-    print("Done News Task")
-    return news_result
+    #     news_result.append(item_result)
+    # print("Done News Task")
+    # return news_result
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
     min_date = get_min_date_time()
     print('min_date: ', min_date)
-    analyze_news_gemini_request('BTCUSD', '2023-06-01', '2023-09-09',limit=None)
+    analyze_news_gemini_request('BTCUSD', '2023-05-30', '2023-06-30',limit=None)
