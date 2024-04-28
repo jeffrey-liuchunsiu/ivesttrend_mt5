@@ -639,6 +639,7 @@ def backtesting():
 
     # Retrieve the test_instance from the stored data
     test_instance = test_instance_data["test_instance"]
+    test_instance.parse_and_convert_parameters()
 
     # Get data and add technical indicators for different time frames
     test_instance.bt_get_data_and_add_indicator("1ST", visualize=False)
