@@ -219,6 +219,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         current_event = item_news.__dict__["_raw"]
         # print('current_event: ', current_event)
         news_id = str(current_event["id"])
+        print(current_event['headline'])
 
         # Check if news ID is in DynamoDB
         # dynamo_item = get_dynamodb_item(table, news_id)

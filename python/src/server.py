@@ -346,6 +346,17 @@ def edit_test():
         response = tests_table.get_item(Key={'id': test_id})
         if 'Item' not in response:
             abort(404, description="Test instance not found in DynamoDB")
+            
+        # Find the test instance in the global list by test_id
+        test_instance_data = next(
+            (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        
+        # If the test instance is not found, return an error
+        if test_instance_data is None:
+            return jsonify({"error": "Test instance not found"}), 400
+        
+        # Retrieve the test_instance from the stored data
+        test_instance = test_instance_data["test_instance"]
 
         original_item = response['Item']
         if 'test_end_date' in original_item or original_item.get('state') != "Created":
@@ -367,6 +378,7 @@ def edit_test():
                         abort(400, description=f"Incorrect date format for '{field}'. Expected YYYY-MM-DD.")
                 update_expression += f"{field} = :{field}, "
                 expression_attribute_values[f":{field}"] = value
+                test_instance.field = value
 
         if not expression_attribute_values:
             abort(400, description="No valid parameters provided to update")
