@@ -377,8 +377,8 @@ def edit_test():
                     except ValueError:
                         abort(400, description=f"Incorrect date format for '{field}'. Expected YYYY-MM-DD.")
                 update_expression += f"{field} = :{field}, "
-                expression_attribute_values[f":{field}"] = value
-                test_instance.field = value
+                expression_attribute_values[f":{field}"] = str(value)
+                test_instance.field = str(value)
 
         if not expression_attribute_values:
             abort(400, description="No valid parameters provided to update")
@@ -389,6 +389,7 @@ def edit_test():
             UpdateExpression=update_expression,
             ExpressionAttributeValues=expression_attribute_values
         )
+        test_instance.parse_and_convert_parameters()
 
         if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
             abort(500, description="Failed to update DynamoDB")
