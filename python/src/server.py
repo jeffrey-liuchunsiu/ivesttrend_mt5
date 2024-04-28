@@ -2,7 +2,7 @@ import full_bot_process_mac as full
 import os
 from dotenv import load_dotenv
 import boto3
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 from boto3 import resource
 from boto3.dynamodb.conditions import Key,Attr
@@ -15,6 +15,7 @@ from mt5linux import MetaTrader5
 import shortuuid
 from threading import Thread
 import re
+from dateutil.parser import parse as parse_date
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3
@@ -330,72 +331,47 @@ def find_best_parameters():
 def edit_test():
     try:
         data = request.get_json()
-        
-
         test_id = data.get('test_id')
         if not test_id:
-            return jsonify({"error": "Missing test_id"}), 400
-        
-        data = {key: value for key, value in data.items() if value is not None}
+            abort(400, description="Missing test_id")
 
-        # Query DynamoDB to find the item based on test_id
+        # Convert specified fields from str to int
+        integer_fields = ['bt_initial_investment', 'bt_lot_size', 'bt_sl_size', 'bt_tp_size', 'bt_commission']
+        for field in integer_fields:
+            if field in data and data[field].isdigit():  # Checks if the field is a digit string
+                data[field] = int(data[field])
+            elif field in data:  # If present but not a digit string, return an error
+                abort(400, description=f"Invalid value for '{field}'. Expected a numeric string.")
+
         response = tests_table.get_item(Key={'id': test_id})
         if 'Item' not in response:
-            return jsonify({"error": "Test instance not found in DynamoDB"}), 404
+            abort(404, description="Test instance not found in DynamoDB")
 
         original_item = response['Item']
+        if 'test_end_date' in original_item or original_item.get('state') != "Created":
+            abort(403, description="Test cannot be edited as it has ended or is already running")
 
-        # Check if the test is either ended or already active
-        if 'test_end_date' in original_item or (original_item.get('state') != "Created"):
-            return jsonify({"error": "Test cannot be edited as it has ended or is already running"}), 403
-        
-                # Find the test instance in the global list by test_id
-        test_instance_data = next(
-            (inst for inst in test_instances if inst["test_id"] == test_id), None)
-
-        if test_instance_data is None:
-            return jsonify({"error": "Test instance not found"}), 400
-
-        # Retrieve the test_instance from the stored data
-        test_instance = test_instance_data["test_instance"]
-        
-        # Update test instance parameters with data provided
-        test_instance.edit_parameters(data)
-
+        # Construct update expression
         update_expression = 'SET '
         expression_attribute_values = {}
-
-        # Fields that may need to be updated
-        fields = [
-            'bt_start_date', 'bt_end_date', 'bt_2nd_start_date', 'bt_2nd_end_date',
-            'bt_time_frame_backward', 'bt_initial_investment', 'bt_lot_size', 
-            'bt_sl_size', 'bt_tp_size', 'bt_commission'
-        ]
-
+        fields = ['bt_start_date', 'bt_end_date', 'bt_2nd_start_date', 'bt_2nd_end_date',
+        'bt_time_frame_backward', 'bt_initial_investment', 'bt_lot_size', 
+        'bt_sl_size', 'bt_tp_size', 'bt_commission']
         for field in fields:
-            if data.get(field) is not None:
-                if isinstance(data[field], str):  # Check if the field is a string
-                    # Validate date format if the field is a date
-                    if 'date' in field and data[field]:
-                        try:
-                            datetime.strptime(data[field], '%Y-%m-%d')
-                        except ValueError:
-                            return jsonify({"error": f"Incorrect date format for '{field}'. Expected YYYY-MM-DD."}), 400
-
-                    update_expression += f"{field} = :{field}, "
-                    expression_attribute_values[f":{field}"] = data[field]
-                else:
-                    return jsonify({"error": f"Invalid type for '{field}'. Expected string or null."}), 400
-            elif field in original_item:  # Use existing value if input is None
-                data[field] = original_item[field]
+            value = data.get(field)
+            if value is not None:
+                if 'date' in field:
+                    try:
+                        parse_date(value)  # Using dateutil for parsing
+                    except ValueError:
+                        abort(400, description=f"Incorrect date format for '{field}'. Expected YYYY-MM-DD.")
+                update_expression += f"{field} = :{field}, "
+                expression_attribute_values[f":{field}"] = value
 
         if not expression_attribute_values:
-            return jsonify({"error": "No valid parameters provided to update"}), 400
+            abort(400, description="No valid parameters provided to update")
 
-        # Remove trailing comma and space from update_expression
         update_expression = update_expression.rstrip(', ')
-
-        # Update DynamoDB item with new parameters
         update_response = tests_table.update_item(
             Key={'id': test_id},
             UpdateExpression=update_expression,
@@ -403,12 +379,12 @@ def edit_test():
         )
 
         if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
-            return jsonify({"error": "Failed to update DynamoDB"}), 500
+            abort(500, description="Failed to update DynamoDB")
 
         return jsonify({"message": "Test parameters updated successfully"}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500   
+        abort(500, description=str(e)) 
     
 @app.route("/start_forward_test", methods=["POST"])
 def start_test():
