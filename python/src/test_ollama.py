@@ -214,6 +214,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
     print('news: ', len(news))
 
     for item_news in news:
+        print('item_news: ', item_news)
         
         item_result = None
         current_event = item_news.__dict__["_raw"]
@@ -230,43 +231,43 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         # else:
         
                     # Ask ChatGPT its thoughts on the headline
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
+        # url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
 
-        headers = {
-            'Content-Type': 'application/json'
-        }
+        # headers = {
+        #     'Content-Type': 'application/json'
+        # }
 
-        data = {
-            "contents": [{
-                "parts": [{
-                    "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0,
+        # data = {
+        #     "contents": [{
+        #         "parts": [{
+        #             "text": f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
+        #         }]
+        #     }],
+        #     "generationConfig": {
+        #         "temperature": 0,
 
-            }
-        }
+        #     }
+        # }
 
-        response = requests.post(url, headers=headers, json=data)
-        # print('response: ', response.text)
-        if response.status_code != 200:
-            print('response: ', response.text)
-            time.sleep(30)
-            response = requests.post(url, headers=headers, json=data)
+        # response = requests.post(url, headers=headers, json=data)
+        # # print('response: ', response.text)
+        # if response.status_code != 200:
+        #     print('response: ', response.text)
+        #     time.sleep(30)
+        #     response = requests.post(url, headers=headers, json=data)
         
-        if response.json()["candidates"][0]["finishReason"] == "SAFETY":
-            print('response: ', response)
-            pass
+        # if response.json()["candidates"][0]["finishReason"] == "SAFETY":
+        #     print('response: ', response)
+        #     pass
         
         
-        if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
-            try:
-                response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                print('Gemini: ', response_text)
-            except :
-                print('response: ', response.text)
-                break
+        # if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
+        #     try:
+        #         response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+        #         print('Gemini: ', response_text)
+        #     except :
+        #         print('response: ', response.text)
+        #         break
             
         response = ollama.chat(model='llama3', messages=[
           {
@@ -341,6 +342,6 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 # Example usage:
 # Replace 'AAPL', '2023-01-01', '2023-01-31' with your desired symbol and date range
 if __name__ == '__main__':
-    min_date = get_min_date_time()
-    print('min_date: ', min_date)
-    analyze_news_gemini_request('BTCUSD', '2023-05-30', '2023-06-30',limit=None)
+    # min_date = get_min_date_time()
+    # print('min_date: ', min_date)
+    analyze_news_gemini_request('BTCUSD', '2024-04-28', '2024-04-30',limit=None)

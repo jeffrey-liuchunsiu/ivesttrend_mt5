@@ -378,7 +378,8 @@ def edit_test():
                         abort(400, description=f"Incorrect date format for '{field}'. Expected YYYY-MM-DD.")
                 update_expression += f"{field} = :{field}, "
                 expression_attribute_values[f":{field}"] = str(value)
-                test_instance.field = str(value)
+                test_instance.edit_parameters({f"{field}":str(value)})
+ 
 
         if not expression_attribute_values:
             abort(400, description="No valid parameters provided to update")
