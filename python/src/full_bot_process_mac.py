@@ -356,10 +356,13 @@ class Test:
         if data_frame is None:
             print(f"Data frame for period {period} not found.")
             return
+        initial_investment = self.bt_initial_investment
+        if period_key == "2ND":
+            initial_investment = self.bt_1st_final_equity
 
         # Perform the backtesting with the data frame
         entry, exit, equity_per_day, final_equity, roi = bt.backtest(
-            data_frame, self.bt_initial_investment, self.bt_lot_size, 
+            data_frame, initial_investment, self.bt_lot_size, 
             self.bt_sl_size, self.bt_tp_size, self.bt_commission)
 
         # Update the object's attributes with the results

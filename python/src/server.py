@@ -18,7 +18,7 @@ import re
 from dateutil.parser import parse as parse_date
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
-from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3
+from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3, get_json_data_from_s3
 
 mt5 = MetaTrader5(
     # host = 'localhost',
@@ -176,6 +176,17 @@ def test_id_exists_in_memory(test_instances, test_id):
 
 def create_test_instance(data,uuid_id, mt5_magic_id):
     """Create and return a new test instance from request data."""
+        # Parse the date string into a datetime object
+    date_object = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
+
+    # Subtract 90 days using timedelta
+    new_date_object = date_object - timedelta(days=90)
+
+    # Optional: Convert back to string if needed
+    new_date_string = new_date_object.strftime("%Y-%m-%d")
+
+    print("Original Date:", data["bt_end_date"])
+    print("New Date (90 days earlier):", new_date_string)
     try:
         return full.Test(
             test_strategy_name=data["test_strategy_name"],
@@ -187,9 +198,9 @@ def create_test_instance(data,uuid_id, mt5_magic_id):
             bt_atr_period=data["bt_atr_period"],
             bt_multiplier=data["bt_multiplier"],
             bt_start_date=datetime.strptime(data["bt_start_date"], "%Y-%m-%d"),
-            bt_end_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d"),
-            bt_2nd_start_date=datetime.strptime(data["bt_2nd_start_date"], "%Y-%m-%d"),
-            bt_2nd_end_date=datetime.strptime(data["bt_2nd_end_date"], "%Y-%m-%d"),
+            bt_end_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d")- timedelta(days=90),
+            bt_2nd_start_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d")- timedelta(days=90),
+            bt_2nd_end_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d"),
             bt_time_frame_backward=data["bt_time_frame_backward"],
             bt_initial_investment=data["bt_initial_investment"],
             bt_lot_size=data["bt_lot_size"],
@@ -1109,6 +1120,26 @@ def get_tests_by_state(index_name, states, test_instances):
         print('test_instances_data: ', len(test_instances_data))
         for test_instance_data in test_instances_data:
             test = full.Test()
+            if 's3Key_backtest_data' in test_instance_data:
+                bt_key = test_instance_data['s3Key_backtest_data']
+                bt_data = get_json_data_from_s3(s3_bucket_name,bt_key)
+                test.edit_parameters({bt_key:bt_data})
+                
+            if 's3Key_stock_close_price' in test_instance_data:
+                price_key = test_instance_data['s3Key_stock_close_price']
+                price_data = get_json_data_from_s3(s3_bucket_name,price_key)
+                test.edit_parameters({price_key:price_data})
+                
+            if 's3Key_stock_volume' in test_instance_data:
+                volume_key = test_instance_data['s3Key_stock_volume']
+                volume_data = get_json_data_from_s3(s3_bucket_name,volume_key)
+                test.edit_parameters({volume_key:volume_data})
+            
+            if 's3Key_forward_test_data' in test_instance_data:
+                ft_key = test_instance_data['s3Key_forward_test_data']
+                ft_data = get_json_data_from_s3(s3_bucket_name,ft_key)
+                test.edit_parameters({ft_key:ft_data})
+                
             test.edit_parameters(test_instance_data)
             test.parse_and_convert_parameters()
             test_instances.append({"test_id": test.test_id, "test_instance": test})
