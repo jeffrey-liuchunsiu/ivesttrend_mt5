@@ -1120,11 +1120,10 @@ def get_tests_by_state(index_name, states, test_instances):
         print('test_instances_data: ', len(test_instances_data))
         for test_instance_data in test_instances_data:
             test = full.Test()
-            # if 's3Key_backtest_data' in test_instance_data:
-            #     bt_key = test_instance_data['s3Key_backtest_data']
-            #     bt_data = get_json_data_from_s3(s3_bucket_name,bt_key)
-            #     for i in bt_data:
-            #         test.edit_parameters([{i:bt_data[i]}])
+            if 's3Key_backtest_data' in test_instance_data:
+                bt_key = test_instance_data['s3Key_backtest_data']
+                bt_data = get_json_data_from_s3(s3_bucket_name,bt_key)
+                test.edit_parameters(bt_data)
 
                 
             # if 's3Key_stock_close_price' in test_instance_data:
