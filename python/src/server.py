@@ -1123,22 +1123,22 @@ def get_tests_by_state(index_name, states, test_instances):
             if 's3Key_backtest_data' in test_instance_data:
                 bt_key = test_instance_data['s3Key_backtest_data']
                 bt_data = get_json_data_from_s3(s3_bucket_name,bt_key)
-                test.edit_parameters({bt_key:bt_data})
+                test.edit_parameters(bt_data)
                 
             if 's3Key_stock_close_price' in test_instance_data:
                 price_key = test_instance_data['s3Key_stock_close_price']
                 price_data = get_json_data_from_s3(s3_bucket_name,price_key)
-                test.edit_parameters({price_key:price_data})
+                test.edit_parameters(price_data)
                 
             if 's3Key_stock_volume' in test_instance_data:
                 volume_key = test_instance_data['s3Key_stock_volume']
                 volume_data = get_json_data_from_s3(s3_bucket_name,volume_key)
-                test.edit_parameters({volume_key:volume_data})
+                test.edit_parameters(volume_data)
             
             if 's3Key_forward_test_data' in test_instance_data:
                 ft_key = test_instance_data['s3Key_forward_test_data']
                 ft_data = get_json_data_from_s3(s3_bucket_name,ft_key)
-                test.edit_parameters({ft_key:ft_data})
+                test.edit_parameters(ft_data)
                 
             test.edit_parameters(test_instance_data)
             test.parse_and_convert_parameters()

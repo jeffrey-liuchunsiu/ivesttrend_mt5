@@ -75,7 +75,7 @@ if __name__ == "__main__":
     # Generate random JSON object
     random_json = generate_random_json()
     bucket_name = 'investtrend-test-data'
-    s3_key = 'nAbAqoXGaug98V5u/backtest_data.json'
+    s3_key = 'i5CgjoK3qVfZFXB5/backtest_data.json'
     
     # save_dict_to_s3(bucket_name, random_json, s3_key)
     
