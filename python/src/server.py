@@ -956,9 +956,12 @@ def get_analyze_news():
         if 'LastEvaluatedKey' not in response or len(last_items) >= limit:
             break
         exclusive_start_key = response['LastEvaluatedKey']
+        
+    # Sorting the items by 'date_time' from latest to earliest
+    sorted_items = sorted(last_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
 
     # Return an immediate response
-    return jsonify(last_items), 200
+    return jsonify(sorted_items), 200
  
     
 @app.route('/remove_forward_test', methods=['POST'])
@@ -1032,8 +1035,10 @@ def get_tests_by_user():
                 ExclusiveStartKey=response['LastEvaluatedKey']
             )
             items.extend(response.get('Items', []))
+            
+        sorted_items = sorted(items, key=lambda x: datetime.strptime(x['create_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
 
-        return jsonify(items), 200
+        return jsonify(sorted_items), 200
 
     except ClientError as e:
         return jsonify({'error': str(e)}), 500
