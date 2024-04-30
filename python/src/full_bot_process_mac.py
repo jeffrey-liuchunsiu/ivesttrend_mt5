@@ -143,7 +143,8 @@ class Test:
     def edit_parameters(self, params):
         # Ensure that params is a dictionary
         if not isinstance(params, dict):
-            raise TypeError("params must be of type dict")
+            raise TypeError(f"params must be of type dict - Error type {type(params)}")
+
 
         # Iterate over the dictionary and set the attributes
         for key, value in params.items():

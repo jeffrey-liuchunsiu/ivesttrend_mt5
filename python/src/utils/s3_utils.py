@@ -80,6 +80,7 @@ if __name__ == "__main__":
     # save_dict_to_s3(bucket_name, random_json, s3_key)
     
     json_data = get_json_data_from_s3(bucket_name, s3_key)
-    print(json.dumps(json_data, indent=4)) 
+    print('json_data: ', type(json_data))
+    # print(json.dumps(json_data, indent=4)) 
     
     # delete_folder_from_s3(bucket_name, s3_key)# Print the JSON data
