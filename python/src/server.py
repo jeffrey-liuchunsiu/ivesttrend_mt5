@@ -249,7 +249,7 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'ft_start_date': instance.ft_start_date,
             'ft_end_date': instance.ft_end_date,
             'ft_time_frame_forward': instance.ft_time_frame_forward,
-            'ft_initial_investment': instance.ft_initial_investment,
+            'ft_initial_investment': instance.bt_initial_investment,
             'ft_lot_size': instance.ft_lot_size,
             'ft_sl_size': instance.ft_sl_size,
             'ft_tp_size': instance.ft_tp_size,
