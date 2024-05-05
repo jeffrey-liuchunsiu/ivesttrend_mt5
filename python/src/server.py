@@ -353,6 +353,22 @@ def edit_test():
                 data[field] = int(data[field])
             elif field in data:  # If present but not a digit string, return an error
                 abort(400, description=f"Invalid value for '{field}'. Expected a numeric string.")
+                
+        data = {
+            "test_id": data.get('test_id'),
+            "bt_start_date": data.get('bt_start_date'),
+            "bt_end_date": datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90),
+            "bt_2nd_start_date": datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90),
+            "bt_2nd_end_date": data.get('bt_end_date'),
+            "bt_time_frame_backward": data.get('bt_time_frame_backward'),
+            "bt_initial_investment": data.get('bt_initial_investment'),
+            "bt_lot_size": data.get('bt_lot_size'),
+            "bt_sl_size": data.get('bt_sl_size'),
+            "bt_tp_size": data.get('bt_tp_size'),
+            "bt_commission": data.get('bt_commission')
+        }
+                
+        
 
         response = tests_table.get_item(Key={'id': test_id})
         if 'Item' not in response:
@@ -372,6 +388,38 @@ def edit_test():
         original_item = response['Item']
         if 'test_end_date' in original_item or original_item.get('state') != "Created":
             abort(403, description="Test cannot be edited as it has ended or is already running")
+            
+        # update_response = tests_table.update_item(
+        #     Key={'id': test_id},
+        #     UpdateExpression='SET #bt_start_date = :val1, #bt_end_date = :val2, #bt_2nd_start_date = :val3, #bt_2nd_end_date = :val4, #bt_time_frame_backward = :val5, #bt_initial_investment = :val6, #bt_lot_size = :val7, #bt_sl_size = :val8, #bt_tp_size = :val9, #bt_commission = :val10',
+        #     ExpressionAttributeNames={
+        #         '#bt_start_date': 'bt_start_date',
+        #         '#bt_end_date': 'bt_end_date',
+        #         '#bt_2nd_start_date': 'bt_2nd_start_date',
+        #         '#bt_2nd_end_date': 'bt_2nd_end_date',
+        #         '#bt_time_frame_backward': 'bt_time_frame_backward',
+        #         '#bt_initial_investment': 'bt_initial_investment',
+        #         '#bt_lot_size': 'bt_lot_size',
+        #         '#bt_sl_size': 'bt_sl_size',
+        #         '#bt_tp_size': 'bt_tp_size',
+        #         '#bt_commission': 'bt_commission',
+        #     },
+        #     ExpressionAttributeValues={
+        #         ':val1': str(test_instance.bt_start_date),
+        #         ':val2': str(test_instance.bt_end_date),
+        #         ':val3': str(test_instance.bt_2nd_start_date),
+        #         ':val4': str(test_instance.bt_2nd_end_date),
+        #         ':val5': str(test_instance.bt_time_frame_backward),
+        #         ':val6': str(test_instance.bt_initial_investment),
+        #         ':val7': str(test_instance.bt_lot_size),
+        #         ':val8': str(test_instance.bt_sl_size),
+        #         ':val9': str(test_instance.bt_tp_size),
+        #         ':val10': str(test_instance.bt_commission),
+        #     }
+        # )
+        if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            # Call the method from the class instance
+            return jsonify({"error": "Failed to update DynamoDB"}), 500
 
         # Construct update expression
         update_expression = 'SET '

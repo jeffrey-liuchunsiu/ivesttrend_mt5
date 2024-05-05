@@ -190,9 +190,9 @@ def analyze_news(symbol, start_date, end_date, limit=3):
 
 
 def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
-    # os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
-    # os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
-    # rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
+    os.environ["APCA_API_KEY_ID"] = os.getenv("APCA_API_KEY_ID")
+    os.environ["APCA_API_SECRET_KEY"] = os.getenv("APCA_API_SECRET_KEY")
+    rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
     
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     # genai.configure(api_key=GOOGLE_API_KEY) 
@@ -210,17 +210,17 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 
     news_result = []
 
-    # news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
-    # print('news: ', len(news))
+    news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
+    print('news: ', len(news))
 
-    # for item_news in news:
-    #     # print('item_news: ', item_news)
+    for item_news in news:
+        # print('item_news: ', item_news)
         
-    #     item_result = None
-    #     current_event = item_news.__dict__["_raw"]
-    #     # print('current_event: ', current_event)
-    #     news_id = str(current_event["id"])
-    #     print(current_event['headline'])
+        item_result = None
+        current_event = item_news.__dict__["_raw"]
+        # print('current_event: ', current_event)
+        news_id = str(current_event["id"])
+        print("Headline: " + current_event['headline'])
 
         # Check if news ID is in DynamoDB
         # dynamo_item = get_dynamodb_item(table, news_id)
@@ -230,64 +230,68 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         #     item_result = dynamo_item
         # else:
         
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-    }
-
-    url = 'https://www.benzinga.com/markets/cryptocurrency/24/04/38476692/as-bitcoin-plunges-whale-makes-waves-with-77-67m-deposit-into-kraken'
-    response = requests.get(url, headers=headers)
-    article_content = None
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        article_content = soup.find(id='article-body')
-        print(article_content.text if article_content else "Content not found")
-    
-                # Ask ChatGPT its thoughts on the headline
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
-
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    data = {
-        "contents": [{
-            "parts": [{
-                "text": f"Given the content '{article_content}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
-            }]
-        }],
-        "generationConfig": {
-            "temperature": 0,
-
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         }
-    }
 
-    response = requests.post(url, headers=headers, json=data)
-    # print('response: ', response.text)
-    if response.status_code != 200:
-        print('response: ', response.text)
-        time.sleep(30)
+        # url = 'https://www.benzinga.com/markets/cryptocurrency/24/04/38476692/as-bitcoin-plunges-whale-makes-waves-with-77-67m-deposit-into-kraken'
+        url = current_event['url']
+        response = requests.get(url, headers=headers)
+        article_content = None
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            article_content = soup.find(id='article-body')
+            print(article_content.text if article_content else "Content not found")
+            
+        
+        # print('article_content: ', article_content)
+                    # Ask ChatGPT its thoughts on the headline
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
+
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        data = {
+            "contents": [{
+                "parts": [{
+                    "text": f"Given the content '{article_content}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
+                }]
+            }],
+            "generationConfig": {
+                "temperature": 0,
+
+            }
+        }
+
         response = requests.post(url, headers=headers, json=data)
-    
-    if response.json()["candidates"][0]["finishReason"] == "SAFETY":
-        print('response: ', response)
-        pass
-    
-    
-    if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
-        try:
-            response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            print('Gemini: ', response_text)
-        except :
+        # print('response: ', response.text)
+        if response.status_code != 200:
             print('response: ', response.text)
-            
-            
+            time.sleep(30)
+            response = requests.post(url, headers=headers, json=data)
+        
+        if response.json()["candidates"][0]["finishReason"] == "SAFETY":
+            print('response: ', response)
+            pass
+        
+        
+        if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
+            try:
+                response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                print('Gemini: ', response_text)
+            except :
+                print('response: ', response.text)
+                
+                
         response = ollama.chat(model='llama3', messages=[
-          {
+        {
             'role': 'user',
             'content': f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context",
             'temperature': 0
-          },
+        },
         ])
         print("Llama3: ",response['message']['content'])
         print("")
@@ -357,4 +361,4 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 if __name__ == '__main__':
     # min_date = get_min_date_time()
     # print('min_date: ', min_date)
-    analyze_news_gemini_request('BTCUSD', '2024-04-28', '2024-04-30',limit=None)
+    analyze_news_gemini_request('BTCUSD', '2024-04-28', '2024-04-30',limit=10)
