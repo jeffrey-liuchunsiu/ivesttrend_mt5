@@ -417,9 +417,9 @@ def edit_test():
         #         ':val10': str(test_instance.bt_commission),
         #     }
         # )
-        if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
-            # Call the method from the class instance
-            return jsonify({"error": "Failed to update DynamoDB"}), 500
+        # if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        #     # Call the method from the class instance
+        #     return jsonify({"error": "Failed to update DynamoDB"}), 500
 
         # Construct update expression
         update_expression = 'SET '
