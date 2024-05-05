@@ -357,8 +357,8 @@ def edit_test():
         data = {
             "test_id": data.get('test_id'),
             "bt_start_date": data.get('bt_start_date'),
-            "bt_end_date": datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90),
-            "bt_2nd_start_date": datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90),
+            "bt_end_date": (datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90)).strftime("%Y-%m-%d"),
+            "bt_2nd_start_date": (datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90)).strftime("%Y-%m-%d"),
             "bt_2nd_end_date": data.get('bt_end_date'),
             "bt_time_frame_backward": data.get('bt_time_frame_backward'),
             "bt_initial_investment": data.get('bt_initial_investment'),
