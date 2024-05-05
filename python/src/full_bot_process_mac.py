@@ -259,6 +259,9 @@ class Test:
             self.bt_end_date = self.ft_start_date if self.ft_start_date else datetime.now()
 
     def _fetch_and_visualize_data(self, start_date, end_date, attribute_name,visualize=False):
+        print('start_date: ', start_date)
+        print('end_date: ', end_date)
+        
         past_date = bt.get_data(self.bt_symbol, start_date, end_date, self.bt_time_frame_backward)
         df_super = bt.add_supertrend(past_date, self.bt_atr_period, self.bt_multiplier)
         df_super_squeeze = bt.add_squeeze_momentum(df_super)
@@ -290,9 +293,7 @@ class Test:
     def fetch_stock_price_and_volume(self, symbol=None, start_date=None, end_date=None):
         symbol = self.bt_symbol if symbol == None else symbol
         start_date = self.bt_start_date if start_date == None else start_date
-        print('start_date: ', start_date)
         end_date = self.bt_2nd_end_date if end_date == None else end_date
-        print('end_date: ', end_date)
         try:
            
             # Fetch historical data from Yahoo Finance
