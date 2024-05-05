@@ -284,23 +284,23 @@ class Test:
         if period:
             period_upper = period.upper()
             if period_upper == "1ST":
-                print('"1ST": ', "1ST")
+                # print('"1ST": ', "1ST")
                 self._fetch_and_visualize_data(self.bt_start_date, self.bt_end_date, 'bt_price_data_with_indicator_1st',visualize)
-                print('self.bt_start_date: ', self.bt_start_date)
-                print('self.bt_end_date: ', self.bt_end_date)
-                print('bt_price_data_with_indicator_1st: ', self.bt_price_data_with_indicator_1st)
+                # print('self.bt_start_date: ', self.bt_start_date)
+                # print('self.bt_end_date: ', self.bt_end_date)
+                # print('bt_price_data_with_indicator_1st: ', self.bt_price_data_with_indicator_1st)
             elif period_upper == "2ND":
-                print('"2ND": ', "2ND")
+                # print('"2ND": ', "2ND")
                 self._fetch_and_visualize_data(self.bt_2nd_start_date, self.bt_2nd_end_date, 'bt_price_data_with_indicator_2nd',visualize)
-                print('self.bt_2nd_start_date: ', self.bt_2nd_start_date)
-                print('self.bt_2nd_end_date: ', self.bt_2nd_end_date)
-                print('bt_price_data_with_indicator_2nd: ', self.bt_price_data_with_indicator_2nd)
+                # print('self.bt_2nd_start_date: ', self.bt_2nd_start_date)
+                # print('self.bt_2nd_end_date: ', self.bt_2nd_end_date)
+                # print('bt_price_data_with_indicator_2nd: ', self.bt_price_data_with_indicator_2nd)
             elif period_upper == "ALL":
-                print('"ALL": ', "ALL")
+                # print('"ALL": ', "ALL")
                 self._fetch_and_visualize_data(self.bt_start_date, self.bt_2nd_end_date, 'bt_price_data_with_indicator_all',visualize)
-                print('self.bt_start_date: ', self.bt_start_date)
-                print('self.bt_2nd_end_date: ', self.bt_2nd_end_date)
-                print('bt_price_data_with_indicator_all: ', self.bt_price_data_with_indicator_all)
+                # print('self.bt_start_date: ', self.bt_start_date)
+                # print('self.bt_2nd_end_date: ', self.bt_2nd_end_date)
+                # print('bt_price_data_with_indicator_all: ', self.bt_price_data_with_indicator_all)
 
     def fetch_stock_price_and_volume(self, symbol=None, start_date=None, end_date=None):
         symbol = self.bt_symbol if symbol == None else symbol
@@ -359,6 +359,7 @@ class Test:
 
         # Normalize the period to uppercase to ensure case-insensitive matching
         period_key = period.upper()
+        print('period_key: ', period_key)
 
         # Retrieve the mapping for the provided period; if not found, report an error and return
         if period_key not in period_map:
@@ -369,6 +370,7 @@ class Test:
 
         # Fetch the data frame using the mapped attribute name
         data_frame = getattr(self, data_frame_attr, None)
+        print('data_frame: ', data_frame)
         if data_frame is None:
             print(f"Data frame for period {period} not found.")
             return
