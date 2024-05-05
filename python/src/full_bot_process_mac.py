@@ -276,10 +276,10 @@ class Test:
     
 
     def bt_get_data_and_add_indicator(self, period=None, start_date=None, end_date=None,visualize=False):
-        if start_date:
-            self.bt_start_date = start_date
-            self._update_end_date(end_date)
-            self._fetch_and_visualize_data(self.bt_start_date, self.bt_end_date, 'bt_price_data_with_indicator_all')
+        # if start_date:
+        #     self.bt_start_date = start_date
+        #     self._update_end_date(end_date)
+        #     self._fetch_and_visualize_data(self.bt_start_date, self.bt_end_date, 'bt_price_data_with_indicator_all')
 
         if period:
             period_upper = period.upper()
