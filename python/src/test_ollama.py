@@ -282,15 +282,15 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
             print('response: ', response.text)
             
             
-        # response = ollama.chat(model='llama3', messages=[
-        #   {
-        #     'role': 'user',
-        #     'content': f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context",
-        #     'temperature': 0
-        #   },
-        # ])
-        # print("Llama3: ",response['message']['content'])
-        # print("")
+        response = ollama.chat(model='llama3', messages=[
+          {
+            'role': 'user',
+            'content': f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context",
+            'temperature': 0
+          },
+        ])
+        print("Llama3: ",response['message']['content'])
+        print("")
 
     #         # print('response: ', response.text)
     #         if response.status_code != 200:

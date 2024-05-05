@@ -26,16 +26,15 @@ if response.status_code == 200:
         {
             'role': 'system',
             'content': f"Only return the number so I can input to a form, Please must not return with other content expect the number",
-            'temperature': 0
+            'temperature': 0.8
           },
           {
             'role': 'user',
             'content': f"Given the article content '{article_content.text}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return the number so I can input to a form, Please must not return with other content expect the number",
-            'temperature': 0
+            'temperature': 0.8
           },
         ])
     print("Llama3: ",response['message']['content'])
-    print("")
 else:
     print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
     
@@ -75,4 +74,6 @@ if response.status_code == 200 and response.json()["candidates"][0]["finishReaso
         print('Gemini: ', response_text)
     except :
         print('response: ', response.text)
+        
+print("")
     
