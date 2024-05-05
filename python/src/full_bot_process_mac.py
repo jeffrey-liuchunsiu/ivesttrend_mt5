@@ -284,11 +284,23 @@ class Test:
         if period:
             period_upper = period.upper()
             if period_upper == "1ST":
+                print('"1ST": ', "1ST")
                 self._fetch_and_visualize_data(self.bt_start_date, self.bt_end_date, 'bt_price_data_with_indicator_1st',visualize)
+                print('self.bt_start_date: ', self.bt_start_date)
+                print('self.bt_end_date: ', self.bt_end_date)
+                print('bt_price_data_with_indicator_1st: ', self.bt_price_data_with_indicator_1st)
             elif period_upper == "2ND":
+                print('"2ND": ', "2ND")
                 self._fetch_and_visualize_data(self.bt_2nd_start_date, self.bt_2nd_end_date, 'bt_price_data_with_indicator_2nd',visualize)
+                print('self.bt_2nd_start_date: ', self.bt_2nd_start_date)
+                print('self.bt_2nd_end_date: ', self.bt_2nd_end_date)
+                print('bt_price_data_with_indicator_2nd: ', self.bt_price_data_with_indicator_2nd)
             elif period_upper == "ALL":
+                print('"ALL": ', "ALL")
                 self._fetch_and_visualize_data(self.bt_start_date, self.bt_2nd_end_date, 'bt_price_data_with_indicator_all',visualize)
+                print('self.bt_start_date: ', self.bt_start_date)
+                print('self.bt_2nd_end_date: ', self.bt_2nd_end_date)
+                print('bt_price_data_with_indicator_all: ', self.bt_price_data_with_indicator_all)
 
     def fetch_stock_price_and_volume(self, symbol=None, start_date=None, end_date=None):
         symbol = self.bt_symbol if symbol == None else symbol
