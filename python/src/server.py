@@ -345,6 +345,11 @@ def edit_test():
         test_id = data.get('test_id')
         if not test_id:
             abort(400, description="Missing test_id")
+            
+        # Check all fields for None values
+        for key, value in data.items():
+            if value is None:
+                abort(400, description=f"{key} cannot be None")
 
         # Convert specified fields from str to int
         integer_fields = ['bt_initial_investment', 'bt_lot_size', 'bt_sl_size', 'bt_tp_size', 'bt_commission']
