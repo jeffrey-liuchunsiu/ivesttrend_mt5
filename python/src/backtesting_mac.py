@@ -421,6 +421,7 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 equity_per_day.append({date_str:str(equity_of_day)})
                 
     earning = equity - initial_investment
+    print('initial_investment: ', initial_investment)
     print('equity: ', equity)
     print('earning: ', earning)
     if initial_investment != 0:
@@ -430,5 +431,6 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
     final_equity = equity
     print('final_equity: ', final_equity)
     formatted_investment_value = _format_investment_value(initial_investment)
+
     print(f'Earning from investing ${formatted_investment_value} is ${round(earning, 2)} (ROI = {roi}%)')
     return entry, exit, equity_per_day, final_equity, roi
