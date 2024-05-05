@@ -420,7 +420,7 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 equity_of_day = equity_minus_investment + lot_size * close[i]
                 equity_per_day.append({date_str:str(equity_of_day)})
         
-        equity_of_day = equity_minus_investment + lot_size * close[i]
+    equity = equity_minus_investment + lot_size * close[i]
                 
     earning = equity - initial_investment
     print('initial_investment: ', initial_investment)
