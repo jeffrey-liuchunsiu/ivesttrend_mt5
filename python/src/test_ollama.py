@@ -14,7 +14,7 @@ import time
 from datetime import datetime,timedelta
 # import google.generativeai as genai
 
-
+print('Hello World')
 news_result = []
 # news = rest_client.get_news("AAPL", "2023-12-01", "2023-12-10", limit=3)
 load_dotenv()
