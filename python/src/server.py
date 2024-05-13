@@ -894,7 +894,12 @@ def get_forward_test_progress_percentage():
     # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
     if test_instance.state == "Created":
-            abort(403, description="The test have been run or are currently running. Please start the forward test first.")
+        jsonify({"processing":False, 
+                    "state":0, 
+                    "percentage": None,
+                    "elapsed_time":None, 
+                    "estimated_remaining_time":None,
+                    "message": "The test have been run or are currently running. Please start the forward test first."}), 403
             
     processing = test_instance.ft_result_processing
     if processing:
@@ -915,14 +920,14 @@ def get_forward_test_progress_percentage():
                             "percentage": percentage, 
                             "elapsed_time":elapsed_time, 
                             "estimated_remaining_time":estimated_remaining_time, 
-                            "message": "The forward test result is downloading"}), 200
+                            "message": "The forward test result is downloading"}), 202
     
     return jsonify({"processing":False, 
                     "state":0, 
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
-                    "message": "The forward test result have not been started yet."}), 403
+                    "message": "The forward test result have not been started yet."}), 206
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
