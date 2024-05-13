@@ -534,7 +534,6 @@ def start_test():
     return jsonify({"message": "Test started and DynamoDB updated"})
 
 
-
 @app.route("/stop_forward_test", methods=["POST"])
 def stop_test():
     # Extract test_id and user from the request data
@@ -594,7 +593,6 @@ def stop_test():
 
     # Return a success message indicating the test has stopped
     return jsonify({"message": "Test stopped and DynamoDB updated"})
-
 
 
 @app.route("/get_test_instances", methods=["POST"])
@@ -892,9 +890,12 @@ def get_forward_test_progress_percentage():
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
     if test_instance_data is None:
         return jsonify({"error": "Test instance not found"}), 400
-
+    
     # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
+    if test_instance.get('state') == "Created":
+            abort(403, description="The test have been run or are currently running. Please start the forward test first.")
+            
     processing = test_instance.ft_result_processing
     if processing:
         percentage = test_instance.ft_getting_result_progress_percentage
@@ -907,21 +908,21 @@ def get_forward_test_progress_percentage():
                             "percentage": percentage, 
                             "elapsed_time":elapsed_time, 
                             "estimated_remaining_time":estimated_remaining_time, 
-                            "comment": "Test Calculating"}), 200
+                            "message": "The forward test result is calculating"}), 200
         else :
             return jsonify({"processing":True, 
                             "state":1, 
                             "percentage": percentage, 
                             "elapsed_time":elapsed_time, 
                             "estimated_remaining_time":estimated_remaining_time, 
-                            "comment": "Test Downloading"}), 200
+                            "message": "The forward test result is downloading"}), 200
     
     return jsonify({"processing":False, 
                     "state":0, 
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
-                    "comment": "Test Have not Been Started"}), 202
+                    "message": "The forward test result have not been started yet."}), 500
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
