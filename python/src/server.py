@@ -855,6 +855,8 @@ def get_test_result():
 
     # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
+    if test_instance.state == "Created":
+        jsonify({"message": "The test have been run or are currently running. Please start the forward test first."}), 403
     
     hong_kong = pytz.timezone('Asia/Hong_Kong')
     current_time = datetime.now().replace(tzinfo=pytz.utc)
