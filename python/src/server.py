@@ -893,7 +893,7 @@ def get_forward_test_progress_percentage():
     
     # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
-    if test_instance.get('state') == "Created":
+    if test_instance.state == "Created":
             abort(403, description="The test have been run or are currently running. Please start the forward test first.")
             
     processing = test_instance.ft_result_processing
