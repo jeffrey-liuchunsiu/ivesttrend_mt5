@@ -922,7 +922,7 @@ def get_forward_test_progress_percentage():
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
-                    "message": "The forward test result have not been started yet."}), 500
+                    "message": "The forward test result have not been started yet."}), 403
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
