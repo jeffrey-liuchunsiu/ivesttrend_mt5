@@ -914,14 +914,14 @@ def get_forward_test_progress_percentage():
                             "percentage": percentage, 
                             "elapsed_time":elapsed_time, 
                             "estimated_remaining_time":estimated_remaining_time, 
-                            "comment": "Test Downloading"}), 102
+                            "comment": "Test Downloading"}), 200
     
     return jsonify({"processing":False, 
                     "state":0, 
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
-                    "comment": "Test Have not Been Started"}), 204
+                    "comment": "Test Have not Been Started"}), 202
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
