@@ -858,7 +858,7 @@ def get_test_result():
     if test_instance.state == "Created":
         return jsonify({
             "success" : False,
-            "message": "The test have been run or are currently running. Please start the forward test first."
+            "message": "No forward test have been run or are currently running. Please start the forward test first."
             }), 403
     
     hong_kong = pytz.timezone('Asia/Hong_Kong')
@@ -906,7 +906,7 @@ def get_forward_test_progress_percentage():
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
-                    "message": "The test have been run or are currently running. Please start the forward test first."}), 403
+                    "message": "No forward test have been run or are currently running. Please start the forward test first."}), 403
             
     processing = test_instance.ft_result_processing
     if processing:
