@@ -921,7 +921,7 @@ def get_forward_test_progress_percentage():
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
-                    "comment": "Test Have Been Started"}), 204
+                    "comment": "Test Have not Been Started"}), 204
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
