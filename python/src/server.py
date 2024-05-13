@@ -864,7 +864,7 @@ def get_test_result():
     formatted_time = hong_kong_time.strftime('%Y-%m-%d')
     
     # datetime_obj = datetime.strptime(test_instance.ft_start_date, "%Y-%m-%d %H:%M:%S")
-    test_instance_date_only = test_instance.ft_start_date.strftime("%Y-%m-%d")
+    # test_instance_date_only = test_instance.ft_start_date.strftime("%Y-%m-%d")
     
     print('formatted_time: ', formatted_time)
     print('test_instance.ft_start_date : ', test_instance.ft_start_date )
