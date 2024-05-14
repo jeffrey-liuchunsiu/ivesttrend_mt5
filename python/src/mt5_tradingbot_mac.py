@@ -430,8 +430,8 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
         
         deal_item = deal   
 
-        if deal_item.magic == magic and deal_item.comment != test_id:
-            
+        # if deal_item.magic == magic and deal_item.comment != test_id:
+        if deal_item.magic == magic:    
             
 
             profit_per_share += deal_item.profit
