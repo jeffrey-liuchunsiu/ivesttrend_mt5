@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from botocore.exceptions import ClientError
 # import mt5_tradingbot_mac as ft
 import json
+import requests
 from mt5linux import MetaTrader5
 import shortuuid
 from threading import Thread
@@ -1137,6 +1138,18 @@ def get_tests_by_user():
     except ClientError as e:
         return jsonify({'error': str(e)}), 500
     
+@app.route('/gemini', methods=['POST'])
+def gemini():
+    data = request.json
+    print('data: ', data)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GOOGLE_API_KEY}"
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response
+
 def get_tests_id_by_state(index_name, states):
 
     test_ids = []
