@@ -12,6 +12,8 @@ import os
 from dotenv import load_dotenv
 import time
 from datetime import datetime,timedelta
+
+from AI_utils import coze_api, gemini_api, groq_api
 # import google.generativeai as genai
 
 print('Hello World too')
@@ -195,6 +197,8 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
     rest_client = REST(os.getenv("APCA_API_KEY_ID"), os.getenv("APCA_API_SECRET_KEY"))
     
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+    COZE_API_KEY = os.getenv('COZE_API_KEY')
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     # genai.configure(api_key=GOOGLE_API_KEY) 
     # aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
     # aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -218,6 +222,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
         
         item_result = None
         current_event = item_news.__dict__["_raw"]
+        print('current_event: ', current_event)
         # print('current_event: ', current_event)
         news_id = str(current_event["id"])
         print("Headline: " + current_event['headline'])
@@ -236,6 +241,7 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 
         # url = 'https://www.benzinga.com/markets/cryptocurrency/24/04/38476692/as-bitcoin-plunges-whale-makes-waves-with-77-67m-deposit-into-kraken'
         url = current_event['url']
+        print('url: ', url)
         response = requests.get(url, headers=headers)
         article_content = None
         
@@ -244,56 +250,19 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
             
             article_content = soup.find(id='article-body')
             print(article_content.text if article_content else "Content not found")
+            article_content = article_content.text
             
+        print("")
+            
+            
+        system_prompt = f"Only respond with a number from -100 to 100 detailing the impact of the content on the {symbol} price, with negative indicating price goes down, and positive indicating price goes up. Must only return number, not with other content"    
+        prompt = f"Given the content '{article_content}', Please check if the content is a news or a comment.Then If the content is a comment return show me a number 0.  If the content is news, show me a number from -100 to 100 detailing the impact of this content on {symbol} price, with negative indicating price goes down, and positive indicating price goes up. Must only return number, not with other content"
+            
+        groq_api (prompt, system_prompt, GROQ_API_KEY, 0)
+        gemini_api(prompt,GOOGLE_API_KEY,0,"gemini-1.5-flash-latest")
+        # coze_api (prompt, COZE_API_KEY)
         
-        # print('article_content: ', article_content)
-                    # Ask ChatGPT its thoughts on the headline
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro-latest:generateContent?key={GOOGLE_API_KEY}"
-
-        headers = {
-            'Content-Type': 'application/json'
-        }
-
-        data = {
-            "contents": [{
-                "parts": [{
-                    "text": f"Given the content '{article_content}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context"
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0,
-
-            }
-        }
-
-        response = requests.post(url, headers=headers, json=data)
-        # print('response: ', response.text)
-        if response.status_code != 200:
-            print('response: ', response.text)
-            time.sleep(30)
-            response = requests.post(url, headers=headers, json=data)
-        
-        if response.json()["candidates"][0]["finishReason"] == "SAFETY":
-            print('response: ', response)
-            pass
-        
-        
-        if response.status_code == 200 and response.json()["candidates"][0]["finishReason"] == "STOP":
-            try:
-                response_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                print('Gemini: ', response_text)
-            except :
-                print('response: ', response.text)
-                
-                
-        response = ollama.chat(model='llama3', messages=[
-        {
-            'role': 'user',
-            'content': f"Given the headline '{current_event['headline']}', show me a number from -100 to 100 detailing the impact of this headline on stock price, with negative indicating price goes down, and positive indicating price goes up. Only return number, not with other context",
-            'temperature': 0
-        },
-        ])
-        print("Llama3: ",response['message']['content'])
+ 
         print("")
 
     #         # print('response: ', response.text)
@@ -361,4 +330,4 @@ def analyze_news_gemini_request(symbol, start_date, end_date, limit=3):
 if __name__ == '__main__':
     # min_date = get_min_date_time()
     # print('min_date: ', min_date)
-    analyze_news_gemini_request('BTCUSD', '2024-04-28', '2024-04-30',limit=10)
+    analyze_news_gemini_request('BTCUSD', '2024-04-28', '2024-05-19',limit=30)
