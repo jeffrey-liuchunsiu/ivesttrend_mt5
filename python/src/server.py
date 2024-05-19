@@ -1142,6 +1142,7 @@ def get_tests_by_user():
 def gemini():
     data = request.json
     print('data: ', data)
+    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GOOGLE_API_KEY}"
 
     headers = {
