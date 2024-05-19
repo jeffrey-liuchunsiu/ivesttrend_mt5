@@ -1149,6 +1149,7 @@ def gemini():
         'Content-Type': 'application/json'
     }
     response = requests.post(url, headers=headers, json=data)
+    print('response: ', response)
     return response
 
 def get_tests_id_by_state(index_name, states):
