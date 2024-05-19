@@ -1141,7 +1141,7 @@ def get_tests_by_user():
 @app.route('/gemini', methods=['POST'])
 def gemini():
     data = request.json
-    print('data: ', data)
+    # print('data: ', data)
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GOOGLE_API_KEY}"
 
@@ -1149,7 +1149,7 @@ def gemini():
         'Content-Type': 'application/json'
     }
     response = requests.post(url, headers=headers, json=data)
-    print('response: ', response)
+    # print('response: ', response)
     return response.json()
 
 def get_tests_id_by_state(index_name, states):
