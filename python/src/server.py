@@ -100,7 +100,7 @@ def create_test():
         if days_between < 7:
             return jsonify({"error": "the test period can not less than 7 days"}), 400
         
-        if not data["bt_lot_size"] or not data["bt_initial_investment"]:
+        if not data["bt_lot_size"] and not data["bt_initial_investment"]:
             return jsonify({"error": "Please input lot size or initial investment"}), 400
         
         if data["bt_lot_size"] and data["bt_initial_investment"]:
