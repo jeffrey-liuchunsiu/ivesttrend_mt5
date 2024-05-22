@@ -473,215 +473,279 @@ def edit_test():
     
 @app.route("/start_forward_test", methods=["POST"])
 def start_test():
-    # Extract test_id and user from the request data
-    test_id = request.json.get("test_id")
-    # user = request.json.get("user")  # Assuming user is also sent in the request
+    try:
+        # Extract test_id from the request data
+        test_id = request.json.get("test_id")
+        # user = request.json.get("user")  # Assuming user is also sent in the request
 
-    if test_id is None :
-        return jsonify({"error": "Missing test_id"}), 400
+        if test_id is None:
+            return jsonify({"error": "Missing test_id"}), 400
 
-    # Query DynamoDB to find the item based on test_id
-    response = tests_table.get_item(Key={'id': test_id})
-    if 'Item' not in response:
-        return jsonify({"error": "Test instance not found in DynamoDB"}), 404
+        # Query DynamoDB to find the item based on test_id
+        try:
+            response = tests_table.get_item(Key={'id': test_id})
+        except Exception as e:
+            return jsonify({"error": "Error querying DynamoDB", "details": str(e)}), 500
 
-    item = response['Item']
+        if 'Item' not in response:
+            return jsonify({"error": "Test instance not found in DynamoDB"}), 404
 
-    # Check if the end_date key exists or if the test is already active
-    if 'test_end_date' in item or (item.get('state') == "Running"):
-        return jsonify({"error": "Test cannot be started as it has already running or end"}), 403
+        item = response['Item']
 
-    # Find the test instance in the global list by test_id
-    test_instance_data = next(
-        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        # Check if the end_date key exists or if the test is already active
+        if 'test_end_date' in item or (item.get('state') == "Running"):
+            return jsonify({"error": "Test cannot be started as it has already running or ended"}), 403
 
-    # If the test instance is not found, return an error
-    if test_instance_data is None:
-        return jsonify({"error": "Test instance not found"}), 400
+        try:
+            # Find the test instance in the global list by test_id
+            test_instance_data = next(
+                (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        except Exception as e:
+            return jsonify({"error": "Error finding test instance", "details": str(e)}), 500
 
-    # Retrieve the test_instance from the stored data
-    test_instance = test_instance_data["test_instance"]
-    
-    if test_instance.bt_atr_period is None or test_instance.bt_multiplier is None :
-        return jsonify({"error": "Please define ATR period and Multiplier"}), 400
+        # If the test instance is not found, return an error
+        if test_instance_data is None:
+            return jsonify({"error": "Test instance not found"}), 400
 
-    # Update the item in DynamoDB to set active to True and add the current start_time
-    # current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-    # Define the Hong Kong timezone
-    hong_kong = pytz.timezone('Asia/Hong_Kong')
+        # Retrieve the test_instance from the stored data
+        test_instance = test_instance_data["test_instance"]
+        
+        if test_instance.bt_atr_period is None or test_instance.bt_multiplier is None:
+            return jsonify({"error": "Please define ATR period and Multiplier"}), 400
 
-    # Get the current time in UTC, add one day, and then convert to Hong Kong time
-    current_time = datetime.now().replace(tzinfo=pytz.utc)
-    hong_kong_time = current_time.astimezone(hong_kong)
+        # Update the item in DynamoDB to set active to True and add the current start_time
+        try:
+            # Define the Hong Kong timezone
+            hong_kong = pytz.timezone('Asia/Hong_Kong')
 
-    # Format the time to the desired string format
-    formatted_time = hong_kong_time.strftime('%Y-%m-%d')  # ISO 8601 format in UTC
-    update_response = tests_table.update_item(
-        Key={'id': test_id},
-        UpdateExpression='SET #state = :val1, #ft_start_date = :val2',
-        ExpressionAttributeNames={
-            '#state': 'state',
-            "#ft_start_date": "ft_start_date" # Use ExpressionAttributeNames to avoid conflicts with reserved words
-        },
-        ExpressionAttributeValues={
-            ':val1': "Running",
-            ':val2': formatted_time
-        }
-    )
-    if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        # Start the test using a function from the 'full' module
-        full.start_forward_test_thread(test_instance)
-        test_instance.edit_parameters ({"state":"Running","ft_start_date":datetime.strptime(formatted_time, '%Y-%m-%d')})# Uncomment this line if you have the full module
+            # Get the current time in UTC, add one day, and then convert to Hong Kong time
+            current_time = datetime.now().replace(tzinfo=pytz.utc)
+            hong_kong_time = current_time.astimezone(hong_kong)
 
-    # Check if the update was successful
-    if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
-        return jsonify({"error": "Failed to update DynamoDB"}), 500
+            # Format the time to the desired string format
+            formatted_time = hong_kong_time.strftime('%Y-%m-%d')  # ISO 8601 format in UTC
+            update_response = tests_table.update_item(
+                Key={'id': test_id},
+                UpdateExpression='SET #state = :val1, #ft_start_date = :val2',
+                ExpressionAttributeNames={
+                    '#state': 'state',
+                    "#ft_start_date": "ft_start_date" # Use ExpressionAttributeNames to avoid conflicts with reserved words
+                },
+                ExpressionAttributeValues={
+                    ':val1': "Running",
+                    ':val2': formatted_time
+                }
+            )
+        except Exception as e:
+            return jsonify({"error": "Error updating DynamoDB", "details": str(e)}), 500
 
-    # Return a success message indicating the test has started
-    return jsonify({"message": "Test started and DynamoDB updated"})
+        if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            try:
+                # Start the test using a function from the 'full' module
+                full.start_forward_test_thread(test_instance)
+                test_instance.edit_parameters(
+                    {"state": "Running", "ft_start_date": datetime.strptime(formatted_time, '%Y-%m-%d')}
+                )  # Uncomment this line if you have the full module
+            except Exception as e:
+                return jsonify({"error": "Error starting forward test thread", "details": str(e)}), 500
+
+        # Check if the update was successful
+        if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return jsonify({"error": "Failed to update DynamoDB"}), 500
+
+        # Return a success message indicating the test has started
+        return jsonify({"message": "Test started and DynamoDB updated"})
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 
 @app.route("/stop_forward_test", methods=["POST"])
 def stop_test():
-    # Extract test_id and user from the request data
-    test_id = request.json.get("test_id")
-    if test_id is None:
-        return jsonify({"error": "Missing test_id or user"}), 400
+    try:
+        # Extract test_id from the request data
+        test_id = request.json.get("test_id")
+        if test_id is None:
+            return jsonify({"error": "Missing test_id"}), 400
 
-    # Query DynamoDB to find the item based on user and test_id
-    response = tests_table.get_item(Key={'id': test_id})
-    if 'Item' not in response:
-        return jsonify({"error": "Test instance not found"}), 404
+        # Query DynamoDB to find the item based on test_id
+        try:
+            response = tests_table.get_item(Key={'id': test_id})
+        except Exception as e:
+            return jsonify({"error": "Error querying DynamoDB", "details": str(e)}), 500
 
-    # Find the test instance in the global list by test_id
-    test_instance_data = next(
-        (inst for inst in test_instances if inst["test_id"] == test_id), None)
-    
-    # If the test instance is not found, return an error
-    if test_instance_data is None:
-        return jsonify({"error": "Test instance not found"}), 400
+        if 'Item' not in response:
+            return jsonify({"error": "Test instance not found"}), 404
 
-    # Retrieve the test_instance from the stored data
-    test_instance = test_instance_data["test_instance"]
+        try:
+            # Find the test instance in the global list by test_id
+            test_instance_data = next(
+                (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        except Exception as e:
+            return jsonify({"error": "Error finding test instance", "details": str(e)}), 500
 
-    # Stop the test using a function from the 'full' module
-    full.stop_forward_test_thread(test_instance)
-    
-    # Define the Hong Kong timezone
-    hong_kong = pytz.timezone('Asia/Hong_Kong')
+        # If the test instance is not found, return an error
+        if test_instance_data is None:
+            return jsonify({"error": "Test instance not found"}), 400
 
-    # Update the item in DynamoDB to set active to False and add the current end_time
-    #!!!!!!!!!!!!!!!!!!!
-    current_time = datetime.now().replace(tzinfo=pytz.utc) + timedelta(days=1)
-    # current_time = datetime.now().replace(tzinfo=pytz.utc) 
-    hong_kong_time = current_time.astimezone(hong_kong)
+        # Retrieve the test_instance from the stored data
+        test_instance = test_instance_data["test_instance"]
 
-    # Format the time to the desired string format
-    formatted_time = hong_kong_time.strftime('%Y-%m-%d')
-    update_response = tests_table.update_item(
-        Key={'id': test_id},
-        UpdateExpression='SET #state = :val1, #ft_end_date = :val2',
-        ExpressionAttributeNames={
-            '#state': 'state',
-            "#ft_end_date": "ft_end_date" # Use ExpressionAttributeNames to avoid conflicts with reserved words
-        },
-        ExpressionAttributeValues={
-            ':val1': "End",
-            ':val2': formatted_time
-        }
-    )
+        try:
+            # Stop the test using a function from the 'full' module
+            full.stop_forward_test_thread(test_instance)
+        except Exception as e:
+            return jsonify({"error": "Error stopping forward test thread", "details": str(e)}), 500
 
-    if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        # Start the test using a function from the 'full' module
-        full.stop_forward_test_thread(test_instance)
-        test_instance.edit_parameters ({"state":"End","stop_flag_live_trade":True,"ft_end_date":datetime.strptime(formatted_time, '%Y-%m-%d')})# Uncomment this line if you have the full module
-    else:
-        return jsonify({"error": "Failed to update DynamoDB"}), 500
+        # Define the Hong Kong timezone
+        hong_kong = pytz.timezone('Asia/Hong_Kong')
 
-    # Return a success message indicating the test has stopped
-    return jsonify({"message": "Test stopped and DynamoDB updated"})
+        try:
+            # Update the item in DynamoDB to set active to False and add the current end_time
+            current_time = datetime.now().replace(tzinfo=pytz.utc) + timedelta(days=1)
+            hong_kong_time = current_time.astimezone(hong_kong)
+
+            # Format the time to the desired string format
+            formatted_time = hong_kong_time.strftime('%Y-%m-%d')
+            update_response = tests_table.update_item(
+                Key={'id': test_id},
+                UpdateExpression='SET #state = :val1, #ft_end_date = :val2',
+                ExpressionAttributeNames={
+                    '#state': 'state',
+                    "#ft_end_date": "ft_end_date" # Use ExpressionAttributeNames to avoid conflicts with reserved words
+                },
+                ExpressionAttributeValues={
+                    ':val1': "End",
+                    ':val2': formatted_time
+                }
+            )
+        except Exception as e:
+            return jsonify({"error": "Error updating DynamoDB", "details": str(e)}), 500
+
+        if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            try:
+                # Stop the test using a function from the 'full' module
+                full.stop_forward_test_thread(test_instance)
+                test_instance.edit_parameters(
+                    {"state": "End", "stop_flag_live_trade": True, "ft_end_date": datetime.strptime(formatted_time, '%Y-%m-%d')}
+                )  # Uncomment this line if you have the full module
+            except Exception as e:
+                return jsonify({"error": "Error stopping forward test thread", "details": str(e)}), 500
+        else:
+            return jsonify({"error": "Failed to update DynamoDB"}), 500
+
+        # Return a success message indicating the test has stopped
+        return jsonify({"message": "Test stopped and DynamoDB updated"})
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 
 @app.route("/get_test_instances", methods=["POST"])
 def get_test_instances():
-    test_id = request.json.get("test_id")
+    try:
+        # Extract test_id from the request data
+        test_id = request.json.get("test_id")
+        if test_id is None:
+            return jsonify({"error": "Missing test_id"}), 400
 
-        # Perform the scan operation to retrieve all items from the table
-    response = tests_table.get_item(Key={'id': test_id})
-    # Extract the items from the response
-    test_instances = response.get('Item', [])    
+        try:
+            # Perform the get_item operation to retrieve the item from the table
+            response = tests_table.get_item(Key={'id': test_id})
+        except Exception as e:
+            return jsonify({"error": "Error querying DynamoDB", "details": str(e)}), 500
 
-    # Paginate if there are more items to scan
-    while 'LastEvaluatedKey' in response:
-        response = tests_table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-        test_instances.extend(response.get('Items', []))
+        # Extract the item from the response
+        test_instances = response.get('Item', [])
 
-    # Return the list of test instances as JSON
-    return jsonify(test_instances)
+        # Paginate if there are more items to scan
+        while 'LastEvaluatedKey' in response:
+            try:
+                response = tests_table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+                test_instances.extend(response.get('Items', []))
+            except Exception as e:
+                return jsonify({"error": "Error scanning DynamoDB", "details": str(e)}), 500
+
+        # Return the list of test instances as JSON
+        return jsonify(test_instances)
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 @app.route("/get_in_memory_test_instances", methods=["POST"])
 def get_in_memory_test_instances():
-    test_id = request.json.get("test_id")
+    try:
+        # Extract test_id from the request data
+        test_id = request.json.get("test_id")
+        if test_id is None:
+            return jsonify({"error": "Missing test_id"}), 400
 
-    test_instance_data = next(
-        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        try:
+            # Find the test instance in the global list by test_id
+            test_instance_data = next(
+                (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        except Exception as e:
+            return jsonify({"error": "Error finding test instance", "details": str(e)}), 500
 
-    if test_instance_data is None:
-        return jsonify({"error": "Test instance not found"})
+        # If the test instance is not found, return an error
+        if test_instance_data is None:
+            return jsonify({"error": "Test instance not found"}), 404
 
-    test_instance = test_instance_data["test_instance"]
-    
-    result = {
-            'test_id': test_instance.test_id,
-            'test_strategy_name': test_instance.test_strategy_name,
-            'bt_symbol': test_instance.bt_symbol,
-            'bt_atr_period': test_instance.bt_atr_period,
-            'bt_multiplier': test_instance.bt_multiplier,
-            'bt_start_date': test_instance.bt_start_date.strftime("%Y-%m-%d"),
-            'bt_end_date': test_instance.bt_end_date.strftime("%Y-%m-%d"),
-            'bt_2nd_start_date': test_instance.bt_2nd_start_date.strftime("%Y-%m-%d"),
-            'bt_2nd_end_date': test_instance.bt_2nd_end_date.strftime("%Y-%m-%d"),
-            'bt_time_frame_backward': test_instance.bt_time_frame_backward,
-            'bt_initial_investment': test_instance.bt_initial_investment,
-            'bt_lot_size': test_instance.bt_lot_size,
-            'bt_sl_size': test_instance.bt_sl_size,
-            'bt_tp_size': test_instance.bt_tp_size,
-            'bt_commission': test_instance.bt_commission,
-            'ft_symbol': test_instance.ft_symbol,
-            'ft_start_date': test_instance.ft_start_date,
-            'ft_end_date': test_instance.ft_end_date,
-            'ft_time_frame_forward': test_instance.ft_time_frame_forward,
-            'ft_initial_investment': test_instance.ft_initial_investment,
-            'ft_lot_size': test_instance.ft_lot_size,
-            'ft_sl_size': test_instance.ft_sl_size,
-            'ft_tp_size': test_instance.ft_tp_size,
-            'state': test_instance.state,
-            'stop_flag_live_trade': test_instance.stop_flag_live_trade,
-            'stop_flag_check_status': test_instance.stop_flag_check_status,
-            
-            'bt_1st_roi': test_instance.bt_1st_roi,
-            'bt_2nd_roi': test_instance.bt_2nd_roi,
-            'bt_overall_roi': test_instance.bt_overall_roi,
-            'bt_1st_entries': test_instance.bt_1st_entries,
-            'bt_2nd_entries': test_instance.bt_2nd_entries,
-            'bt_overall_entries': test_instance.bt_overall_entries,
-            'bt_1st_exits': test_instance.bt_1st_exits,
-            'bt_2nd_exits': test_instance.bt_2nd_exits,
-            'bt_overall_exits': test_instance.bt_overall_exits,
-            'bt_1st_final_equity': test_instance.bt_1st_final_equity,
-            'bt_2nd_final_equity': test_instance.bt_2nd_final_equity,
-            'bt_overall_final_equity': test_instance.bt_overall_final_equity,
-            'bt_1st_equity_per_day': test_instance.bt_1st_equity_per_day,
-            'bt_2nd_equity_per_day': test_instance.bt_2nd_equity_per_day,
-            'bt_overall_equity_per_day': test_instance.bt_overall_equity_per_day,
-            'ft_entries': test_instance.ft_entries,
-            'ft_exits': test_instance.ft_exits,
-            'ft_final_equity': test_instance.ft_final_equity,
-            'ft_equity_per_day': test_instance.ft_equity_per_day,
-            'ft_roi': test_instance.ft_roi
-        }
+        # Retrieve the test_instance from the stored data
+        test_instance = test_instance_data["test_instance"]
 
-    return jsonify(result), 200
+        try:
+            result = {
+                'test_id': test_instance.test_id,
+                'test_strategy_name': test_instance.test_strategy_name,
+                'bt_symbol': test_instance.bt_symbol,
+                'bt_atr_period': test_instance.bt_atr_period,
+                'bt_multiplier': test_instance.bt_multiplier,
+                'bt_start_date': test_instance.bt_start_date.strftime("%Y-%m-%d"),
+                'bt_end_date': test_instance.bt_end_date.strftime("%Y-%m-%d"),
+                'bt_2nd_start_date': test_instance.bt_2nd_start_date.strftime("%Y-%m-%d"),
+                'bt_2nd_end_date': test_instance.bt_2nd_end_date.strftime("%Y-%m-%d"),
+                'bt_time_frame_backward': test_instance.bt_time_frame_backward,
+                'bt_initial_investment': test_instance.bt_initial_investment,
+                'bt_lot_size': test_instance.bt_lot_size,
+                'bt_sl_size': test_instance.bt_sl_size,
+                'bt_tp_size': test_instance.bt_tp_size,
+                'bt_commission': test_instance.bt_commission,
+                'ft_symbol': test_instance.ft_symbol,
+                'ft_start_date': test_instance.ft_start_date,
+                'ft_end_date': test_instance.ft_end_date,
+                'ft_time_frame_forward': test_instance.ft_time_frame_forward,
+                'ft_initial_investment': test_instance.ft_initial_investment,
+                'ft_lot_size': test_instance.ft_lot_size,
+                'ft_sl_size': test_instance.ft_sl_size,
+                'ft_tp_size': test_instance.ft_tp_size,
+                'state': test_instance.state,
+                'stop_flag_live_trade': test_instance.stop_flag_live_trade,
+                'stop_flag_check_status': test_instance.stop_flag_check_status,
+                'bt_1st_roi': test_instance.bt_1st_roi,
+                'bt_2nd_roi': test_instance.bt_2nd_roi,
+                'bt_overall_roi': test_instance.bt_overall_roi,
+                'bt_1st_entries': test_instance.bt_1st_entries,
+                'bt_2nd_entries': test_instance.bt_2nd_entries,
+                'bt_overall_entries': test_instance.bt_overall_entries,
+                'bt_1st_exits': test_instance.bt_1st_exits,
+                'bt_2nd_exits': test_instance.bt_2nd_exits,
+                'bt_overall_exits': test_instance.bt_overall_exits,
+                'bt_1st_final_equity': test_instance.bt_1st_final_equity,
+                'bt_2nd_final_equity': test_instance.bt_2nd_final_equity,
+                'bt_overall_final_equity': test_instance.bt_overall_final_equity,
+                'bt_1st_equity_per_day': test_instance.bt_1st_equity_per_day,
+                'bt_2nd_equity_per_day': test_instance.bt_2nd_equity_per_day,
+                'bt_overall_equity_per_day': test_instance.bt_overall_equity_per_day,
+                'ft_entries': test_instance.ft_entries,
+                'ft_exits': test_instance.ft_exits,
+                'ft_final_equity': test_instance.ft_final_equity,
+                'ft_equity_per_day': test_instance.ft_equity_per_day,
+                'ft_roi': test_instance.ft_roi
+            }
+        except Exception as e:
+            return jsonify({"error": "Error processing test instance data", "details": str(e)}), 500
+
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 
 @app.route("/backtesting", methods=["POST"])
@@ -851,48 +915,67 @@ def update_test_instance(test_id, test_instance):
 
 @app.route("/get_forward_test_result", methods=["POST"])
 def get_test_result():
-    test_id = request.json.get("test_id")
-    if test_id is None:
-        return jsonify({"error": "Missing test_id"}), 400
-
-    test_instance_data = next(
-        (inst for inst in test_instances if inst["test_id"] == test_id), None)
-    if test_instance_data is None:
-        return jsonify({"error": "Test instance not found"}), 400
-
-    # Start the background task for updating the test instance
-    test_instance = test_instance_data["test_instance"]
-    if test_instance.state == "Created":
-        return jsonify({
-            "success" : False,
-            "message": "No forward test have been run or are currently running. Please start the forward test first."
-            }), 403
-    
-    hong_kong = pytz.timezone('Asia/Hong_Kong')
-    current_time = datetime.now().replace(tzinfo=pytz.utc)
-    hong_kong_time = current_time.astimezone(hong_kong)
-    formatted_time = hong_kong_time.strftime('%Y-%m-%d')
-    
-    # datetime_obj = datetime.strptime(test_instance.ft_start_date, "%Y-%m-%d %H:%M:%S")
-    # test_instance_date_only = test_instance.ft_start_date.strftime("%Y-%m-%d")
-    
-    print('formatted_time: ', formatted_time)
-    print('test_instance.ft_start_date : ', test_instance.ft_start_date )
-    print('test_instance.ft_start_date : ', test_instance.ft_start_date == formatted_time )
-    
-    
-    # if test_instance_date_only == formatted_time:
+    """
+    This function handles requests to get the forward test result.
+    It initiates a background task to process the test result if conditions are met.
+    """
+    try:
+        # Retrieve the test_id from the request body
+        test_id = request.json.get("test_id")
         
-    #     return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
-    
-    thread = Thread(target=update_test_instance, args=(test_id, test_instance))
-    thread.start()
-    setattr(test_instance, "ft_result_processing", True)
+        if test_id is None:
+            return jsonify({"error": "Missing test_id"}), 400
 
-    # Return an immediate response
-    return jsonify({
-        "success" : True,
-        "message": "Test result processing has been started."}), 202
+        # Find the test instance data in the test_instances list
+        test_instance_data = next(
+            (inst for inst in test_instances if inst["test_id"] == test_id), None)
+        
+        if test_instance_data is None:
+            return jsonify({"error": "Test instance not found"}), 400
+
+        # Retrieve the test_instance from the stored data
+        test_instance = test_instance_data["test_instance"]
+
+        # Check the state of the test instance
+        if test_instance.state == "Created":
+            return jsonify({
+                "success": False,
+                "message": "No forward test has been run or is currently running. Please start the forward test first."
+            }), 403
+
+        # Get the current time in Hong Kong timezone
+        hong_kong = pytz.timezone('Asia/Hong_Kong')
+        current_time = datetime.now().replace(tzinfo=pytz.utc)
+        hong_kong_time = current_time.astimezone(hong_kong)
+        formatted_time = hong_kong_time.strftime('%Y-%m-%d')
+
+        print('formatted_time:', formatted_time)
+        print('test_instance.ft_start_date:', test_instance.ft_start_date)
+        print('test_instance.ft_start_date == formatted_time:', test_instance.ft_start_date == formatted_time)
+
+        # Uncomment and modify the following lines if you need to compare the start date with the current date
+        # datetime_obj = datetime.strptime(test_instance.ft_start_date, "%Y-%m-%d %H:%M:%S")
+        # test_instance_date_only = test_instance.ft_start_date.strftime("%Y-%m-%d")
+        # if test_instance_date_only == formatted_time:
+        #     return jsonify({"error": "Cannot get the result on the forward test start date."}), 400
+
+        # Start the background task for updating the test instance
+        thread = Thread(target=update_test_instance, args=(test_id, test_instance))
+        thread.start()
+        setattr(test_instance, "ft_result_processing", True)
+
+        # Return an immediate response indicating that processing has started
+        return jsonify({
+            "success": True,
+            "message": "Test result processing has been started."
+        }), 202
+
+    except Exception as e:
+        # Log the exception
+        print(f"Error in get_test_result: {e}")
+
+        # Return a generic error message
+        return jsonify({"error": "An unexpected error occurred."}), 500
 
 @app.route("/get_forward_test_progress_percentage", methods=["POST"])
 def get_forward_test_progress_percentage():
@@ -1146,16 +1229,33 @@ def get_tests_by_user():
     
 @app.route('/gemini', methods=['POST'])
 def gemini():
+    """
+    This endpoint interacts with the Google Generative Language API (Gemini).
+    It sends a POST request with the provided JSON data and returns the API response.
+    """
     data = request.json
-    # print('data: ', data)
+    
+    # Retrieve the Google API key from environment variables
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+    if not GOOGLE_API_KEY:
+        return jsonify({"error": "The Google API key is missing or not set in the environment variables"}), 500
+
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GOOGLE_API_KEY}"
 
     headers = {
         'Content-Type': 'application/json'
     }
-    response = requests.post(url, headers=headers, json=data)
-    # print('response: ', response)
+
+    try:
+        # Send the request to the Google Generative Language API
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+    except requests.exceptions.RequestException as e:
+        # Log the error and return a JSON response with the error message
+        app.logger.error(f"Request to Google API failed: {e}")
+        return jsonify({"error": "Failed to contact the Google Generative Language API"}), 500
+
+    # Return the JSON response from the Google API
     return response.json()
 
 def get_tests_id_by_state(index_name, states):
