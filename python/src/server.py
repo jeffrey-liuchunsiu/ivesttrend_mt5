@@ -251,11 +251,11 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
     initial_investment = float(data["bt_initial_investment"])
     symbol_price = get_stock_price_on_date(data["bt_symbol"], bt_start_date)
     
-    if initial_investment:
+    if not lot_size and initial_investment:
         lot_size = initial_investment / symbol_price
         rounded_lots = round_down_to_appropriate(lot_size)
         
-    if lot_size:
+    if not initial_investment and lot_size:
         initial_investment = lot_size * symbol_price
         rounded_initial_investment = round_up_to_appropriate(initial_investment)
         
