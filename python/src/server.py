@@ -175,19 +175,25 @@ def test_id_exists_in_memory(test_instances, test_id):
     """Check if a test ID exists in the in-memory list."""
     return any(instance["test_id"] == test_id for instance in test_instances)
 
-def create_test_instance(data,uuid_id, mt5_magic_id):
+def create_test_instance(data, uuid_id, mt5_magic_id):
     """Create and return a new test instance from request data."""
-        # Parse the date string into a datetime object
-    date_object = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
+    
+    bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
+    bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
+    
+    days_between = (bt_end_date - bt_start_date).days
+    
+    if days_between > 356:
+        test_range = 90
+    elif days_between > 90:
+        test_range = 30
+    elif days_between > 30:
+        test_range = 7
+    elif days_between > 7:
+        test_range = 3
+    else:
+        test_range = 0  # In case the duration is less than or equal to 7 days
 
-    # Subtract 90 days using timedelta
-    new_date_object = date_object - timedelta(days=90)
-
-    # Optional: Convert back to string if needed
-    new_date_string = new_date_object.strftime("%Y-%m-%d")
-
-    print("Original Date:", data["bt_end_date"])
-    print("New Date (90 days earlier):", new_date_string)
     try:
         return full.Test(
             test_strategy_name=data["test_strategy_name"],
@@ -198,10 +204,10 @@ def create_test_instance(data,uuid_id, mt5_magic_id):
             bt_symbol=data["bt_symbol"],
             bt_atr_period=data["bt_atr_period"],
             bt_multiplier=data["bt_multiplier"],
-            bt_start_date=datetime.strptime(data["bt_start_date"], "%Y-%m-%d"),
-            bt_end_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d")- timedelta(days=90),
-            bt_2nd_start_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d")- timedelta(days=90),
-            bt_2nd_end_date=datetime.strptime(data["bt_end_date"], "%Y-%m-%d"),
+            bt_start_date=bt_start_date,
+            bt_end_date=bt_end_date - timedelta(days=test_range),
+            bt_2nd_start_date=bt_end_date - timedelta(days=test_range),
+            bt_2nd_end_date=bt_end_date,
             bt_time_frame_backward=data["bt_time_frame_backward"],
             bt_initial_investment=data["bt_initial_investment"],
             bt_lot_size=data["bt_lot_size"],
