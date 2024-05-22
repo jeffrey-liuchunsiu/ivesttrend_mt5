@@ -246,9 +246,11 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
         test_range = 3
     else:
         test_range = 3  # In case the duration is less than or equal to 7 days
+    if lot_size:   
+        lot_size = float(data["bt_lot_size"])
+    if initial_investment:     
+        initial_investment = int(data["bt_initial_investment"])
         
-    lot_size = float(data["bt_lot_size"])
-    initial_investment = int(data["bt_initial_investment"])
     symbol_price = get_stock_price_on_date(data["bt_symbol"], bt_start_date)
     rounded_lots = None
     rounded_initial_investment = None
