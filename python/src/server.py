@@ -100,17 +100,19 @@ def create_test():
         if days_between < 7:
             return jsonify({"error": "the test period can not less than 7 days"}), 400
         
-        if not data["bt_lot_size"] or not data["bt_initial_investment"]:
+        if not data["bt_lot_size"] and not data["bt_initial_investment"]:
             return jsonify({"error": "Please input lot size or initial investment"}), 400
         
         if data["bt_lot_size"] and data["bt_initial_investment"]:
             return jsonify({"error": "You can only input lot size or initial investment"}), 400
         
-        if float(data["bt_lot_size"]) < 0.01 or float(data["bt_lot_size"]) > 10000:
-            return jsonify({"error": "Lot size must not less than 0.01 or more then 10000"}), 400
+        if data["bt_lot_size"] :
+            if float(data["bt_lot_size"]) < 0.01 or float(data["bt_lot_size"]) > 10000:
+                return jsonify({"error": "Lot size must not less than 0.01 or more then 10000"}), 400
         
-        if int(data["bt_initial_investment"]) < 100:
-            return jsonify({"error": "Initial Investment must not less than 100"}), 400
+        if data["bt_initial_investment"]:
+            if int(data["bt_initial_investment"]) < 100:
+                return jsonify({"error": "Initial Investment must not less than 100"}), 400
 
         # Check if test_id already exists and generate new uuid
         if test_id_exists(tests_table, uuid_id) or test_id_exists_in_memory(test_instances, uuid_id):
