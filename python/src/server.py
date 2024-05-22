@@ -11,12 +11,14 @@ from datetime import datetime, timedelta
 from botocore.exceptions import ClientError
 # import mt5_tradingbot_mac as ft
 import json
+import math
 import requests
 from mt5linux import MetaTrader5
 import shortuuid
 from threading import Thread
 import re
 from dateutil.parser import parse as parse_date
+import yfinance as yf
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3, get_json_data_from_s3
@@ -88,8 +90,20 @@ def create_test():
         mt5_magic_id = create_new_magic_id()
 
         # Validate required fields
-        if  not user:
+        if not user:
             return jsonify({"error": "Missing 'user' field"}), 400
+        
+        if not data["bt_lot_size"] or not data["bt_initial_investment"]:
+            return jsonify({"error": "Please input lot size or initial investment"}), 400
+        
+        if data["bt_lot_size"] and data["bt_initial_investment"]:
+            return jsonify({"error": "You can only input lot size or initial investment"}), 400
+        
+        if float(data["bt_lot_size"]) < 0.01 or float(data["bt_lot_size"]) > 10000:
+            return jsonify({"error": "Lot size must not less than 0.01 or more then 10000"}), 400
+        
+        if int(data["bt_initial_investment"]) < 100:
+            return jsonify({"error": "Initial Investment must not less than 100"}), 400
 
         # Check if test_id already exists and generate new uuid
         if test_id_exists(tests_table, uuid_id) or test_id_exists_in_memory(test_instances, uuid_id):
@@ -175,9 +189,41 @@ def test_id_exists_in_memory(test_instances, test_id):
     """Check if a test ID exists in the in-memory list."""
     return any(instance["test_id"] == test_id for instance in test_instances)
 
-def create_test_instance(data, uuid_id, mt5_magic_id):
-    """Create and return a new test instance from request data."""
+def get_stock_price_on_date(symbol, date):
+    """Fetches the closing price of a stock symbol on a specific date."""
+    stock = yf.Ticker(symbol)
+    hist = stock.history(start=date, end=date + timedelta(days=1))
+    return hist['Close'][0]
+
+def round_down_to_appropriate(value):
+    """Round down the value dynamically based on its magnitude."""
+    if value >= 10000:
+        return math.floor(value / 10000) * 10000
+    elif value >= 1000:
+        return math.floor(value / 1000) * 1000
+    elif value >= 100:
+        return math.floor(value / 100) * 100
+    elif value >= 10:
+        return math.floor(value / 10) * 10
+    elif value >= 1:
+        return math.floor(value / 1) * 1
+    elif value >= 0.1:
+        return math.floor(value / 0.1) * 0.1
+    elif value >= 0.01:
+        return math.floor(value / 0.01) * 0.01
+    else:
+        return 0  # Consider the case for very small numbers
     
+def round_up_to_appropriate(value):
+    """Round up the value dynamically based on its logarithmic magnitude."""
+    if value == 0:
+        return 0
+    magnitude = math.floor(math.log10(abs(value)))
+    rounding_factor = 10 ** magnitude
+    return math.ceil(value / rounding_factor) * rounding_factor
+
+def create_test_instance(data, uuid_id, mt5_magic_id):
+    """Create and return a new test instance from request data, including stock price and lot calculation."""
     bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
     bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
     
@@ -193,6 +239,19 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
         test_range = 3
     else:
         test_range = 0  # In case the duration is less than or equal to 7 days
+        
+    lot_size = float(data["bt_lot_size"])
+    initial_investment = float(data["bt_initial_investment"])
+    symbol_price = get_stock_price_on_date(data["bt_symbol"], bt_start_date)
+    
+    if initial_investment:
+        lot_size = initial_investment / symbol_price
+        rounded_lots = round_down_to_appropriate(lot_size)
+        
+    if lot_size:
+        initial_investment = lot_size * symbol_price
+        rounded_initial_investment = round_up_to_appropriate(initial_investment)
+        
 
     try:
         return full.Test(
@@ -209,8 +268,8 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
             bt_2nd_start_date=bt_end_date - timedelta(days=test_range),
             bt_2nd_end_date=bt_end_date,
             bt_time_frame_backward=data["bt_time_frame_backward"],
-            bt_initial_investment=data["bt_initial_investment"],
-            bt_lot_size=data["bt_lot_size"],
+            bt_initial_investment=rounded_initial_investment,
+            bt_lot_size=rounded_lots,
             bt_sl_size=data["bt_sl_size"],
             bt_tp_size=data["bt_tp_size"],
             bt_commission=data["bt_commission"],
@@ -218,8 +277,8 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
             ft_start_date=data["ft_start_date"],
             ft_end_date=data["ft_end_date"],
             ft_time_frame_forward=data["ft_time_frame_forward"],
-            ft_initial_investment=data["ft_initial_investment"],
-            ft_lot_size=data["ft_lot_size"],
+            ft_initial_investment=rounded_initial_investment,
+            ft_lot_size=rounded_lots,
             ft_sl_size=data["ft_sl_size"],
             ft_tp_size=data["ft_tp_size"]
         )
