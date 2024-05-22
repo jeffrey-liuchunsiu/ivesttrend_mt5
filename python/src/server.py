@@ -88,10 +88,17 @@ def create_test():
         uuid_id = shortuuid.uuid()[:16]
         
         mt5_magic_id = create_new_magic_id()
+        bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
+        bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
+        
+        days_between = (bt_end_date - bt_start_date).days
 
         # Validate required fields
         if not user:
             return jsonify({"error": "Missing 'user' field"}), 400
+        
+        if days_between < 7:
+            return jsonify({"error": "the test period can not less than 7 days"}), 400
         
         if not data["bt_lot_size"] or not data["bt_initial_investment"]:
             return jsonify({"error": "Please input lot size or initial investment"}), 400
@@ -238,7 +245,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
     elif days_between > 7:
         test_range = 3
     else:
-        test_range = 0  # In case the duration is less than or equal to 7 days
+        test_range = 3  # In case the duration is less than or equal to 7 days
         
     lot_size = float(data["bt_lot_size"])
     initial_investment = float(data["bt_initial_investment"])
