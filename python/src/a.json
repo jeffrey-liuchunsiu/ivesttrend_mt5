@@ -1,0 +1,28 @@
+{'generationConfig': {'temperature': '0.9', 'topK': '1', 'topP': '1', 'stopSequences': [], 'maxOutputTokens': '2048'
+    }, 'safetySettings': [
+        {'category': 'HARM_CATEGORY_HARASSMENT', 'threshold': 'BLOCK_ONLY_HIGH'
+        },
+        {'category': 'HARM_CATEGORY_HATE_SPEECH', 'threshold': 'BLOCK_ONLY_HIGH'
+        },
+        {'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold': 'BLOCK_ONLY_HIGH'
+        },
+        {'category': 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold': 'BLOCK_ONLY_HIGH'
+        }
+    ], 'contents': [
+        {'parts': [
+                {'text': '你叫Athena. 以下內容請用繁體中文回覆。'
+                }
+            ], 'role': 'user'
+        },
+        {'parts': [
+                {'text': 'I understand.'
+                }
+            ], 'role': 'model'
+        },
+        {'parts': [
+                {'text': '你今日食咗飯未'
+                }
+            ], 'role': 'user'
+        }
+    ]
+}
