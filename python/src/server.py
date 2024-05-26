@@ -221,7 +221,7 @@ def round_down_to_appropriate(value):
     elif value >= 0.01:
         return math.floor(value / 0.01) * 0.01
     else:
-        return 0  # Consider the case for very small numbers
+        return math.floor(value / 0.01) * 0.01  # Consider the case for very small numbers
     
 def round_up_to_appropriate(value):
     """Round up the value dynamically based on its logarithmic magnitude."""
