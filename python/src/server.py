@@ -261,6 +261,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
     rounded_lots = None
     rounded_initial_investment = None
     
+    print('initial_investment: ', initial_investment)
     if  initial_investment:
         lot_size = initial_investment / symbol_price
         rounded_lots = round_down_to_appropriate(lot_size)
