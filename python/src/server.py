@@ -298,8 +298,8 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
             ft_time_frame_forward=data["ft_time_frame_forward"],
             ft_initial_investment=rounded_initial_investment,
             ft_lot_size=rounded_lots,
-            ft_sl_size=data["ft_sl_size"],
-            ft_tp_size=data["ft_tp_size"]
+            ft_sl_size=data["bt_sl_size"],
+            ft_tp_size=data["bt_tp_size"]
         )
     except KeyError:  # Missing data fields will raise KeyError
         return None
