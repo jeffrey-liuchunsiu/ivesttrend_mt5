@@ -406,8 +406,8 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
         # supertrend = Supertrend(df, period, multiplier)
         # new_df = df.join(supertrend)
         strategy_df = strategy(fy_df, period, multiplier)
-        # new_df = fy_df.join(strategy_df)
-        # new_df = new_df[period:]
+        new_df = fy_df.join(strategy_df)
+        new_df = new_df[period:]
         entry, exit, equity_per_day, final_equity, roi = backtest(strategy_df, investment,lot_size, sl_size, tp_size, commission)
         roi_list.append((period, multiplier, roi))
     
