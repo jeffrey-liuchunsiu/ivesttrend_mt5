@@ -399,6 +399,7 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
     
     roi_list = []
     
+    
     # for each period and multiplier, perform backtest
     for period, multiplier in [(x,y) for x in atr_period for y in atr_multiplier]:
         new_df = fy_df
@@ -411,7 +412,7 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
         roi_list.append((period, multiplier, roi))
     
     # print(pd.DataFrame(roi_list, columns=['ATR_period','Multiplier','ROI']))
-    
+    print('roi_list: ', roi_list)
     # return the best parameter set
     return max(roi_list, key=lambda x:x[2])
 
