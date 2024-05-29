@@ -82,13 +82,13 @@ def Supertrend(df, atr_period, multiplier):
 
 
 def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
-
+    # print(df.head())
     is_uptrend = df['Supertrend']
     close = df['Close'] 
     low = df['Low']
     high = df['High']
     open = df['Open']
-    date = df['Date']
+    # date = df['Date']
 
     # it is the max value of the price of the double peak/double bottom pattern
     max_of_consecutive_2_high_prices = np.nan
@@ -101,9 +101,9 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
     # The exit price of the trade
     exit_price = np.nan
 
-    squeeze_off = df['squeeze_off']
+    # squeeze_off = df['squeeze_off']
     # squeeze_bar_value = df['bar_value']
-    squeeze_momentum_bar_up = df['squeeze_momentum_bar_up']
+    # squeeze_momentum_bar_up = df['squeeze_momentum_bar_up']
 
     # initial condition
     in_position = False
@@ -116,14 +116,14 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
     point_size = 1
     stopLoss = sl_size * point_size
     targetProfit = tp_size * point_size
-    entry = []
-    exit = []
-    equity_per_day = []
+    # entry = []
+    # exit = []
+    # equity_per_day = []
 
     for i in range(1, len(df)):
 
         # date_str = date[i].strftime('%Y-%m-%d')
-        date_str = date[i].strftime('%Y-%m-%d %H:%M:%S')
+        # date_str = date[i]
 
         check_completed = False
 
@@ -139,19 +139,16 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 max_of_consecutive_2_high_prices = max(high.iloc[i], high.iloc[i-1])
                 min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
                 entry_price = close.iloc[i]
-
-                # share = math.floor(equity / close[i] / 100) * 100
-                # equity -= share * close[i]
                 
-                equity_per_day.append({date_str:str(equity- commission)})
+                # equity_per_day.append({date_str:equity- commission})
                 equity_minus_investment = equity - lot_size * close[i] 
 
-                entry.append({"Date":date_str, "Type": "Buy", "Entry":"Entry in","Price": str(close[i]), 
-                            "Volume": str(lot_size), "Reason":"SuperTrend_is_uptrend",
-                            "Strategy":"SuperTrend", "Reason_type":"Long"})
+                # entry.append({"Date":date_str, "Type": "Buy", "Entry":"Entry in","Price": close[i], 
+                #             "Volume": lot_size, "Reason":"SuperTrend_is_uptrend",
+                #             "Strategy":"SuperTrend", "Reason_type":"Long"})
                 in_position = True
-                print(
-                    f'Long {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
+                # print(
+                #     f'Long {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
                 
                 check_completed = True
 
@@ -160,16 +157,16 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 # if in position & price is on uptrend -> stop short and entry out
                 profit_per_share = -(close[i] - entry_price)
                 equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                equity_per_day.append({date_str:str(equity)})
+                # equity_per_day.append({date_str:equity})
 
-                exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": str(close[i]), 
-                            "Volume": str(lot_size), "Reason":"SuperTrend_not_downtrend",
-                            "Strategy":"SuperTrend", "Reason_type":"Stop short"})
+                # exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": close[i], 
+                #             "Volume": lot_size, "Reason":"SuperTrend_not_downtrend",
+                #             "Strategy":"SuperTrend", "Reason_type":"Stop short"})
                 in_position = False
                 direction = None
 
-                print(
-                    f'Stop Short at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Not DownTrend"')
+                # print(
+                #     f'Stop Short at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Not DownTrend"')
 
 
                 # then long and entry in
@@ -180,15 +177,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
                 entry_price = close.iloc[i]
 
-                equity_per_day.append({date_str:str(equity- commission)})
+                # equity_per_day.append({date_str:equity- commission})
                 equity_minus_investment = equity - lot_size * close[i] 
 
-                entry.append({"Date":date_str, "Type": "Buy", "Entry":"Entry in","Price": str(close[i]), 
-                            "Volume": str(lot_size), "Reason":"SuperTrend_is_uptrend",
-                            "Strategy":"SuperTrend", "Reason_type":"Long"})
+                # entry.append({"Date":date_str, "Type": "Buy", "Entry":"Entry in","Price": close[i], 
+                #             "Volume": lot_size, "Reason":"SuperTrend_is_uptrend",
+                #             "Strategy":"SuperTrend", "Reason_type":"Long"})
                 in_position = True
-                print(
-                    f'Long {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
+                # print(
+                #     f'Long {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
 
                 check_completed = True  
 
@@ -205,15 +202,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 # share = math.floor(equity / close[i] / 100) * 100
                 # equity -= share * close[i]
                 
-                equity_per_day.append({date_str:str(equity- commission)})
+                # equity_per_day.append({date_str:equity- commission})
                 equity_minus_investment = equity - lot_size * close[i] 
 
-                entry.append({"Date":date_str, "Type": "Sell", "Entry":"Entry in","Price": str(close[i]), 
-                            "Volume": str(lot_size), "Reason":"SuperTrend_is_downtrend",
-                            "Strategy":"SuperTrend", "Reason_type":"Short"})
+                # entry.append({"Date":date_str, "Type": "Sell", "Entry":"Entry in","Price": close[i], 
+                #             "Volume": lot_size, "Reason":"SuperTrend_is_downtrend",
+                #             "Strategy":"SuperTrend", "Reason_type":"Short"})
                 in_position = True
-                print(
-                    f'Short {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
+                # print(
+                #     f'Short {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
 
                 check_completed = True
 
@@ -223,15 +220,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 # equity += share * close[i] - commission
                 profit_per_share = close[i] - entry_price
                 equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                equity_per_day.append({date_str:str(equity)})
+                # equity_per_day.append({date_str:equity})
 
-                exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": str(close[i]), 
-                            "Volume": str(lot_size), "Reason":"SuperTrend_not_uptrend",
-                            "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
+                # exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": close[i], 
+                #             "Volume": lot_size, "Reason":"SuperTrend_not_uptrend",
+                #             "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
                 in_position = False
                 direction = None
-                print(
-                    f'Stop Long at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Not UpTrend"')
+                # print(
+                #     f'Stop Long at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Not UpTrend"')
 
 
                 # then short and entry in
@@ -242,15 +239,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                 min_of_consecutive_2_low_prices = min(low.iloc[i], low.iloc[i-1])
                 entry_price = close.iloc[i]
 
-                equity_per_day.append({date_str:str(equity - commission)})
+                # equity_per_day.append({date_str:equity- commission})
                 equity_minus_investment = equity - lot_size * close[i] 
 
-                entry.append({"Date":date_str, "Type": "Sell", "Entry":"Entry in","Price": str(close[i]), 
-                            "Volume": str(lot_size), "Reason":"SuperTrend_is_downtrend",
-                            "Strategy":"SuperTrend", "Reason_type":"Short"})
+                # entry.append({"Date":date_str, "Type": "Sell", "Entry":"Entry in","Price": close[i], 
+                #             "Volume": lot_size, "Reason":"SuperTrend_is_downtrend",
+                #             "Strategy":"SuperTrend", "Reason_type":"Short"})
                 in_position = True
-                print(
-                    f'Short {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
+                # print(
+                #     f'Short {lot_size} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
 
                 check_completed = True
 
@@ -271,15 +268,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                     # equity += share * price3 - commission
                     profit_per_share = exit_price - entry_price
                     equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                    equity_per_day.append({date_str:str(equity)})
+                    # equity_per_day.append({date_str:equity})
 
-                    exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": str(exit_price), 
-                                "Volume": str(lot_size),"Reason":"Hit Stop Loss",
-                                "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
+                    # exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": exit_price, 
+                    #             "Volume": lot_size,"Reason":"Hit Stop Loss",
+                    #             "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
                     in_position = False
                     direction = None
-                    print(
-                        f'Stop Long at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Stop Loss"')
+                    # print(
+                    #     f'Stop Long at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Stop Loss"')
 
                     check_completed = True
 
@@ -296,15 +293,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                     # equity += share * price3 - commission
                     profit_per_share = exit_price - entry_price
                     equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                    equity_per_day.append({date_str:str(equity)})
+                    # equity_per_day.append({date_str:equity})
 
-                    exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": str(exit_price), 
-                                    "Volume": str(lot_size), "Reason":"Hit Target Profit",
-                                    "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
+                    # exit.append({"Date":date_str, "Type": "Buy", "Entry":"Entry out","Price": exit_price, 
+                    #                 "Volume": lot_size, "Reason":"Hit Target Profit",
+                    #                 "Strategy":"SuperTrend", "Reason_type":"Stop Long"})
                     in_position = False
                     direction = None
-                    print(
-                        f'Stop Long at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Target Profit"')
+                    # print(
+                    #     f'Stop Long at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Target Profit"')
 
                     check_completed = True
 
@@ -322,15 +319,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                     # equity += share * price3 - commission
                     profit_per_share = -(exit_price - entry_price)
                     equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                    equity_per_day.append({date_str:str(equity)})
+                    # equity_per_day.append({date_str:equity})
 
-                    exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": str(exit_price), 
-                                    "Volume": str(lot_size), "Reason":"Hit Stop Loss",
-                                    "Strategy":"SuperTrend", "Reason_type":"Stop Short"})
+                    # exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": exit_price, 
+                    #                 "Volume": lot_size, "Reason":"Hit Stop Loss",
+                    #                 "Strategy":"SuperTrend", "Reason_type":"Stop Short"})
                     in_position = False
                     direction = None
-                    print(
-                        f'Stop Short at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Stop Loss"')
+                    # print(
+                    #     f'Stop Short at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Stop Loss"')
 
                     check_completed = True
 
@@ -347,39 +344,85 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
                     # equity += share * price3 - commission
                     profit_per_share = -(exit_price - entry_price)
                     equity = equity_minus_investment + lot_size * (entry_price+profit_per_share) - commission
-                    equity_per_day.append({date_str:str(equity)})
+                    # equity_per_day.append({date_str:equity})
 
-                    exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": str(exit_price), 
-                                "Volume": str(lot_size),"Reason":"Hit Target Profit",
-                                "Strategy":"SuperTrend", "Reason_type":"Stop Short"})
+                    # exit.append({"Date":date_str, "Type": "Sell", "Entry":"Entry out","Price": exit_price, 
+                    #             "Volume": lot_size,"Reason":"Hit Target Profit",
+                    #             "Strategy":"SuperTrend", "Reason_type":"Stop Short"})
                     in_position = False
                     direction = None
-                    print(
-                        f'Stop Short at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Target Profit"')
+                    # print(
+                    #     f'Stop Short at {round(exit_price,2)} on {df.index[i].strftime("%Y/%m/%d")}, reason "Hit Target Profit"')
 
                     check_completed = True
 
-        if not check_completed:
-            if not in_position:
-                equity_per_day.append({date_str:str(equity)})
-            else:
-                equity_of_day = equity_minus_investment + lot_size * close[i]
-                equity_per_day.append({date_str:str(equity_of_day)})
-        
-    equity = equity_minus_investment + lot_size * close[i]
-                
+        # if not check_completed:
+        #     if not in_position:
+        #         equity_per_day.append({date_str:equity})
+        #     else:
+        #         equity_of_day = equity_minus_investment + lot_size * close[i]
+        #         equity_per_day.append({date_str:equity_of_day})
+    
     earning = equity - initial_investment
-    print('initial_investment: ', initial_investment)
-    print('equity: ', equity)
-    print('earning: ', earning)
     if initial_investment != 0:
         roi = round(earning/initial_investment*100, 2)
     elif initial_investment == 0:
         roi = 0
     final_equity = equity
-    print('final_equity: ', final_equity)
+    # formatted_investment_value = _format_investment_value(initial_investment)
+    # print(f'Earning from investing ${formatted_investment_value} is ${round(earning, 2)} (ROI = {roi}%)')
+    # print(
+    #     f'Earning from investing $100k is ${round(earning,2)} (ROI = {roi}%)')
+    # return entry, exit, equity_per_day, final_equity, roi
+    return final_equity, roi
 
-    return entry, exit, equity_per_day, final_equity, roi
+
+
+def backtest_supertrend(df, investment,commission,print_result,print_detail):
+    
+
+    
+    # Calculate the ATR
+    is_uptrend = df['Supertrend']
+    close = df['Close']
+    
+    # initial condition
+    in_position = False
+    equity = investment
+    commission = commission
+    share = 0
+    entry = []
+    exit = []
+    
+    for i in range(1, len(df)):
+        # print(i)
+        # print(is_uptrend[i])
+        # print(df.index[i])
+        # if not in position & price is on uptrend -> buy
+        if not in_position and is_uptrend[i]:
+            share = math.floor(equity / close[i] / 100) * 100
+            equity -= share * close[i]
+            entry.append((i, close[i]))
+            in_position = True
+            if print_detail is True: 
+                print(f'Buy {share} shares at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
+        # if in position & price is not on uptrend -> sell
+        elif in_position and not is_uptrend[i]:
+            equity += share * close[i] - commission
+            exit.append((i, close[i]))
+            in_position = False
+            if print_detail is True: 
+                print(f'Sell at {round(close[i],2)} on {df.index[i].strftime("%Y/%m/%d")}')
+    # if still in position -> sell all share 
+    if in_position:
+        equity += share * close[i] - commission
+    
+    earning = equity - investment
+    roi = round(earning/investment*100,2)
+    if print_result is True: 
+        print(f'Earning from investing ${int(investment/1000/1000)}M is ${round(earning,2)} (ROI = {roi}%)')
+        print(" ")
+    return entry, exit, roi
 
 
 def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier ):
@@ -399,7 +442,6 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
     
     roi_list = []
     
-    
     # for each period and multiplier, perform backtest
     for period, multiplier in [(x,y) for x in atr_period for y in atr_multiplier]:
         new_df = fy_df
@@ -408,11 +450,11 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
         strategy_df = strategy(fy_df, period, multiplier)
         new_df = fy_df.join(strategy_df)
         new_df = new_df[period:]
-        entry, exit, equity_per_day, final_equity, roi = backtest(strategy_df, investment,lot_size, sl_size, tp_size, commission)
+        final_equity, roi = backtest(new_df, investment,lot_size, sl_size, tp_size, commission)
         roi_list.append((period, multiplier, roi))
     
     # print(pd.DataFrame(roi_list, columns=['ATR_period','Multiplier','ROI']))
-    print('roi_list: ', roi_list)
+    
     # return the best parameter set
     return max(roi_list, key=lambda x:x[2])
 
