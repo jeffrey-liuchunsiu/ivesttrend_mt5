@@ -420,7 +420,7 @@ def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission)
     for i in range(1, len(df)):
 
         # date_str = date[i].strftime('%Y-%m-%d')
-        date_str = date[i].strftime('%Y-%m-%d %H:%M:%S')
+        date_str = date[i].strftime('%Y-%m-%d')
 
         check_completed = False
 
