@@ -263,15 +263,15 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
     
     print('initial_investment: ', initial_investment)
     if  initial_investment:
-        lot_size = initial_investment / symbol_price
-        rounded_lots = round_down_to_appropriate(lot_size)
+        new_lot_size = initial_investment / symbol_price
+        rounded_lots = round_down_to_appropriate(new_lot_size)
         rounded_initial_investment = initial_investment
         print('rounded_initial_investment: ', rounded_initial_investment)
         print('rounded_lots: ', rounded_lots)
         
     if  lot_size:
-        initial_investment = lot_size * symbol_price
-        rounded_initial_investment = round_up_to_appropriate(initial_investment)
+        new_initial_investment = lot_size * symbol_price
+        rounded_initial_investment = round_up_to_appropriate(new_initial_investment)
         rounded_lots = lot_size
         print('rounded_initial_investment: ', rounded_initial_investment)
         print('rounded_lots: ', rounded_lots)
