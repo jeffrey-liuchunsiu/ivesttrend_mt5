@@ -438,7 +438,7 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
     return entry, exit, equity_per_day, final_equity, roi
 
 def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier ):
-    print('fy_df: ', fy_df.tail())
+    # print('fy_df: ', fy_df.tail())
     print('run find_optimal_parameter: ')
     # predefine several parameter sets- ****change
     atr_period=[]
@@ -458,7 +458,7 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
     
     # for each period and multiplier, perform backtest
     for period, multiplier in [(x,y) for x in atr_period for y in atr_multiplier]:
-        add_supertrend_df = add_supertrend(fy_df,atr_period,multiplier)
+        add_supertrend_df = add_supertrend(fy_df,period,multiplier)
         add_squeeze_momentum_df = add_squeeze_momentum(add_supertrend_df)
         # supertrend = Supertrend(df, period, multiplier)
         # new_df = df.join(supertrend)
