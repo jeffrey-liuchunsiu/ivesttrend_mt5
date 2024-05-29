@@ -227,7 +227,7 @@ class Test:
         start_date = self.bt_start_date.strftime("%Y-%m-%d")
         end_date = self.bt_end_date.strftime("%Y-%m-%d")
         interval = str(self.bt_time_frame_backward)
-        lot_size = int(self.bt_lot_size)
+        lot_size = float(self.bt_lot_size)
         sl_size = int(self.bt_sl_size)
         tp_size = int(self.bt_tp_size)
 

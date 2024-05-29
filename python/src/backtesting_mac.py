@@ -136,6 +136,7 @@ def _format_investment_value(value):
 
 
 def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
+    print('lot_size: ', lot_size)
 
     is_uptrend = df['Supertrend']
     close = df['Close'] 
