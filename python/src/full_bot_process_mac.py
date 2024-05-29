@@ -237,10 +237,10 @@ class Test:
         backtest = bt.backtest
         
         if atr_period == None or multiplier == None:
-            fy_df = mst.get_yf_df(symbol, start_date, end_date, interval)
+            fy_df = bt.get_data(symbol, start_date, end_date, interval)
 
             # atr_period, multiplier, ROI = mst.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
-            atr_period, multiplier, ROI = mst.find_optimal_parameter(self.bt_price_data_with_indicator_all, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
+            atr_period, multiplier, ROI = bt.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
 
         self.bt_atr_period = atr_period
         self.bt_multiplier = multiplier

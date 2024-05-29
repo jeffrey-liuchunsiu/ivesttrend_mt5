@@ -436,3 +436,42 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
 
     print(f'Earning from investing ${formatted_investment_value} is ${round(earning, 2)} (ROI = {roi}%)')
     return entry, exit, equity_per_day, final_equity, roi
+
+def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier ):
+    print('fy_df: ', fy_df.tail())
+    print('run find_optimal_parameter: ')
+    # predefine several parameter sets- ****change
+    atr_period=[]
+    atr_multiplier = []
+    
+    if atr is None:
+        atr_period = list(range(1, 20))
+    elif atr > 0:
+        atr_period = [atr]
+        
+    if multiplier is None:
+        atr_multiplier = [i/2 for i in range(2, 41)]
+    elif multiplier > 0:
+        atr_multiplier = [multiplier]
+    
+    roi_list = []
+    
+    # for each period and multiplier, perform backtest
+    for period, multiplier in [(x,y) for x in atr_period for y in atr_multiplier]:
+        add_supertrend_df = add_supertrend(fy_df,atr_period,multiplier)
+        add_squeeze_momentum_df = add_squeeze_momentum(add_supertrend_df)
+        # supertrend = Supertrend(df, period, multiplier)
+        # new_df = df.join(supertrend)
+        # strategy_df = strategy(fy_df, period, multiplier)
+        # new_df = fy_df.join(strategy_df)
+        # new_df = new_df[period:]
+        # final_equity, roi = backtest(new_df, investment,lot_size, sl_size, tp_size, commission)
+        entry, exit, equity_per_day, final_equity, roi = backtest(add_squeeze_momentum_df, investment,lot_size, sl_size, tp_size, commission)
+        roi_list.append((period, multiplier, roi))
+    
+    # print(pd.DataFrame(roi_list, columns=['ATR_period','Multiplier','ROI']))
+    
+    # return the best parameter set
+    
+    print('roi_list: ', roi_list)
+    return max(roi_list, key=lambda x:x[2])
