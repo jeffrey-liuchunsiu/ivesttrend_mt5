@@ -411,6 +411,7 @@ def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission)
     # commission = commission
     # Stoploss=stopLoss
     point_size = 1
+    print('point_size: ', point_size)
     stopLoss = sl_size * point_size
     targetProfit = tp_size * point_size
     entry = []
@@ -420,7 +421,8 @@ def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission)
     for i in range(1, len(df)):
 
         # date_str = date[i].strftime('%Y-%m-%d')
-        date_str = date[i].strftime('%Y-%m-%d')
+        date_str = date[i].strftime('%Y-%m-%d %H:%M:%S')
+        print('date_str: ', date_str)
 
         check_completed = False
 
