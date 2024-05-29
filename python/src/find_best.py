@@ -385,7 +385,7 @@ def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission)
     low = df['Low']
     high = df['High']
     open = df['Open']
-    date = df['Date']
+    date = df.index
 
     # it is the max value of the price of the double peak/double bottom pattern
     max_of_consecutive_2_high_prices = np.nan
@@ -411,7 +411,7 @@ def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission)
     # commission = commission
     # Stoploss=stopLoss
     point_size = 1
-    print('point_size: ', point_size)
+ 
     stopLoss = sl_size * point_size
     targetProfit = tp_size * point_size
     entry = []
