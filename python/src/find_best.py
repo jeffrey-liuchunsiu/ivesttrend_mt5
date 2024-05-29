@@ -23,35 +23,35 @@ def get_yfinance_crypto_list(number_of_crypto: int):
     Name_yf_list = df.Name.tolist()[0:]
     return symbols_yf_list, Name_yf_list
 
-def Supertrend(df, atr_period, multiplier):
-    
+def add_supertrend(df,atr_period,multiplier):
+
     high = df['High']
     low = df['Low']
     close = df['Close']
-    
+
     # calculate ATR
-    price_diffs = [high - low, 
-                   high - close.shift(), 
+    price_diffs = [high - low,
+                   high - close.shift(),
                    close.shift() - low]
     true_range = pd.concat(price_diffs, axis=1)
     true_range = true_range.abs().max(axis=1)
     # default ATR calculation in supertrend indicator
-    atr = true_range.ewm(alpha=1/atr_period,min_periods=atr_period).mean() 
+    atr = true_range.ewm(alpha=1/atr_period, min_periods=atr_period).mean()
     # df['atr'] = df['tr'].rolling(atr_period).mean()
-    
+
     # HL2 is simply the average of high and low prices
     hl2 = (high + low) / 2
     # upperband and lowerband calculation
     # notice that final bands are set to be equal to the respective bands
-    final_upperband = upperband = hl2 + (multiplier * atr)
-    final_lowerband = lowerband = hl2 - (multiplier * atr)
-    
+    final_upperband = hl2 + (multiplier * atr)
+    final_lowerband = hl2 - (multiplier * atr)
+
     # initialize Supertrend column to True
     supertrend = [True] * len(df)
-    
+
     for i in range(1, len(df.index)):
         curr, prev = i, i-1
-        
+
         # if current close price crosses above upperband
         if close[curr] > final_upperband[prev]:
             supertrend[curr] = True
@@ -61,7 +61,7 @@ def Supertrend(df, atr_period, multiplier):
         # else, the trend continues
         else:
             supertrend[curr] = supertrend[prev]
-            
+
             # adjustment to the final bands
             if supertrend[curr] == True and final_lowerband[curr] < final_lowerband[prev]:
                 final_lowerband[curr] = final_lowerband[prev]
@@ -73,12 +73,12 @@ def Supertrend(df, atr_period, multiplier):
             final_upperband[curr] = np.nan
         else:
             final_lowerband[curr] = np.nan
-    
-    return pd.DataFrame({
-        'Supertrend': supertrend,
-        'Final Lowerband': final_lowerband,
-        'Final Upperband': final_upperband
-    }, index=df.index)
+
+    df['Supertrend'] = pd.DataFrame(data=supertrend, index=df.index)
+    df['Final Lowerband'] = pd.DataFrame(data=final_lowerband, index=df.index)
+    df['Final Upperband'] = pd.DataFrame(data=final_upperband, index=df.index)
+
+    return df
 
 
 def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
@@ -751,10 +751,10 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
         # supertrend = Supertrend(df, period, multiplier)
         # new_df = df.join(supertrend)
         strategy_df = strategy(fy_df, period, multiplier)
-        new_df = fy_df.join(strategy_df)
-        new_df = new_df[period:]
+        # new_df = fy_df.join(strategy_df)
+        # new_df = new_df[period:]
         # final_equity, roi = backtest(new_df, investment,lot_size, sl_size, tp_size, commission)
-        entry, exit, equity_per_day, final_equity, roi = backtest(new_df, investment,lot_size, sl_size, tp_size, commission)
+        entry, exit, equity_per_day, final_equity, roi = backtest(strategy_df, investment,lot_size, sl_size, tp_size, commission)
         roi_list.append((period, multiplier, roi))
     
     # print(pd.DataFrame(roi_list, columns=['ATR_period','Multiplier','ROI']))

@@ -233,7 +233,7 @@ class Test:
         atr_period = int(atr) if atr is not None else None
         multiplier = float(atr_multiplier) if atr_multiplier is not None else None
         
-        strategy = mst.Supertrend
+        strategy = mst.add_supertrend
         backtest = mst.new_backtest
         
         if atr_period == None or multiplier == None:
