@@ -234,11 +234,12 @@ class Test:
         multiplier = float(atr_multiplier) if atr_multiplier is not None else None
         
         strategy = mst.Supertrend
-        backtest = mst.backtest
+        backtest = mst.new_backtest
         
         if atr_period == None or multiplier == None:
             fy_df = mst.get_yf_df(symbol, start_date, end_date, interval)
 
+            # atr_period, multiplier, ROI = mst.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
             atr_period, multiplier, ROI = mst.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
 
         self.bt_atr_period = atr_period
