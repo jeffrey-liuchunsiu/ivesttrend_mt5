@@ -379,6 +379,7 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
 
 
 def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
+    print('df: ', df.tail())
     is_uptrend = df['Supertrend']
     close = df['Close'] 
     low = df['Low']
