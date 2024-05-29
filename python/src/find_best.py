@@ -385,7 +385,7 @@ def new_backtest(df, initial_investment, lot_size, sl_size, tp_size, commission)
     low = df['Low']
     high = df['High']
     open = df['Open']
-    date = df.index
+    date = df['Date']
 
     # it is the max value of the price of the double peak/double bottom pattern
     max_of_consecutive_2_high_prices = np.nan
@@ -754,11 +754,11 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
         # new_df = fy_df
         # supertrend = Supertrend(df, period, multiplier)
         # new_df = df.join(supertrend)
-        strategy_df = strategy(fy_df, period, multiplier)
+        # strategy_df = strategy(fy_df, period, multiplier)
         # new_df = fy_df.join(strategy_df)
         # new_df = new_df[period:]
         # final_equity, roi = backtest(new_df, investment,lot_size, sl_size, tp_size, commission)
-        entry, exit, equity_per_day, final_equity, roi = backtest(strategy_df, investment,lot_size, sl_size, tp_size, commission)
+        entry, exit, equity_per_day, final_equity, roi = backtest(fy_df, investment,lot_size, sl_size, tp_size, commission)
         roi_list.append((period, multiplier, roi))
     
     # print(pd.DataFrame(roi_list, columns=['ATR_period','Multiplier','ROI']))
