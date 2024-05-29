@@ -86,6 +86,7 @@ class Test:
         self.bt_price_data_with_indicator_all = None
         self.bt_atr_period = bt_atr_period
         self.bt_multiplier = bt_multiplier
+        self.find_best_temp_roi = None
         
         self.bt_1st_roi = None
         self.bt_2nd_roi = None
@@ -244,6 +245,7 @@ class Test:
 
         self.bt_atr_period = atr_period
         self.bt_multiplier = multiplier
+        self.find_best_temp_roi = ROI
         
         print(self.bt_start_date.strftime("%Y-%m-%d"))
         print(self.bt_end_date.strftime("%Y-%m-%d"))

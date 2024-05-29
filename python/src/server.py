@@ -412,7 +412,7 @@ def find_best_parameters():
         response_data = {
             "ATR Period": str(test_instance.bt_atr_period),
             "Multiplier": str(test_instance.bt_multiplier),
-            "ROI": str(test_instance.bt_overall_roi)
+            "ROI": str(test_instance.find_best_temp_roi)
         }
 
         # Return the response data as JSON
