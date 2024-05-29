@@ -440,7 +440,7 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
 
 def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier ):
     # print('fy_df: ', fy_df.tail())
-    print('run find_optimal_parameter: ')
+    # print('run find_optimal_parameter: ')
     # predefine several parameter sets- ****change
     atr_period=[]
     atr_multiplier = []
@@ -474,5 +474,5 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
     
     # return the best parameter set
     
-    print('roi_list: ', roi_list)
+    # print('roi_list: ', roi_list)
     return max(roi_list, key=lambda x:x[2])

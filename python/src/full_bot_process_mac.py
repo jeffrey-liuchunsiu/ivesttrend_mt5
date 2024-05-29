@@ -245,7 +245,7 @@ class Test:
 
         self.bt_atr_period = atr_period
         self.bt_multiplier = multiplier
-        self.find_best_temp_roi = ROI
+        # self.find_best_temp_roi = ROI
         
         print(self.bt_start_date.strftime("%Y-%m-%d"))
         print(self.bt_end_date.strftime("%Y-%m-%d"))
