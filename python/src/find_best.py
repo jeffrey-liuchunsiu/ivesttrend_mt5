@@ -732,6 +732,7 @@ def backtest_supertrend(df, investment,commission,print_result,print_detail):
 
 
 def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier ):
+    print('fy_df: ', fy_df.tail())
     print('run find_optimal_parameter: ')
     # predefine several parameter sets- ****change
     atr_period=[]
