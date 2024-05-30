@@ -91,7 +91,7 @@ class Test:
         self.find_best_getting_result_progress_percentage = 0
         self.find_best_elapsed_time = None
         self.find_best_estimated_remaining_time = None
-        self.find_best_state = "Default"
+        # self.find_best_state = "Default"
         
         self.bt_1st_roi = None
         self.bt_2nd_roi = None
@@ -260,7 +260,7 @@ class Test:
         self.bt_multiplier = multiplier
         
         self.find_best_result_processing = False
-        self.find_best_state = "Best"
+        # self.find_best_state = "Best"
         
         print(self.bt_start_date.strftime("%Y-%m-%d"))
         print(self.bt_end_date.strftime("%Y-%m-%d"))
