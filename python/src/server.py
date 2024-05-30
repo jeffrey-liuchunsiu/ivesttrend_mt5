@@ -473,12 +473,14 @@ def get_find_best_parameters_progress_percentage():
         return jsonify({"error": "Test instance not found"}), 400
     
     # Start the background task for updating the test instance
-    test_instance = test_instance_data["test_instance"]
+    test_instance = test_instance_data["test_instance"] 
     if test_instance.find_best_result_processing == False:
-        jsonify({"processing":False, 
+        return jsonify({"processing":False, 
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
+                    "current_atr" : test_instance.bt_atr_period,
+                    "current_multiplier" : test_instance.bt_multiplier,
                     "message": "No find best parameters is currently running. Please start find best parameters first."}), 403
         
     # if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Best":
@@ -499,6 +501,8 @@ def get_find_best_parameters_progress_percentage():
                             "percentage": percentage, 
                             "elapsed_time":elapsed_time, 
                             "estimated_remaining_time":estimated_remaining_time, 
+                            "current_atr" : None,
+                            "current_multiplier" : None,
                             "message": "The find best parameters is calculating"}), 200
     
     # return jsonify({"processing":False, 
