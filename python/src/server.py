@@ -481,7 +481,7 @@ def get_find_best_parameters_progress_percentage():
                     "estimated_remaining_time":None,
                     "current_atr" : test_instance.bt_atr_period,
                     "current_multiplier" : test_instance.bt_multiplier,
-                    "message": "No find best parameters is currently running. Please start find best parameters first."}), 403
+                    "message": "No find best parameters is currently running. Please start find best parameters first."}), 202
         
     # if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Best":
     #     jsonify({"processing":False, 
