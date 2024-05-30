@@ -19,6 +19,7 @@ from threading import Thread
 import re
 from dateutil.parser import parse as parse_date
 import yfinance as yf
+from decimal import Decimal
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3, get_json_data_from_s3
@@ -1214,6 +1215,11 @@ def get_test_result_not_thread():
     # Return an immediate response
     return jsonify(result), 200
 
+def decimal_default(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError("Object of type Decimal is not JSON serializable")
+
 @app.route("/get_analyze_news", methods=["POST"])
 def get_analyze_news():
     test_id = request.json.get("test_id")
@@ -1307,6 +1313,11 @@ def get_analyze_news():
         if 'LastEvaluatedKey' not in response or len(last_items) >= limit:
             break
         exclusive_start_key = response['LastEvaluatedKey']
+        
+    for item in last_items:
+        for key, value in item.items():
+            if isinstance(value, Decimal):
+                item[key] = decimal_default(value)
         
     # Sorting the items by 'date_time' from latest to earliest
     sorted_items = sorted(last_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
