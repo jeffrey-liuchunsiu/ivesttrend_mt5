@@ -474,19 +474,19 @@ def get_find_best_parameters_progress_percentage():
     
     # Start the background task for updating the test instance
     test_instance = test_instance_data["test_instance"]
-    if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Default":
+    if test_instance.find_best_result_processing == False:
         jsonify({"processing":False, 
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
                     "message": "No find best parameters is currently running. Please start find best parameters first."}), 403
         
-    if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Best":
-        jsonify({"processing":False, 
-                    "percentage": None,
-                    "elapsed_time":None, 
-                    "estimated_remaining_time":None,
-                    "message": "Find best parameters is already complete. No find best parameters is currently running. Please start the find best parameters again."}), 403
+    # if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Best":
+    #     jsonify({"processing":False, 
+    #                 "percentage": None,
+    #                 "elapsed_time":None, 
+    #                 "estimated_remaining_time":None,
+    #                 "message": "Find best parameters is already complete. No find best parameters is currently running. Please start the find best parameters again."}), 403
             
     processing = test_instance.find_best_result_processing
     if processing:
