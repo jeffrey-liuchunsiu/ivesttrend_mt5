@@ -353,6 +353,29 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
         print(f"An error occurred while saving the test instance: {str(e)}")
         # Handle the error as per your requirements
 
+def start_find_best_process(test_id, test_instance, atr, multiplier):
+    try:
+        test_instance.find_best_parameters(atr=atr, atr_multiplier=multiplier)
+        
+        tests_table.update_item(
+            Key={'id': test_id},
+            UpdateExpression='SET #bt_atr_period = :val1, #bt_multiplier = :val2',
+            ExpressionAttributeNames={
+                '#bt_atr_period': 'bt_atr_period',
+                '#bt_multiplier': 'bt_multiplier'
+            },
+            ExpressionAttributeValues={
+                ':val1': str(test_instance.bt_atr_period),
+                ':val2': str(test_instance.bt_multiplier)
+            }
+        )
+    except AttributeError as e:
+        print(f"Attribute error occurred: {e}")
+    except KeyError as e:
+        print(f"Key error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    
 @app.route('/find_best_parameters', methods=['POST'])
 def find_best_parameters():
     try:
@@ -390,35 +413,46 @@ def find_best_parameters():
         
         test_instance.parse_and_convert_parameters()
         # test_instance.find_best_parameters_api(atr=atr, multiplier=multiplier)
-        test_instance.find_best_parameters(atr=atr, atr_multiplier=multiplier)
+    #     test_instance.find_best_parameters(atr=atr, atr_multiplier=multiplier)
         
-        update_response = tests_table.update_item(
-        Key={'id': test_id},
-        UpdateExpression='SET #bt_atr_period = :val1, #bt_multiplier = :val2',
-        ExpressionAttributeNames={
-            '#bt_atr_period': 'bt_atr_period',
-            "#bt_multiplier": "bt_multiplier" # Use ExpressionAttributeNames to avoid conflicts with reserved words
-        },
-        ExpressionAttributeValues={
-            ':val1': str(test_instance.bt_atr_period),
-            ':val2': str(test_instance.bt_multiplier)
+    #     update_response = tests_table.update_item(
+    #     Key={'id': test_id},
+    #     UpdateExpression='SET #bt_atr_period = :val1, #bt_multiplier = :val2',
+    #     ExpressionAttributeNames={
+    #         '#bt_atr_period': 'bt_atr_period',
+    #         "#bt_multiplier": "bt_multiplier" # Use ExpressionAttributeNames to avoid conflicts with reserved words
+    #     },
+    #     ExpressionAttributeValues={
+    #         ':val1': str(test_instance.bt_atr_period),
+    #         ':val2': str(test_instance.bt_multiplier)
             
-        }
-    )
-        if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
-            # Call the method from the class instance
-            return jsonify({"error": "Failed to update DynamoDB"}), 500
+    #     }
+    # )
+    #     if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+    #         # Call the method from the class instance
+    #         return jsonify({"error": "Failed to update DynamoDB"}), 500
             
 
-        # Prepare the response data
-        response_data = {
-            "ATR Period": str(test_instance.bt_atr_period),
-            "Multiplier": str(test_instance.bt_multiplier),
-            # "ROI": str(test_instance.find_best_temp_roi)
-        }
+    #     # Prepare the response data
+    #     response_data = {
+    #         "ATR Period": str(test_instance.bt_atr_period),
+    #         "Multiplier": str(test_instance.bt_multiplier),
+    #         # "ROI": str(test_instance.find_best_temp_roi)
+    #     }
 
-        # Return the response data as JSON
-        return jsonify(response_data), 200  # HTTP 200 OK
+    #     # Return the response data as JSON
+    #     return jsonify(response_data), 200  # HTTP 200 OK
+    
+        # Start the background task for updating the test instance
+        thread = Thread(target=start_find_best_process, args=(test_id, test_instance, atr, multiplier ))
+        thread.start()
+        setattr(test_instance, "find_best_parameters_processing", True)
+
+        # Return an immediate response indicating that processing has started
+        return jsonify({
+            "success": True,
+            "message": "The find best parameters has been started."
+        }), 202
 
     except Exception as e:
         # Log the error for debugging
@@ -427,7 +461,53 @@ def find_best_parameters():
         # Return a JSON response with the error message and a server error status code
         return jsonify({'error': 'An error occurred while processing your request.'}), 500  # HTTP 500 Internal Server Error
 
+@app.route("/get_find_best_parameters_progress_percentage", methods=["POST"])
+def get_find_best_parameters_progress_percentage():
+    test_id = request.json.get("test_id")
+    if test_id is None:
+        return jsonify({"error": "Missing test_id"}), 400
 
+    test_instance_data = next(
+        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+    if test_instance_data is None:
+        return jsonify({"error": "Test instance not found"}), 400
+    
+    # Start the background task for updating the test instance
+    test_instance = test_instance_data["test_instance"]
+    if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Default":
+        jsonify({"processing":False, 
+                    "percentage": None,
+                    "elapsed_time":None, 
+                    "estimated_remaining_time":None,
+                    "message": "No find best parameters is currently running. Please start find best parameters first."}), 403
+        
+    if test_instance.find_best_result_processing == False and test_instance.find_best_state == "Best":
+        jsonify({"processing":False, 
+                    "percentage": None,
+                    "elapsed_time":None, 
+                    "estimated_remaining_time":None,
+                    "message": "Find best parameters is already complete. No find best parameters is currently running. Please start the find best parameters again."}), 403
+            
+    processing = test_instance.find_best_result_processing
+    if processing:
+        percentage = test_instance.find_best_getting_result_progress_percentage
+        elapsed_time = test_instance.find_best_elapsed_time
+        estimated_remaining_time = test_instance.find_best_estimated_remaining_time
+        if elapsed_time and estimated_remaining_time : 
+            # Return an immediate response
+            return jsonify({"processing":True, 
+                            "percentage": percentage, 
+                            "elapsed_time":elapsed_time, 
+                            "estimated_remaining_time":estimated_remaining_time, 
+                            "message": "The find best parameters is calculating"}), 200
+    
+    # return jsonify({"processing":False, 
+    #                 "state":0, 
+    #                 "percentage": None,
+    #                 "elapsed_time":None, 
+    #                 "estimated_remaining_time":None,
+    #                 "message": "The forward test result have not been started yet."}), 206
+    
 @app.route('/edit_test', methods=['POST'])
 def edit_test():
     try:

@@ -1,9 +1,8 @@
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import yfinance as yf
-from decimal import Decimal
+import time
 # import math
 # import matplotlib.pyplot as plt
 
@@ -438,7 +437,15 @@ def backtest(df, initial_investment, lot_size, sl_size, tp_size, commission):
     print(f'Earning from investing ${formatted_investment_value} is ${round(earning, 2)} (ROI = {roi}%)')
     return entry, exit, equity_per_day, final_equity, roi
 
-def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier ):
+def calculate_time_metrics(start_time, steps_completed, total_steps):
+    import time
+    elapsed_time = time.time() - start_time 
+    progress_fraction = steps_completed / total_steps
+    estimated_total_time = elapsed_time / progress_fraction if progress_fraction > 0 else float('inf')
+    estimated_remaining_time = estimated_total_time - elapsed_time
+    return elapsed_time, estimated_remaining_time
+
+def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_size, tp_size, commission,atr, multiplier, progress_callback=None):
     # print('fy_df: ', fy_df.tail())
     # print('run find_optimal_parameter: ')
     # predefine several parameter sets- ****change
@@ -457,8 +464,21 @@ def find_optimal_parameter(fy_df, strategy, backtest, investment,lot_size, sl_si
     
     roi_list = []
     
+    combined_list = [(x,y) for x in atr_period for y in atr_multiplier]
+    
+    total_steps = len(combined_list)
+    steps_completed = 0
+    test_start_time = time.time()
+    
     # for each period and multiplier, perform backtest
-    for period, multiplier in [(x,y) for x in atr_period for y in atr_multiplier]:
+    for period, multiplier in combined_list:
+        
+        steps_completed += 1
+        if progress_callback:
+            elapsed_time, estimated_remaining_time = calculate_time_metrics(test_start_time, steps_completed, total_steps)
+            progress_percentage = (steps_completed / total_steps) * 100
+            progress_callback(progress_percentage, elapsed_time, estimated_remaining_time)
+            
         add_supertrend_df = add_supertrend(fy_df,period,multiplier)
         add_squeeze_momentum_df = add_squeeze_momentum(add_supertrend_df)
         # supertrend = Supertrend(df, period, multiplier)

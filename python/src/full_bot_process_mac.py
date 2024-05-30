@@ -87,6 +87,11 @@ class Test:
         self.bt_atr_period = bt_atr_period
         self.bt_multiplier = bt_multiplier
         self.find_best_temp_roi = None
+        self.find_best_result_processing = False
+        self.find_best_getting_result_progress_percentage = 0
+        self.find_best_elapsed_time = None
+        self.find_best_estimated_remaining_time = None
+        self.find_best_state = "Default"
         
         self.bt_1st_roi = None
         self.bt_2nd_roi = None
@@ -216,11 +221,18 @@ class Test:
         print(self.bt_end_date.strftime("%Y-%m-%d"))
         print('self.bt_atr_period: ', self.bt_atr_period)
         print('self.bt_multiplier: ', self.bt_multiplier)
+    
+    
+    def find_best_progress_report(self,percentage, elapsed_time, estimated_remaining_time):
+        self.find_best_elapsed_time = round(elapsed_time,2)
+        self.find_best_estimated_remaining_time = round(estimated_remaining_time,2)
+        self.find_best_getting_result_progress_percentage = round(percentage,2)
+        
         
     def find_best_parameters(self,atr=None, atr_multiplier=None):
         # data = json.loads(event["body"])
         # print('data: ', data)
-
+        self.find_best_result_processing = True
         symbol = str(self.bt_symbol)
         investment = int(self.bt_initial_investment)
         commission = int(self.bt_commission)
@@ -241,12 +253,14 @@ class Test:
         fy_df = bt.get_data(symbol, start_date, end_date, interval)
 
         # atr_period, multiplier, ROI = mst.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
-        atr_period, multiplier, ROI = bt.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier)
+        atr_period, multiplier, ROI = bt.find_optimal_parameter(fy_df, strategy, backtest, investment, lot_size, sl_size, tp_size,commission,atr_period,multiplier,progress_callback=self.find_best_progress_report)
+        
         self.find_best_temp_roi = ROI
-
         self.bt_atr_period = atr_period
         self.bt_multiplier = multiplier
-        # self.find_best_temp_roi = ROI
+        
+        self.find_best_result_processing = False
+        self.find_best_state = "Best"
         
         print(self.bt_start_date.strftime("%Y-%m-%d"))
         print(self.bt_end_date.strftime("%Y-%m-%d"))
