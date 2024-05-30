@@ -413,12 +413,10 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     equity_per_day = []
     
     total_steps = len(class_history_deals)
-   
-
     steps_completed = 0
     import time
-
     test_start_time = time.time()
+    
     print(f"Test start - {len(class_history_deals)}")
     for deal in class_history_deals:
         
