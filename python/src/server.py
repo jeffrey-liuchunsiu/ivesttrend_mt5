@@ -828,22 +828,28 @@ def get_test_instances():
 
         # Extract the item from the response
         test_instances = response.get('Item', [])
+        
+        for item in test_instances:
+            for key, value in item.items():
+                if isinstance(value, Decimal):
+                    item[key] = decimal_default(value)
 
         # Paginate if there are more items to scan
         while 'LastEvaluatedKey' in response:
             try:
                 response = tests_table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
                 test_instances.extend(response.get('Items', []))
+                for item in test_instances:
+                    for key, value in item.items():
+                        if isinstance(value, Decimal):
+                            item[key] = decimal_default(value)
             except Exception as e:
                 return jsonify({"error": "Error scanning DynamoDB", "details": str(e)}), 500
             
-        for item in response:
-            for key, value in item.items():
-                if isinstance(value, Decimal):
-                    item[key] = decimal_default(value)
+        
 
         # Return the list of test instances as JSON
-        return jsonify(test_instances)
+        return jsonify(test_instances), 200
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
