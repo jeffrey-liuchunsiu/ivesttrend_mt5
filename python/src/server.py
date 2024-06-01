@@ -450,6 +450,12 @@ def find_best_parameters():
     #     return jsonify(response_data), 200  # HTTP 200 OK
     
         # Start the background task for updating the test instance
+        if test_instance.find_best_result_processing == True:
+            return jsonify({
+            "success": False,
+            "message": "The find best parameters has already started. Please wait for the current task to finish."
+        }), 403
+        
         thread = Thread(target=start_find_best_process, args=(test_id, test_instance, atr, multiplier ))
         thread.start()
         setattr(test_instance, "find_best_parameters_processing", True)
