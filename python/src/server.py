@@ -1121,7 +1121,7 @@ def get_test_result():
         # Get the current time in Hong Kong timezone
         hong_kong = pytz.timezone('Asia/Hong_Kong')
         current_time = datetime.now().replace(tzinfo=pytz.utc)
-        hong_kong_time = current_time.astimezone(hong_kong)
+        hong_kong_time = int(current_time).astimezone(hong_kong)
         formatted_time = hong_kong_time.strftime('%Y-%m-%d')
 
         print('formatted_time:', formatted_time)
