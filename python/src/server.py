@@ -1060,40 +1060,40 @@ from datetime import datetime, timedelta
 
 def update_test_instance(test_id, test_instance):
     s3Key = f'{test_id}/forward_test_data.json'
-    # try:
-    print("test 1")
-    test_instance.get_forward_test_result()
-    print("test 2")
-    result = {
-        "ft_roi": test_instance.ft_roi,
-        "ft_entries": test_instance.ft_entries,
-        "ft_exits": test_instance.ft_exits,
-        "ft_equity_per_day": test_instance.ft_equity_per_day,
-        "ft_final_equity": test_instance.ft_final_equity
-    }
-    print("test 3")
+    try:
+ 
+        test_instance.get_forward_test_result()
     
-    tests_table.update_item(
-        Key={'id': test_id},
-        UpdateExpression='SET ft_roi = :ft_roi, s3Key_forward_test_data = :s3Key_forward_test_data',
-        ExpressionAttributeValues={
-            ':ft_roi': str(result["ft_roi"]),
-            ':s3Key_forward_test_data': str(s3Key)
-        },
-        ReturnValues='NONE'
-    )
-    print("test 4")
-    save_dict_to_s3(s3_bucket_name, result, s3Key)
-    print("test 5")
-    test_instance.s3Key_forward_test_data = s3Key
-    print("test 6")
+        result = {
+            "ft_roi": test_instance.ft_roi,
+            "ft_entries": test_instance.ft_entries,
+            "ft_exits": test_instance.ft_exits,
+            "ft_equity_per_day": test_instance.ft_equity_per_day,
+            "ft_final_equity": test_instance.ft_final_equity
+        }
+
+        
+        tests_table.update_item(
+            Key={'id': test_id},
+            UpdateExpression='SET ft_roi = :ft_roi, s3Key_forward_test_data = :s3Key_forward_test_data',
+            ExpressionAttributeValues={
+                ':ft_roi': str(result["ft_roi"]),
+                ':s3Key_forward_test_data': str(s3Key)
+            },
+            ReturnValues='NONE'
+        )
+
+        save_dict_to_s3(s3_bucket_name, result, s3Key)
     
-    setattr(test_instance, "ft_result_processing", False)
-    print("test 7")
-    # except Exception as e:
-    #     print(f"Failed to update DynamoDB: {e}")
-    #     for key in ["ft_roi", "ft_entries", "ft_exits", "ft_equity_per_day", "ft_final_equity"]:
-    #         setattr(test_instance, key, None)
+        test_instance.s3Key_forward_test_data = s3Key
+    
+        
+        setattr(test_instance, "ft_result_processing", False)
+
+    except Exception as e:
+        print(f"Failed to update DynamoDB: {e}")
+        for key in ["ft_roi", "ft_entries", "ft_exits", "ft_equity_per_day", "ft_final_equity"]:
+            setattr(test_instance, key, None)
 
 @app.route("/get_forward_test_result", methods=["POST"])
 def get_test_result():
@@ -1123,6 +1123,13 @@ def get_test_result():
             return jsonify({
                 "success": False,
                 "message": "No forward test has been run or is currently running. Please start the forward test first."
+            }), 403
+            
+        # Check the state of the test instance
+        if test_instance.ft_result_processing :
+            return jsonify({
+                "success": False,
+                "message": "The get forward test result has already started. Please wait for the current task to finish."
             }), 403
 
         # Get the current time in Hong Kong timezone
