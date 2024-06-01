@@ -458,9 +458,9 @@ class Test:
         # Define the Hong Kong timezone
         hong_kong = pytz.timezone('Asia/Hong_Kong')
         if self.ft_end_date == None:
-            end_date = datetime.now().replace(tzinfo=pytz.utc).astimezone(hong_kong)
+            end_date = datetime.now().replace(tzinfo=pytz.utc).astimezone(hong_kong).strftime('%Y-%m-%d %H:%M:%S')
         else:
-            end_date = self.ft_end_date
+            end_date = self.ft_end_date.strftime('%Y-%m-%d %H:%M:%S')
         print('self.ft_start_date: ', self.ft_start_date)
         print('end_date: ', end_date)
         history_orders = ft.get_forward_test_result(
