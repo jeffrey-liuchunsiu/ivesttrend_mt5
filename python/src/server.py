@@ -1061,7 +1061,9 @@ from datetime import datetime, timedelta
 def update_test_instance(test_id, test_instance):
     s3Key = f'{test_id}/forward_test_data.json'
     try:
+        print("test 1")
         test_instance.get_forward_test_result()
+        print("test 2")
         result = {
           "ft_roi": test_instance.ft_roi,
           "ft_entries": test_instance.ft_entries,
@@ -1069,6 +1071,7 @@ def update_test_instance(test_id, test_instance):
           "ft_equity_per_day": test_instance.ft_equity_per_day,
           "ft_final_equity": test_instance.ft_final_equity
         }
+        print("test 3")
         
         tests_table.update_item(
             Key={'id': test_id},
@@ -1079,11 +1082,14 @@ def update_test_instance(test_id, test_instance):
             },
             ReturnValues='NONE'
         )
-        
+        print("test 4")
         save_dict_to_s3(s3_bucket_name, result, s3Key)
+        print("test 5")
         test_instance.s3Key_forward_test_data = s3Key
+        print("test 6")
         
         setattr(test_instance, "ft_result_processing", False)
+        print("test 7")
     except Exception as e:
         print(f"Failed to update DynamoDB: {e}")
         for key in ["ft_roi", "ft_entries", "ft_exits", "ft_equity_per_day", "ft_final_equity"]:
