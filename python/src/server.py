@@ -837,7 +837,7 @@ def get_test_instances():
             except Exception as e:
                 return jsonify({"error": "Error scanning DynamoDB", "details": str(e)}), 500
             
-        for item in test_instances:
+        for item in response:
             for key, value in item.items():
                 if isinstance(value, Decimal):
                     item[key] = decimal_default(value)
