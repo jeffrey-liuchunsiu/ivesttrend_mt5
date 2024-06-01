@@ -77,6 +77,11 @@ tests_table = dynamodb.Table('TestInstance-ambqia6vxrcgzfv4zl44ahmlp4-dev')
 s3_bucket_name = 'investtrend-test-data'
 
 
+def decimal_default(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError("Object of type Decimal is not JSON serializable")
+
 
 @app.route("/create_test", methods=["POST"])
 def create_test():
@@ -831,6 +836,11 @@ def get_test_instances():
                 test_instances.extend(response.get('Items', []))
             except Exception as e:
                 return jsonify({"error": "Error scanning DynamoDB", "details": str(e)}), 500
+            
+        for item in test_instances:
+            for key, value in item.items():
+                if isinstance(value, Decimal):
+                    item[key] = decimal_default(value)
 
         # Return the list of test instances as JSON
         return jsonify(test_instances)
@@ -1215,10 +1225,7 @@ def get_test_result_not_thread():
     # Return an immediate response
     return jsonify(result), 200
 
-def decimal_default(obj):
-    if isinstance(obj, Decimal):
-        return float(obj)
-    raise TypeError("Object of type Decimal is not JSON serializable")
+
 
 @app.route("/get_analyze_news", methods=["POST"])
 def get_analyze_news():
@@ -1397,6 +1404,11 @@ def get_tests_by_user():
                 ExclusiveStartKey=response['LastEvaluatedKey']
             )
             items.extend(response.get('Items', []))
+            
+        for item in items:
+            for key, value in item.items():
+                if isinstance(value, Decimal):
+                    item[key] = decimal_default(value)
             
         sorted_items = sorted(items, key=lambda x: datetime.strptime(x['create_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
 
