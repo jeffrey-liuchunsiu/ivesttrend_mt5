@@ -451,57 +451,57 @@ class Test:
         # print(f"Function is {percentage:.2f}% complete.")
 
 
-def get_forward_test_result(self):
-    # Start the forward test
-    ft.start_mt5()
-    
-    # Define the Hong Kong timezone
-    hong_kong = pytz.timezone('Asia/Hong_Kong')
+    def get_forward_test_result(self):
+        # Start the forward test
+        ft.start_mt5()
+        
+        # Define the Hong Kong timezone
+        hong_kong = pytz.timezone('Asia/Hong_Kong')
 
-    # Ensure ft_start_date is a datetime object
-    if not isinstance(self.ft_start_date, datetime):
-        raise ValueError("self.ft_start_date must be a datetime object")
+        # Ensure ft_start_date is a datetime object
+        if not isinstance(self.ft_start_date, datetime):
+            raise ValueError("self.ft_start_date must be a datetime object")
 
-    # Determine the end date
-    if self.ft_end_date is None:
-        end_date = datetime.now().replace(tzinfo=pytz.utc).astimezone(hong_kong)
-    else:
-        if not isinstance(self.ft_end_date, datetime):
-            raise ValueError("self.ft_end_date must be a datetime object")
-        end_date = self.ft_end_date
-    
-    # Debugging output
-    print('self.ft_start_date:', self.ft_start_date)
-    print('end_date:', end_date)
-    
-    # Get the forward test result
-    history_orders = ft.get_forward_test_result(
-        self.ft_symbol, 
-        self.bt_symbol, 
-        self.ft_start_date, 
-        end_date, 
-        self.ft_initial_investment, 
-        self.ft_lot_size, 
-        self.ft_time_frame_forward, 
-        self.test_id, 
-        self.mt5_magic_id, 
-        progress_callback=self.progress_report
-    )
-    
-    # Process the results if available
-    if history_orders:
-        symbol_data = history_orders[str(self.ft_symbol)]
-        self.ft_roi = symbol_data['roi']
-        self.ft_entries = symbol_data['entry_of_deals']
-        self.ft_exits = symbol_data['exit_of_deals']
-        self.ft_equity_per_day = symbol_data['equity_per_day']
-        self.ft_final_equity = symbol_data['final_equity']
-        self.ft_result_processing = False
-        self.elapsed_time = None
-        self.estimated_remaining_time = None
-        self.ft_getting_result_progress_percentage = 0
-    else:
-        return None
+        # Determine the end date
+        if self.ft_end_date is None:
+            end_date = datetime.now().replace(tzinfo=pytz.utc).astimezone(hong_kong)
+        else:
+            if not isinstance(self.ft_end_date, datetime):
+                raise ValueError("self.ft_end_date must be a datetime object")
+            end_date = self.ft_end_date
+        
+        # Debugging output
+        print('self.ft_start_date:', self.ft_start_date)
+        print('end_date:', end_date)
+        
+        # Get the forward test result
+        history_orders = ft.get_forward_test_result(
+            self.ft_symbol, 
+            self.bt_symbol, 
+            self.ft_start_date, 
+            end_date, 
+            self.ft_initial_investment, 
+            self.ft_lot_size, 
+            self.ft_time_frame_forward, 
+            self.test_id, 
+            self.mt5_magic_id, 
+            progress_callback=self.progress_report
+        )
+        
+        # Process the results if available
+        if history_orders:
+            symbol_data = history_orders[str(self.ft_symbol)]
+            self.ft_roi = symbol_data['roi']
+            self.ft_entries = symbol_data['entry_of_deals']
+            self.ft_exits = symbol_data['exit_of_deals']
+            self.ft_equity_per_day = symbol_data['equity_per_day']
+            self.ft_final_equity = symbol_data['final_equity']
+            self.ft_result_processing = False
+            self.elapsed_time = None
+            self.estimated_remaining_time = None
+            self.ft_getting_result_progress_percentage = 0
+        else:
+            return None
         
     def check_mt5_timeframe(self, time_frame):
         timeframe_minutes = {
