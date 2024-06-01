@@ -12,6 +12,7 @@ import requests
 import json
 from mt5linux import MetaTrader5
 import find_best as mst
+import pytz 
 mt5 = MetaTrader5(
     # host = 'localhost',
     host = '18.141.245.200',
@@ -454,9 +455,10 @@ class Test:
         # self.ft_start_date = datetime.now()
         ft.start_mt5()
         end_date = None
-        
+        # Define the Hong Kong timezone
+        hong_kong = pytz.timezone('Asia/Hong_Kong')
         if self.ft_end_date == None:
-            end_date = datetime.now()
+            end_date = datetime.now().replace(tzinfo=pytz.utc).astimezone(hong_kong).strftime('%Y-%m-%d')
         else:
             end_date = self.ft_end_date
         print('self.ft_start_date: ', self.ft_start_date)

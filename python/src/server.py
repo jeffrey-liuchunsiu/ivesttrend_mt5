@@ -700,6 +700,7 @@ def start_test():
             # Get the current time in UTC, add one day, and then convert to Hong Kong time
             current_time = datetime.now().replace(tzinfo=pytz.utc)
             hong_kong_time = current_time.astimezone(hong_kong)
+            
 
             # Format the time to the desired string format
             formatted_time = hong_kong_time.strftime('%Y-%m-%d')  # ISO 8601 format in UTC
