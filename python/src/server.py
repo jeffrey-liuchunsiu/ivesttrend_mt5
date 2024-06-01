@@ -815,41 +815,26 @@ def stop_test():
 @app.route("/get_test_instances", methods=["POST"])
 def get_test_instances():
     try:
-        # Extract test_id from the request data
+        # Extract test_id from the request JSON data
         test_id = request.json.get("test_id")
         if test_id is None:
             return jsonify({"error": "Missing test_id"}), 400
 
-        try:
-            # Perform the get_item operation to retrieve the item from the table
-            response = tests_table.get_item(Key={'id': test_id})
-        except Exception as e:
-            return jsonify({"error": "Error querying DynamoDB", "details": str(e)}), 500
+        # Perform the get_item operation to retrieve the item from the table
+        response = tests_table.get_item(Key={'id': test_id})
+        item = response.get('Item')
 
-        # Extract the item from the response
-        test_instances = response.get('Item', [])
-        
-        for item in test_instances:
-            for key, value in item.items():
-                if isinstance(value, Decimal):
-                    item[key] = decimal_default(value)
+        if not item:
+            return jsonify({"error": "Test instance not found"}), 404
 
-        # Paginate if there are more items to scan
-        while 'LastEvaluatedKey' in response:
-            try:
-                response = tests_table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-                test_instances.extend(response.get('Items', []))
-                for item in test_instances:
-                    for key, value in item.items():
-                        if isinstance(value, Decimal):
-                            item[key] = decimal_default(value)
-            except Exception as e:
-                return jsonify({"error": "Error scanning DynamoDB", "details": str(e)}), 500
-            
-        
+        # Convert all Decimal instances to float for JSON serialization
+        for key, value in item.items():
+            if isinstance(value, Decimal):
+                item[key] = decimal_default(value)
 
-        # Return the list of test instances as JSON
-        return jsonify(test_instances), 200
+        # Return the test instance as JSON
+        return jsonify(item), 200
+
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
