@@ -19,6 +19,8 @@ mt5 = MetaTrader5(
     port = 18812      
 )  
 
+
+
 timeframe_minutes = {
     'M1': mt5.TIMEFRAME_M1,
     'M2': mt5.TIMEFRAME_M2,

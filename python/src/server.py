@@ -41,6 +41,10 @@ CORS(app,resource={
 
 test_instances = []
 
+time_frame_exchange = {
+    '1D' : 'D1'
+}
+
 timeframe_minutes = {
     'M1': mt5.TIMEFRAME_M1,
     'M2': mt5.TIMEFRAME_M2,
@@ -243,21 +247,21 @@ def round_up_to_appropriate(value):
 
 def create_test_instance(data, uuid_id, mt5_magic_id):
     """Create and return a new test instance from request data, including stock price and lot calculation."""
-    bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
-    bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
+    # bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
+    # bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
     
-    days_between = (bt_end_date - bt_start_date).days
+    # days_between = (bt_end_date - bt_start_date).days
     
-    if days_between > 356:
-        test_range = 90
-    elif days_between > 90:
-        test_range = 30
-    elif days_between > 30:
-        test_range = 7
-    elif days_between > 7:
-        test_range = 3
-    else:
-        test_range = 3  # In case the duration is less than or equal to 7 days
+    # if days_between > 356:
+    #     test_range = 90
+    # elif days_between > 90:
+    #     test_range = 30
+    # elif days_between > 30:
+    #     test_range = 7
+    # elif days_between > 7:
+    #     test_range = 3
+    # else:
+    #     test_range = 3  # In case the duration is less than or equal to 7 days
         
     lot_size = None
     initial_investment = None
@@ -267,7 +271,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
     if data["bt_initial_investment"]:     
         initial_investment = int(data["bt_initial_investment"])
         
-    symbol_price = get_stock_price_on_date(data["bt_symbol"], bt_start_date)
+    symbol_price = get_stock_price_on_date(data["bt_symbol"], data["bt_start_date"])
     rounded_lots = None
     rounded_initial_investment = None
     
@@ -297,10 +301,14 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
             bt_symbol=data["bt_symbol"],
             bt_atr_period=data["bt_atr_period"],
             bt_multiplier=data["bt_multiplier"],
-            bt_start_date=bt_start_date,
-            bt_end_date=bt_end_date - timedelta(days=test_range),
-            bt_2nd_start_date=bt_end_date - timedelta(days=test_range),
-            bt_2nd_end_date=bt_end_date,
+            # bt_start_date=bt_start_date,
+            # bt_end_date=bt_end_date - timedelta(days=test_range),
+            # bt_2nd_start_date=bt_end_date - timedelta(days=test_range),
+            # bt_2nd_end_date=bt_end_date,
+            bt_start_date=data["bt_start_date"],
+            bt_end_date=data["bt_end_date"],
+            bt_2nd_start_date=data["bt_2nd_start_date"],
+            bt_2nd_end_date=data["bt_2nd_end_date"],
             bt_time_frame_backward=data["bt_time_frame_backward"],
             bt_initial_investment=rounded_initial_investment,
             bt_lot_size=rounded_lots,
@@ -310,7 +318,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
             ft_symbol=data["ft_symbol"],
             ft_start_date=data["ft_start_date"],
             ft_end_date=data["ft_end_date"],
-            ft_time_frame_forward=data["ft_time_frame_forward"],
+            ft_time_frame_forward=time_frame_exchange[data['bt_time_frame_backward']],
             ft_initial_investment=rounded_initial_investment,
             ft_lot_size=rounded_lots,
             ft_sl_size=data["bt_sl_size"],
@@ -534,27 +542,77 @@ def edit_test():
         data = request.get_json()
         test_id = data.get('test_id')
         if not test_id:
-            abort(400, description="Missing test_id")
+            return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "Missing test id"
+                    }), 400
             
         # Check all fields for None values
-        for key, value in data.items():
-            if value is None:
-                abort(400, description=f"{key} cannot be None")
-
+        # for key, value in data.items():
+        #     if value is None:
+        #         abort(400, description=f"{key} cannot be None")
+        
+        if not data["bt_lot_size"] and not data["bt_initial_investment"]:
+            return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "Please input lot size or initial investment"
+                    }), 400
+        if data["bt_lot_size"] and data["bt_initial_investment"]:
+            return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "You can only input lot size or initial investment"
+                    }), 400
+        
+        if data["bt_lot_size"] :
+            if float(data["bt_lot_size"]) < 0.01 or float(data["bt_lot_size"]) > 10000:
+                return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "Lot size must not less than 0.01 or more then 10000"
+                    }), 400
+                
+        if data["bt_initial_investment"]:
+            if int(data["bt_initial_investment"]) < 100:
+                return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "Initial Investment must not less than 100"
+                    }), 400
+                
         # Convert specified fields from str to int
         integer_fields = ['bt_initial_investment', 'bt_lot_size', 'bt_sl_size', 'bt_tp_size', 'bt_commission']
         for field in integer_fields:
             if field in data and data[field].isdigit():  # Checks if the field is a digit string
                 data[field] = int(data[field])
             elif field in data:  # If present but not a digit string, return an error
-                abort(400, description=f"Invalid value for '{field}'. Expected a numeric string.")
+                return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": f"Invalid value for '{field}'. Expected a numeric string."
+                    }), 400
+                
+        field = 'bt_lot_size'
+        if field in data:
+            try:
+                # Try to convert to float
+                data[field] = float(data[field])
+            except ValueError:
+                # If conversion fails, return an error
+                return jsonify({
+                    "success": False,
+                    "test_id": test_id,
+                    "message": f"Invalid value for '{field}'. Expected a numeric string."
+                }), 400
                 
         data = {
             "test_id": data.get('test_id'),
             "bt_start_date": data.get('bt_start_date'),
-            "bt_end_date": (datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90)).strftime("%Y-%m-%d"),
-            "bt_2nd_start_date": (datetime.strptime(data.get('bt_end_date'), "%Y-%m-%d")- timedelta(days=90)).strftime("%Y-%m-%d"),
-            "bt_2nd_end_date": data.get('bt_end_date'),
+            "bt_end_date": data.get('bt_end_date'),
+            "bt_2nd_start_date": data.get('bt_2nd_start_date'),
+            "bt_2nd_end_date": data.get('bt_2nd_end_date'),
             "bt_time_frame_backward": data.get('bt_time_frame_backward'),
             "bt_initial_investment": data.get('bt_initial_investment'),
             "bt_lot_size": data.get('bt_lot_size'),
@@ -567,7 +625,11 @@ def edit_test():
 
         response = tests_table.get_item(Key={'id': test_id})
         if 'Item' not in response:
-            abort(404, description="Test instance not found in DynamoDB")
+            return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "Test instance not found in DynamoDB"
+                    }), 400
             
         # Find the test instance in the global list by test_id
         test_instance_data = next(
@@ -575,84 +637,142 @@ def edit_test():
         
         # If the test instance is not found, return an error
         if test_instance_data is None:
-            return jsonify({"error": "Test instance not found"}), 400
+            return jsonify({
+                    "success": False,
+                    "test_id" : test_id,
+                    "message": "Test instance not found"
+                    }), 400
         
         # Retrieve the test_instance from the stored data
         test_instance = test_instance_data["test_instance"]
 
         original_item = response['Item']
         if 'test_end_date' in original_item or original_item.get('state') != "Created":
-            abort(403, description="Test cannot be edited as it has ended or is already running")
+            return jsonify({
+                "success": False,
+                "test_id" : test_id,
+                "message": "Test cannot be edited as it has ended or is already running"
+                }), 400
             
-        # update_response = tests_table.update_item(
-        #     Key={'id': test_id},
-        #     UpdateExpression='SET #bt_start_date = :val1, #bt_end_date = :val2, #bt_2nd_start_date = :val3, #bt_2nd_end_date = :val4, #bt_time_frame_backward = :val5, #bt_initial_investment = :val6, #bt_lot_size = :val7, #bt_sl_size = :val8, #bt_tp_size = :val9, #bt_commission = :val10',
-        #     ExpressionAttributeNames={
-        #         '#bt_start_date': 'bt_start_date',
-        #         '#bt_end_date': 'bt_end_date',
-        #         '#bt_2nd_start_date': 'bt_2nd_start_date',
-        #         '#bt_2nd_end_date': 'bt_2nd_end_date',
-        #         '#bt_time_frame_backward': 'bt_time_frame_backward',
-        #         '#bt_initial_investment': 'bt_initial_investment',
-        #         '#bt_lot_size': 'bt_lot_size',
-        #         '#bt_sl_size': 'bt_sl_size',
-        #         '#bt_tp_size': 'bt_tp_size',
-        #         '#bt_commission': 'bt_commission',
-        #     },
-        #     ExpressionAttributeValues={
-        #         ':val1': str(test_instance.bt_start_date),
-        #         ':val2': str(test_instance.bt_end_date),
-        #         ':val3': str(test_instance.bt_2nd_start_date),
-        #         ':val4': str(test_instance.bt_2nd_end_date),
-        #         ':val5': str(test_instance.bt_time_frame_backward),
-        #         ':val6': str(test_instance.bt_initial_investment),
-        #         ':val7': str(test_instance.bt_lot_size),
-        #         ':val8': str(test_instance.bt_sl_size),
-        #         ':val9': str(test_instance.bt_tp_size),
-        #         ':val10': str(test_instance.bt_commission),
-        #     }
-        # )
-        # if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
-        #     # Call the method from the class instance
-        #     return jsonify({"error": "Failed to update DynamoDB"}), 500
+        lot_size = None
+        initial_investment = None
+            
+        if data["bt_lot_size"]:   
+            lot_size = float(data["bt_lot_size"])
+        if data["bt_initial_investment"]:     
+            initial_investment = int(data["bt_initial_investment"])
+            
+        symbol_price = get_stock_price_on_date(test_instance.bt_symbol, data.get('bt_start_date'))
+        rounded_lots = None
+        rounded_initial_investment = None
+        
+        print('initial_investment: ', initial_investment)
+        if  initial_investment:
+            new_lot_size = initial_investment / symbol_price
+            rounded_lots = round_down_to_appropriate(new_lot_size)
+            rounded_initial_investment = initial_investment
+            print('rounded_initial_investment: ', rounded_initial_investment)
+            print('rounded_lots: ', rounded_lots)
+            
+        if  lot_size:
+            new_initial_investment = lot_size * symbol_price
+            rounded_initial_investment = round_up_to_appropriate(new_initial_investment)
+            rounded_lots = lot_size
+            print('rounded_initial_investment: ', rounded_initial_investment)
+            print('rounded_lots: ', rounded_lots) 
+            
 
-        # Construct update expression
-        update_expression = 'SET '
-        expression_attribute_values = {}
-        fields = ['bt_start_date', 'bt_end_date', 'bt_2nd_start_date', 'bt_2nd_end_date',
-        'bt_time_frame_backward', 'bt_initial_investment', 'bt_lot_size', 
-        'bt_sl_size', 'bt_tp_size', 'bt_commission']
-        for field in fields:
-            value = data.get(field)
-            if value is not None:
-                if 'date' in field:
-                    try:
-                        parse_date(value)  # Using dateutil for parsing
-                    except ValueError:
-                        abort(400, description=f"Incorrect date format for '{field}'. Expected YYYY-MM-DD.")
-                update_expression += f"{field} = :{field}, "
-                expression_attribute_values[f":{field}"] = str(value)
-                test_instance.edit_parameters({f"{field}":str(value)})
- 
+        test_instance.bt_start_date= data.get('bt_start_date'),
+        test_instance.bt_end_date= data.get('bt_end_date'),
+        test_instance.bt_2nd_start_date= data.get('bt_2nd_start_date'),
+        test_instance.bt_2nd_end_date= data.get('bt_2nd_end_date'),
+        test_instance.bt_time_frame_backward= data.get('bt_time_frame_backward'),
+        test_instance.bt_initial_investment= rounded_initial_investment,
+        test_instance.bt_lot_size= rounded_lots,
+        test_instance.bt_sl_size= data.get('bt_sl_size'),
+        test_instance.bt_tp_size= data.get('bt_tp_size'),
+        test_instance.bt_commission= data.get('bt_commission') 
+        test_instance.ft_time_frame_forward = time_frame_exchange[data.get('bt_time_frame_backward')]
+        test_instance.ft_initial_investment = rounded_initial_investment
+        test_instance.ft_lot_size = rounded_lots
+        test_instance.ft_sl_size = data.get('bt_sl_size')
+        test_instance.ft_tp_size = data.get('bt_tp_size')
+        
+        test_instance.parse_and_convert_parameters() 
 
-        if not expression_attribute_values:
-            abort(400, description="No valid parameters provided to update")
-
-        update_expression = update_expression.rstrip(', ')
         update_response = tests_table.update_item(
             Key={'id': test_id},
-            UpdateExpression=update_expression,
-            ExpressionAttributeValues=expression_attribute_values
+            UpdateExpression=(
+                'SET #bt_start_date = :bt_start_date, '
+                '#bt_end_date = :bt_end_date, '
+                '#bt_2nd_start_date = :bt_2nd_start_date, '
+                '#bt_2nd_end_date = :bt_2nd_end_date, '
+                '#bt_time_frame_backward = :bt_time_frame_backward, '
+                '#bt_initial_investment = :bt_initial_investment, '
+                '#bt_lot_size = :bt_lot_size, '
+                '#bt_sl_size = :bt_sl_size, '
+                '#bt_tp_size = :bt_tp_size, '
+                '#bt_commission = :bt_commission, '
+                '#ft_time_frame_forward = :ft_time_frame_forward, '
+                '#ft_initial_investment = :ft_initial_investment, '
+                '#ft_lot_size = :ft_lot_size, '
+                '#ft_sl_size = :ft_sl_size, '
+                '#ft_tp_size = :ft_tp_size'
+            ),
+            ExpressionAttributeNames={
+                '#bt_start_date': 'bt_start_date',
+                '#bt_end_date': 'bt_end_date',
+                '#bt_2nd_start_date': 'bt_2nd_start_date',
+                '#bt_2nd_end_date': 'bt_2nd_end_date',
+                '#bt_time_frame_backward': 'bt_time_frame_backward',
+                '#bt_initial_investment': 'bt_initial_investment',
+                '#bt_lot_size': 'bt_lot_size',
+                '#bt_sl_size': 'bt_sl_size',
+                '#bt_tp_size': 'bt_tp_size',
+                '#bt_commission': 'bt_commission',
+                '#ft_time_frame_forward': 'ft_time_frame_forward',
+                '#ft_initial_investment': 'ft_initial_investment',
+                '#ft_lot_size': 'ft_lot_size',
+                '#ft_sl_size': 'ft_sl_size',
+                '#ft_tp_size': 'ft_tp_size'
+            },
+            ExpressionAttributeValues={
+                ':bt_start_date': str(test_instance.bt_start_date),
+                ':bt_end_date': str(test_instance.bt_end_date),
+                ':bt_2nd_start_date': str(test_instance.bt_2nd_start_date),
+                ':bt_2nd_end_date': str(test_instance.bt_2nd_end_date),
+                ':bt_time_frame_backward': str(test_instance.bt_time_frame_backward),
+                ':bt_initial_investment': str(test_instance.bt_initial_investment),
+                ':bt_lot_size': str(test_instance.bt_lot_size),
+                ':bt_sl_size': str(test_instance.bt_sl_size),
+                ':bt_tp_size': str(test_instance.bt_tp_size),
+                ':bt_commission': str(test_instance.bt_commission),
+                ':ft_time_frame_forward': str(test_instance.ft_time_frame_forward),
+                ':ft_initial_investment': str(rounded_initial_investment),
+                ':ft_lot_size': str(rounded_lots),
+                ':ft_sl_size': str(test_instance.bt_sl_size),
+                ':ft_tp_size': str(test_instance.bt_tp_size)
+            }
         )
-        test_instance.parse_and_convert_parameters()
-
         if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
-            abort(500, description="Failed to update DynamoDB")
+            return jsonify({
+                "success": False,
+                "test_id" : test_id,
+                "message": "Failed to update DynamoDB"
+                }), 400
 
-        return jsonify({"message": "Test parameters updated successfully"}), 200
+        return jsonify({
+            "success": True,
+            "test_id" : test_id,
+            "message": "Test parameters updated successfully"
+            }), 200
 
     except Exception as e:
-        abort(500, description=str(e)) 
+        return jsonify({
+                "success": False,
+                "test_id" : test_id,
+                "message": str(e)
+                }), 500
     
 @app.route("/start_forward_test", methods=["POST"])
 def start_test():
