@@ -31,7 +31,11 @@ mt5 = MetaTrader5(
 )  
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,resource={
+    r"/*":{
+        "origins":"*"
+    }
+})
 
 # Load environment variables from .env file
 
