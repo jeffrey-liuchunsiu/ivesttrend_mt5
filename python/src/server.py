@@ -247,7 +247,7 @@ def round_up_to_appropriate(value):
 
 def create_test_instance(data, uuid_id, mt5_magic_id):
     """Create and return a new test instance from request data, including stock price and lot calculation."""
-    # bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
+    bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
     # bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
     
     # days_between = (bt_end_date - bt_start_date).days
@@ -271,7 +271,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
     if data["bt_initial_investment"]:     
         initial_investment = int(data["bt_initial_investment"])
         
-    symbol_price = get_stock_price_on_date(data["bt_symbol"], data["bt_start_date"])
+    symbol_price = get_stock_price_on_date(data["bt_symbol"], bt_start_date)
     rounded_lots = None
     rounded_initial_investment = None
     
