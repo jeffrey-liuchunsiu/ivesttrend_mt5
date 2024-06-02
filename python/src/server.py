@@ -583,7 +583,7 @@ def edit_test():
                     }), 400
                 
         # Convert specified fields from str to int
-        integer_fields = ['bt_initial_investment', 'bt_lot_size', 'bt_sl_size', 'bt_tp_size', 'bt_commission']
+        integer_fields = ['bt_sl_size', 'bt_tp_size', 'bt_commission']
         for field in integer_fields:
             if field in data and data[field].isdigit():  # Checks if the field is a digit string
                 data[field] = int(data[field])
@@ -594,18 +594,33 @@ def edit_test():
                     "message": f"Invalid value for '{field}'. Expected a numeric string."
                     }), 400
                 
+        field = 'bt_initial_investment'
+        if field in data:
+            if data[field] :
+                try:
+                    # Try to convert to float
+                    data[field] = int(data[field])
+                except ValueError:
+                    # If conversion fails, return an error
+                    return jsonify({
+                        "success": False,
+                        "test_id": test_id,
+                        "message": f"Invalid value for '{field}'. Expected a numeric string."
+                    }), 400
+                
         field = 'bt_lot_size'
         if field in data:
-            try:
-                # Try to convert to float
-                data[field] = float(data[field])
-            except ValueError:
-                # If conversion fails, return an error
-                return jsonify({
-                    "success": False,
-                    "test_id": test_id,
-                    "message": f"Invalid value for '{field}'. Expected a numeric string."
-                }), 400
+            if data[field] :
+                try:
+                    # Try to convert to float
+                    data[field] = float(data[field])
+                except ValueError:
+                    # If conversion fails, return an error
+                    return jsonify({
+                        "success": False,
+                        "test_id": test_id,
+                        "message": f"Invalid value for '{field}'. Expected a numeric string."
+                    }), 400
                 
         data = {
             "test_id": data.get('test_id'),
