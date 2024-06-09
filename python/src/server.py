@@ -96,10 +96,7 @@ api_id = os.getenv('api_id')
 api_hash = os.getenv('api_hash')
 phone = os.getenv('phone')
 
-# Create the client and connect
-client = TelegramClient('test01', api_id, api_hash)
-# telegram_event_loop = None
-client.start(phone)
+
 loop = asyncio.get_event_loop()
 
 # async def create_channel():
@@ -1798,6 +1795,11 @@ def get_running_instances_and_run():
 
 if __name__ == "__main__":
     # try:
+    
+        # Create the client and connect 
+        client = TelegramClient('test01', api_id, api_hash)
+        # telegram_event_loop = None
+        client.start(phone)
         states_to_query = ['Created', 'Running', 'End']
         # delete_tests_by_state('state-index', states_to_query, test_instances)
         created_and_running_tests = get_tests_by_state('state-index', states_to_query, test_instances)
