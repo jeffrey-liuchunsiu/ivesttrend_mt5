@@ -20,19 +20,22 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
-from dotenv import load_dotenv
 from collections import namedtuple
+from dotenv import load_dotenv
 load_dotenv()
 mt5 = MetaTrader5(
     host='18.141.245.200',
     port=18812
 )
 
+mt5_username = os.getenv('mt5_username')
+mt5_password = os.getenv('mt5_password')
+
 # Path to MetaTrader 5 terminal
 path = "/home/ubuntu/.wine/drive_c/Program Files/Pepperstone MetaTrader 5/terminal64.exe"
 server = 'Pepperstone-Demo'
-username = 61164970
-password = "1loveMt5!"
+username = mt5_username
+password = mt5_password
 
 deviation = 10
 
@@ -155,7 +158,7 @@ def put_deal_into_dynamodb(deal):
 # Example execution
 
 # Calculate the start date for fetching historical deals
-utc_from = datetime.now(tz=timezone) - timedelta(days=40)  # Adjust this as needed
+utc_from = datetime.now(tz=timezone) - timedelta(days=10)  # Adjust this as needed
 print('utc_from: ', utc_from)
 
 # Convert utc_from to a timezone-aware datetime object
@@ -171,8 +174,7 @@ date_to = datetime(date_to.year, date_to.month, date_to.day,
 deals=mt5.history_deals_total(utc_from.timestamp(), date_to.timestamp())
 print('deals: ', deals)
 # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
-# all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.1)
-# print('all_deals: ', all_deals)
+
 
 # Define the TradeDeal class using namedtuple for simplicity
 TradeDeal = namedtuple('TradeDeal', [
@@ -229,7 +231,9 @@ if __name__ == "__main__":
     table_name = 'investtrend_mt5_history_deals'
     index_name = 'magic-index'
     magic_value = 7  # Replace with your actual partition key value
-    history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
-    print('history_deals: ', history_deals)
+    # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
+    # print('history_deals: ', history_deals)
+    all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.1)
+    print('all_deals: ', all_deals)
     # result = query_magic_index(table_name, index_name, magic_value)
     # print(result)

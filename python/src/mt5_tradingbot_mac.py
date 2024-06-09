@@ -19,6 +19,9 @@ import pytz
 import yfinance as yf
 import json
 import asyncio
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # import talib as ta
 # import yfinance as yf
@@ -34,12 +37,15 @@ mt5 = MetaTrader5(
     port = 18812      
 )  
 
+mt5_username = os.getenv('mt5_username')
+mt5_password = os.getenv('mt5_password')
+
 # path = "C:/Program Files/Pepperstone MetaTrader 5/terminal64.exe"
 path = "/home/ubuntu/.wine/drive_c/Program Files/Pepperstone MetaTrader 5/terminal64.exe"
 # path = "/Users/mattchung/.wine/drive_c/Program Files/Pepperstone MetaTrader 5/terminal64.exe"
 server = 'Pepperstone-Demo'
-username = 61164970
-password = "1loveMt5!"
+username = mt5_username
+password = mt5_password
 
 deviation = 10
 # start_date = datetime(2023, 6, 13, 0, 0, 0, tzinfo=pytz.timezone('Hongkong'))
