@@ -215,7 +215,7 @@ if __name__ == "__main__":
     magic_value = 7  # Replace with your actual partition key value
     
     # Calculate the start date for fetching historical deals
-    utc_from = datetime.now(tz=timezone) - timedelta(days=10)  # Adjust this as needed
+    utc_from = datetime.now(tz=timezone) - timedelta(days=5)  # Adjust this as needed
     print('utc_from: ', utc_from)
 
     # Convert utc_from to a timezone-aware datetime object
@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
     # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
     # print('history_deals: ', history_deals)
-    # all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.1)
-    # print('all_deals: ', all_deals)
-    result = get_trade_deal_from_db_by_magic(magic_value)
-    print(result)
+    all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.5)
+    print('all_deals: ', all_deals)
+    # result = get_trade_deal_from_db_by_magic(magic_value)
+    # print(result)
