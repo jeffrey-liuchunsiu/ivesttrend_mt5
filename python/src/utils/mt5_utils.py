@@ -5,7 +5,6 @@ Created on Fri Oct  7 16:58:34 2022
 @author: Victor Lee
 """
 
-from utils.trade_deal_to_json import trade_deals_to_json
 from mt5linux import MetaTrader5
 from datetime import datetime, timedelta
 import pandas as pd
@@ -21,8 +20,9 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
 from collections import namedtuple
-from dotenv import load_dotenv
-load_dotenv()
+from dotenv import load_dotenv,find_dotenv
+load_dotenv(find_dotenv())
+
 mt5 = MetaTrader5(
     host='18.141.245.200',
     port=18812
@@ -111,7 +111,6 @@ def fetch_deals_in_chunks(start_date, end_date, chunk_size_days=0.1):
     return tuple(all_deals)
 
 # Function to store a trade deal into DynamoDB
-# Function to store a trade deal into DynamoDB
 def put_deal_into_dynamodb(deal):
     # Convert float values to Decimal
     def decimalize(value):
@@ -155,36 +154,12 @@ def put_deal_into_dynamodb(deal):
         print(f"Deal with ticket {deal.ticket} has been added to DynamoDB.")
 
 
-# Example execution
-
-# Calculate the start date for fetching historical deals
-utc_from = datetime.now(tz=timezone) - timedelta(days=10)  # Adjust this as needed
-print('utc_from: ', utc_from)
-
-# Convert utc_from to a timezone-aware datetime object
-utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
-                    hour=utc_from.hour, minute=utc_from.minute, tzinfo=timezone)
-
-# Get current date and time in Hong Kong timezone
-date_to = datetime.now().astimezone(pytz.timezone("Asia/Hong_Kong"))
-date_to = datetime(date_to.year, date_to.month, date_to.day,
-                   hour=date_to.hour, minute=date_to.minute, tzinfo=timezone)
-
-# Fetch historical deals in chunks of 10 days
-deals=mt5.history_deals_total(utc_from.timestamp(), date_to.timestamp())
-print('deals: ', deals)
-# history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
-
-
-# Define the TradeDeal class using namedtuple for simplicity
-TradeDeal = namedtuple('TradeDeal', [
-    'ticket', 'order', 'time', 'time_msc', 'type', 'entry', 'magic',
-    'position_id', 'reason', 'volume', 'price', 'commission', 'swap',
-    'profit', 'fee', 'symbol', 'comment', 'external_id'
-])
-def query_magic_index(table_name, index_name, magic_value):
+def get_trade_deal_from_db_by_magic(magic_value,table_name="investtrend_mt5_history_deals", index_name='magic-index'):
     # Initialize a session using Amazon DynamoDB
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb', 
+                          aws_access_key_id=aws_access_key_id, 
+                          aws_secret_access_key=aws_secret_access_key, 
+                          region_name=region_name)
     
     # Select your DynamoDB table
     table = dynamodb.Table(table_name)
@@ -197,6 +172,13 @@ def query_magic_index(table_name, index_name, magic_value):
     
     # Extract the items from the response
     items = response.get('Items', [])
+    
+    # Define the TradeDeal class using namedtuple for simplicity
+    TradeDeal = namedtuple('TradeDeal', [
+        'ticket', 'order', 'time', 'time_msc', 'type', 'entry', 'magic',
+        'position_id', 'reason', 'volume', 'price', 'commission', 'swap',
+        'profit', 'fee', 'symbol', 'comment', 'external_id'
+    ])
     
     # Convert items to TradeDeal instances
     trade_deals = []
@@ -231,9 +213,28 @@ if __name__ == "__main__":
     table_name = 'investtrend_mt5_history_deals'
     index_name = 'magic-index'
     magic_value = 7  # Replace with your actual partition key value
+    
+    # Calculate the start date for fetching historical deals
+    utc_from = datetime.now(tz=timezone) - timedelta(days=10)  # Adjust this as needed
+    print('utc_from: ', utc_from)
+
+    # Convert utc_from to a timezone-aware datetime object
+    utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
+                        hour=utc_from.hour, minute=utc_from.minute, tzinfo=timezone)
+
+    # Get current date and time in Hong Kong timezone
+    date_to = datetime.now().astimezone(pytz.timezone("Asia/Hong_Kong"))
+    date_to = datetime(date_to.year, date_to.month, date_to.day,
+                    hour=date_to.hour, minute=date_to.minute, tzinfo=timezone)
+
+    # Fetch historical deals in chunks of 10 days
+    deals=mt5.history_deals_total(utc_from.timestamp(), date_to.timestamp())
+    print('deals: ', deals)
+    # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
+
     # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
     # print('history_deals: ', history_deals)
-    all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.1)
-    print('all_deals: ', all_deals)
-    # result = query_magic_index(table_name, index_name, magic_value)
-    # print(result)
+    # all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.1)
+    # print('all_deals: ', all_deals)
+    result = get_trade_deal_from_db_by_magic(magic_value)
+    print(result)

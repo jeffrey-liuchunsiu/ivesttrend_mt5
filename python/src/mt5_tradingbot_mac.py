@@ -6,6 +6,7 @@ Created on Fri Oct  7 16:58:34 2022
 """
 
 
+from utils.mt5_utils import get_trade_deal_from_db_by_magic
 from utils.trade_deal_to_json import trade_deals_to_json
 
 # import MetaTrader5 as mt5
@@ -39,6 +40,7 @@ mt5 = MetaTrader5(
 
 mt5_username = os.getenv('mt5_username')
 mt5_password = os.getenv('mt5_password')
+
 
 # path = "C:/Program Files/Pepperstone MetaTrader 5/terminal64.exe"
 path = "/home/ubuntu/.wine/drive_c/Program Files/Pepperstone MetaTrader 5/terminal64.exe"
@@ -391,7 +393,9 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     # utc_from = start_date - datetime.timedelta(days=180)
     # date_to = datetime.now().astimezone(pytz.timezone('Hongkong')) + datetime.timedelta(days=1)
     
-    history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
+    # history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
+    history_deals = get_trade_deal_from_db_by_magic(magic)
+    print('history_deals: ', history_deals)
     class_history_deals = filter(check_test_id, history_deals)
     # class_history_deals = trade_deals_to_json(class_history_deals)
     # print('class_history_deals: ', class_history_deals)
@@ -718,7 +722,9 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
             date_to_timestamp = date_to.timestamp()
             print('date_to_timestamp: ', date_to_timestamp)
             
-            history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
+            # history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
+            print('magic: ', magic)
+            history_deals = get_trade_deal_from_db_by_magic(magic)
             print('history_deals: ', history_deals)
             # history_deals = mt5.history_deals_get(utc_from, date_to, group=pair)
             
@@ -910,7 +916,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                 print("### No indicator triggered action ###")
 
 
-def check_mt5_trade_status(symbol_ft, test_id):
+def check_mt5_trade_status(symbol_ft, test_id, magic):
     start_mt5()
     date = None
     stop_loss = 0
@@ -955,6 +961,8 @@ def check_mt5_trade_status(symbol_ft, test_id):
         date_to_timestamp = date_to.timestamp()
 
         history_deals = mt5.history_deals_get(utc_from_timestamp, date_to_timestamp, group=symbol_ft)
+        history_deals = get_trade_deal_from_db_by_magic(magic)
+        # history_deals = get_trade_deal_from_db_by_magic(magic)
         # history_deals = mt5.history_deals_get(utc_from, date_to, group=pair)
 
         class_history_deals = filter(check_test_id, history_deals)

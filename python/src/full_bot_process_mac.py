@@ -213,6 +213,7 @@ class Test:
         self.ft_tp_size = int(self.ft_tp_size) if isinstance(self.ft_tp_size, str) else self.ft_tp_size
         self.bt_atr_period = float(self.bt_atr_period) if isinstance(self.bt_atr_period, str) else self.bt_atr_period
         self.bt_multiplier = float(self.bt_multiplier) if isinstance(self.bt_multiplier, str) else self.bt_multiplier
+        self.tg_channel_id = None if self.tg_channel_id == "None" else self.tg_channel_id
         
     def find_best_parameters_api(self,atr=None, multiplier=None):
         url = "http://findBestLambda-1500609916.ap-southeast-1.elb.amazonaws.com/lambda/find_optimal_parameter"
@@ -435,15 +436,15 @@ class Test:
         # self.bt_final_equity = final_equity
 
 
-    def create_test_channel(self):
-        if self.tg_channel_id == None:
-            channel = loop.run_until_complete(create_tg_channel(f'Invest Trend - {self.test_name} id#{self.test_id}'))
-            self.tg_channel_id = str(channel)
+    # def create_test_channel(self):
+    #     if self.tg_channel_id == None:
+    #         channel = loop.run_until_complete(create_tg_channel(f'Invest Trend - {self.test_name} id#{self.test_id}'))
+    #         self.tg_channel_id = str(channel)
         
-    def delete_test_channel(self):
-        if self.tg_channel_id:
-            loop.run_until_complete(delete_tg_channel(self.tg_channel_id))
-            self.tg_channel_id = None
+    # def delete_test_channel(self):
+    #     if self.tg_channel_id:
+    #         loop.run_until_complete(delete_tg_channel(self.tg_channel_id))
+    #         self.tg_channel_id = None
 
 
     def start_forward_test(self,client, atr_period=None,multiplier=None):
@@ -468,13 +469,13 @@ class Test:
             self.ft_symbol, self.ft_time_frame_forward, start_date)
         if stock_data:
             ft.forward_trade(stock_data, self.ft_lot_size,
-                            self.ft_sl_size, self.ft_tp_size, self.ft_start_date, self.test_id,self.mt5_magic_id,atr_period,multiplier,client,int(self.tg_channel_id),send_tg_message)
+                            self.ft_sl_size, self.ft_tp_size, self.ft_start_date, self.test_id,self.mt5_magic_id,atr_period,multiplier,client,self.tg_channel_id,send_tg_message)
         else:
             return None
         
     def start_check_trade_status(self):
         ft.start_mt5()
-        ft.check_mt5_trade_status(self.ft_symbol, self.test_id)
+        ft.check_mt5_trade_status(self.ft_symbol, self.test_id, self.mt5_magic_id)
 
 
     def progress_report(self,percentage, elapsed_time, estimated_remaining_time):
