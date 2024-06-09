@@ -8,11 +8,14 @@ import schedule
 import time
 import threading
 # import multiprocessing
+import asyncio
 import requests
 import json
 from mt5linux import MetaTrader5
 import find_best as mst
-import pytz 
+import pytz
+from utils.tg_utils import create_tg_channel, delete_tg_channel, send_tg_message
+
 mt5 = MetaTrader5(
     # host = 'localhost',
     host = '18.141.245.200',
@@ -46,7 +49,7 @@ timeframe_minutes = {
 # from flask import Flask, jsonify, request
 
 # app = Flask(__name__)
-
+loop = asyncio.get_event_loop()
 
 class Test:
     def __init__(self, test_strategy_name="SuperTrend", strategy_type = "Trend Following", test_id="TESTING", test_name = "Test", mt5_magic_id = None, bt_symbol='BTC-USD', bt_atr_period=6,bt_multiplier=10,
@@ -56,7 +59,7 @@ class Test:
                  bt_lot_size=2000, bt_sl_size=0, bt_tp_size=0, bt_commission = 5,
                  ft_symbol="BTCUSD", ft_start_date=None, ft_end_date=None,
                  ft_time_frame_forward=mt5.TIMEFRAME_M3, ft_initial_investment=100000, ft_lot_size=0.1,
-                 ft_sl_size=5000, ft_tp_size=5000):
+                 ft_sl_size=5000, ft_tp_size=5000,user=None,tg_username=None, tg_enable=False):
         self.test_strategy_name = test_strategy_name
         self.strategy_type = strategy_type
         self.bt_symbol = bt_symbol
@@ -146,6 +149,23 @@ class Test:
         self.s3Key_stock_volume = None
         self.s3Key_backtest_data = None
         self.s3Key_forward_test_data = None
+        
+        #user_info
+        self.user = user
+        self.tg_username = tg_username
+        self.tg_channel_id = None
+        self.tg_enable = tg_enable
+        
+    def create_test_channel(self,client):
+        if self.tg_channel_id == None:
+            channel = asyncio.run(client, create_tg_channel(f'Invest Trend - {self.test_name} id#{self.test_id}'))
+            self.tg_channel_id = str(channel)
+        
+    def delete_test_channel(self,client):
+        if self.tg_channel_id:
+            asyncio.run(delete_tg_channel(client, self.tg_channel_id))
+            self.tg_channel_id = None
+
         
         
     # Method to update attributes from a dictionary
@@ -414,9 +434,21 @@ class Test:
         # self.bt_equity_per_day = equity_per_day
         # self.bt_final_equity = final_equity
 
-    # def start_forward_test(self):
-    def start_forward_test(self,atr_period=None,multiplier=None):
+
+    def create_test_channel(self):
+        if self.tg_channel_id == None:
+            channel = loop.run_until_complete(create_tg_channel(f'Invest Trend - {self.test_name} id#{self.test_id}'))
+            self.tg_channel_id = str(channel)
+        
+    def delete_test_channel(self):
+        if self.tg_channel_id:
+            loop.run_until_complete(delete_tg_channel(self.tg_channel_id))
+            self.tg_channel_id = None
+
+
+    def start_forward_test(self,client, atr_period=None,multiplier=None):
         ft.start_mt5()
+        
         self.bt_end_date = datetime.now()
         if atr_period == None:
             atr_period = self.bt_atr_period
@@ -431,13 +463,12 @@ class Test:
         if interval >= 1440:
             days_previous = 180
         start_date = datetime.now() - timedelta(days=days_previous)
-        ft.start_mt5()
+        # ft.start_mt5()
         stock_data = ft.get_rate_data_mt5(
             self.ft_symbol, self.ft_time_frame_forward, start_date)
         if stock_data:
-            #! add bt atr and multi -- done
             ft.forward_trade(stock_data, self.ft_lot_size,
-                            self.ft_sl_size, self.ft_tp_size, self.ft_start_date, self.test_id,self.mt5_magic_id,atr_period,multiplier)
+                            self.ft_sl_size, self.ft_tp_size, self.ft_start_date, self.test_id,self.mt5_magic_id,atr_period,multiplier,client,int(self.tg_channel_id),send_tg_message)
         else:
             return None
         
@@ -537,7 +568,7 @@ class Test:
             interval = timeframe_minutes[time_frame]
             return interval
 
-    def live_trading(self):
+    def live_trading(self,client):
         print('Live trading')
         # A dictionary that maps MetaTrader 5 timeframes to their corresponding time intervals in minutes
         # timeframe_minutes = {
@@ -577,26 +608,26 @@ class Test:
             # plus 3 seconds delay
             if interval >= 43200:  # For intervals greater than or equal to 1 month
                 self.scheduler.every().month.at("00:00:03").do(
-                    self.start_forward_test).tag('monthly', str(interval))
+                    self.start_forward_test, client=client).tag('monthly', str(interval))
 
             elif interval >= 10080:  # For intervals greater than or equal to 1 week, but less than 1 month
                 self.scheduler.every(interval // 10080).weeks.at("00:00:03").do(
-                    self.start_forward_test).tag('weekly', str(interval))
+                    self.start_forward_test, client=client).tag('weekly', str(interval))
 
             elif interval >= 1440:  # For intervals greater than or equal to 1 day, but less than 1 week
                 self.scheduler.every(interval // 1440).days.at("00:00:03").do(
-                    self.start_forward_test).tag('daily', str(interval))
+                    self.start_forward_test, client=client).tag('daily', str(interval))
 
             elif interval >= 60:  # For intervals between 60 minutes and 1 day
                 self.scheduler.every(interval // 60).hours.at("00:00:03").do(
-                    self.start_forward_test).tag('hourly', str(interval))
+                    self.start_forward_test, client=client).tag('hourly', str(interval))
 
             else:  # For intervals less than 60 minutes
                 interval_minutes = interval
                 for hour in range(0, 24):
                     for minute in range(0, 60, interval_minutes):
                         self.scheduler.every().day.at("{:02d}:{:02d}:03".format(hour, minute)).do(
-                            self.start_forward_test).tag('subhourly', str(interval))
+                            self.start_forward_test, client=client).tag('subhourly', str(interval))
         
         # Run the scheduled job continuously
         while True:
@@ -696,10 +727,10 @@ def stop_check_status_thread(test_instance):
     print('test_instance.stop_flag_check_status: ', test_instance.stop_flag_check_status)
 
 
-def start_forward_test_thread(test_instance):
+def start_forward_test_thread(test_instance,client):
     print('test start')
     test_instance.stop_flag_live_trade = False
-    thread = threading.Thread(target=test_instance.live_trading)
+    thread = threading.Thread(target=test_instance.live_trading, args=(client,))
     thread.start()
     # process = multiprocessing.Process(target=test_instance.live_trading)
     # process.start()

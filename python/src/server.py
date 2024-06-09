@@ -20,8 +20,10 @@ import re
 from dateutil.parser import parse as parse_date
 import yfinance as yf
 from decimal import Decimal
+import asyncio
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
+from utils.tg_utils import add_user_to_channel, create_tg_channel
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3, get_json_data_from_s3
 
 mt5 = MetaTrader5(
@@ -42,7 +44,8 @@ CORS(app,resource={
 test_instances = []
 
 time_frame_exchange = {
-    '1D' : 'D1'
+    '1D' : 'D1',
+    '5M' : 'M5'
 }
 
 timeframe_minutes = {
@@ -82,7 +85,33 @@ dynamodb = boto3.resource('dynamodb',
 # table = dynamodb.Table('test_by_users-dev')
 # tests_table = dynamodb.Table('TestInstance-hj4kjln2cvcg5cjw6tik2b2grq-dev')
 tests_table = dynamodb.Table('TestInstance-ambqia6vxrcgzfv4zl44ahmlp4-dev')
+user_table = dynamodb.Table('User-ambqia6vxrcgzfv4zl44ahmlp4-dev')
 s3_bucket_name = 'investtrend-test-data'
+
+from telethon import TelegramClient
+from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
+
+
+api_id = os.getenv('api_id')
+api_hash = os.getenv('api_hash')
+phone = os.getenv('phone')
+
+# Create the client and connect
+client = TelegramClient('test01', api_id, api_hash)
+# telegram_event_loop = None
+client.start(phone)
+loop = asyncio.get_event_loop()
+
+# async def create_channel():
+#     result = await client(CreateChannelRequest(
+#         title='My New Channel',
+#         about='This is a description of my new channel',
+#         megagroup=False  # True if you want to create a supergroup instead of a channel
+#     ))
+
+#     print(f'Channel created with ID: {result.chats[0].id}')
+#     return result.chats[0].id
+
 
 
 def decimal_default(obj):
@@ -133,7 +162,7 @@ def create_test():
             uuid_id = shortuuid.uuid()[:16]
 
         # Create test instance
-        test_instance = create_test_instance(data,uuid_id,mt5_magic_id)
+        test_instance = create_test_instance(data, uuid_id, mt5_magic_id, user)
         
         if test_instance is None:
             return jsonify({"error": "Invalid test instance data"}), 400
@@ -245,7 +274,7 @@ def round_up_to_appropriate(value):
     rounding_factor = 10 ** magnitude
     return math.ceil(value / rounding_factor) * rounding_factor
 
-def create_test_instance(data, uuid_id, mt5_magic_id):
+def create_test_instance(data, uuid_id, mt5_magic_id, user):
     """Create and return a new test instance from request data, including stock price and lot calculation."""
     bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")
     # bt_end_date = datetime.strptime(data["bt_end_date"], "%Y-%m-%d")
@@ -322,7 +351,11 @@ def create_test_instance(data, uuid_id, mt5_magic_id):
             ft_initial_investment=rounded_initial_investment,
             ft_lot_size=rounded_lots,
             ft_sl_size=data["bt_sl_size"],
-            ft_tp_size=data["bt_tp_size"]
+            ft_tp_size=data["bt_tp_size"],
+            user=user,
+            tg_username=data['tg_username'],
+            tg_enable=data['tg_enable']
+            
         )
     except KeyError:  # Missing data fields will raise KeyError
         return None
@@ -363,6 +396,8 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'ft_tp_size': instance.ft_tp_size,
             's3Key_stock_close_price': instance.s3Key_stock_close_price,
             's3Key_stock_volume': instance.s3Key_stock_volume,
+            'tg_username': instance.tg_username,
+            'tg_enable': instance.tg_enable,
             'create_time': current_time,
             'state': "Created"
         })
@@ -541,6 +576,7 @@ def edit_test():
     try:
         data = request.get_json()
         test_id = data.get('test_id')
+        
         if not test_id:
             return jsonify({
                     "success": False,
@@ -676,8 +712,8 @@ def edit_test():
             lot_size = float(data["bt_lot_size"])
         if data["bt_initial_investment"]:     
             initial_investment = int(data["bt_initial_investment"])
-            
-        symbol_price = get_stock_price_on_date(test_instance.bt_symbol, data.get('bt_start_date'))
+        yf_bt_start_date = datetime.strptime(data["bt_start_date"], "%Y-%m-%d")    
+        symbol_price = get_stock_price_on_date(test_instance.bt_symbol, yf_bt_start_date)
         rounded_lots = None
         rounded_initial_investment = None
         
@@ -697,23 +733,23 @@ def edit_test():
             print('rounded_lots: ', rounded_lots) 
             
 
-        test_instance.bt_start_date= data.get('bt_start_date'),
-        test_instance.bt_end_date= data.get('bt_end_date'),
-        test_instance.bt_2nd_start_date= data.get('bt_2nd_start_date'),
-        test_instance.bt_2nd_end_date= data.get('bt_2nd_end_date'),
-        test_instance.bt_time_frame_backward= data.get('bt_time_frame_backward'),
-        test_instance.bt_initial_investment= rounded_initial_investment,
-        test_instance.bt_lot_size= rounded_lots,
-        test_instance.bt_sl_size= data.get('bt_sl_size'),
-        test_instance.bt_tp_size= data.get('bt_tp_size'),
+        test_instance.bt_start_date= data.get('bt_start_date')
+        test_instance.bt_end_date= data.get('bt_end_date')
+        test_instance.bt_2nd_start_date= data.get('bt_2nd_start_date')
+        test_instance.bt_2nd_end_date= data.get('bt_2nd_end_date')
+        test_instance.bt_time_frame_backward= data.get('bt_time_frame_backward')
+        test_instance.bt_initial_investment= rounded_initial_investment
+        test_instance.bt_lot_size= rounded_lots
+        test_instance.bt_sl_size= data.get('bt_sl_size')
+        test_instance.bt_tp_size= data.get('bt_tp_size')
         test_instance.bt_commission= data.get('bt_commission') 
-        test_instance.ft_time_frame_forward = time_frame_exchange[data.get('bt_time_frame_backward')]
+        test_instance.ft_time_frame_forward = time_frame_exchange[data['bt_time_frame_backward']]
         test_instance.ft_initial_investment = rounded_initial_investment
         test_instance.ft_lot_size = rounded_lots
         test_instance.ft_sl_size = data.get('bt_sl_size')
         test_instance.ft_tp_size = data.get('bt_tp_size')
         
-        test_instance.parse_and_convert_parameters() 
+        
 
         update_response = tests_table.update_item(
             Key={'id': test_id},
@@ -752,10 +788,10 @@ def edit_test():
                 '#ft_tp_size': 'ft_tp_size'
             },
             ExpressionAttributeValues={
-                ':bt_start_date': str(test_instance.bt_start_date),
-                ':bt_end_date': str(test_instance.bt_end_date),
-                ':bt_2nd_start_date': str(test_instance.bt_2nd_start_date),
-                ':bt_2nd_end_date': str(test_instance.bt_2nd_end_date),
+                ':bt_start_date': test_instance.bt_start_date,
+                ':bt_end_date': test_instance.bt_end_date,
+                ':bt_2nd_start_date': test_instance.bt_2nd_start_date,
+                ':bt_2nd_end_date': test_instance.bt_2nd_end_date,
                 ':bt_time_frame_backward': str(test_instance.bt_time_frame_backward),
                 ':bt_initial_investment': str(test_instance.bt_initial_investment),
                 ':bt_lot_size': str(test_instance.bt_lot_size),
@@ -775,6 +811,8 @@ def edit_test():
                 "test_id" : test_id,
                 "message": "Failed to update DynamoDB"
                 }), 400
+            
+        test_instance.parse_and_convert_parameters() 
 
         return jsonify({
             "success": True,
@@ -830,29 +868,41 @@ def start_test():
         
         if test_instance.bt_atr_period is None or test_instance.bt_multiplier is None:
             return jsonify({"error": "Please define ATR period and Multiplier"}), 400
+        
+        tg_channel_id = test_instance.tg_channel_id
+        
+        try:
+            if tg_channel_id == None and test_instance.tg_enable and test_instance.tg_username:
+                result = loop.run_until_complete(create_tg_channel(client, f'Invest Trend - {test_instance.test_name} (id#{test_instance.test_id})'))
+                tg_channel_id = test_instance.tg_channel_id = result
+                loop.run_until_complete(add_user_to_channel(client, tg_channel_id, test_instance.tg_username))
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
 
         # Update the item in DynamoDB to set active to True and add the current start_time
         try:
             # Define the Hong Kong timezone
             hong_kong = pytz.timezone('Asia/Hong_Kong')
-
-            # Get the current time in UTC, add one day, and then convert to Hong Kong time
             current_time = datetime.now().replace(tzinfo=pytz.utc)
             hong_kong_time = current_time.astimezone(hong_kong)
-            
-
-            # Format the time to the desired string format
             formatted_time = hong_kong_time.strftime('%Y-%m-%d')  # ISO 8601 format in UTC
+            
+    
+            
+            
             update_response = tests_table.update_item(
                 Key={'id': test_id},
-                UpdateExpression='SET #state = :val1, #ft_start_date = :val2',
+                UpdateExpression='SET #state = :val1, #ft_start_date = :val2, #tg_channel_id = :val3',
                 ExpressionAttributeNames={
                     '#state': 'state',
-                    "#ft_start_date": "ft_start_date" # Use ExpressionAttributeNames to avoid conflicts with reserved words
+                    '#ft_start_date': "ft_start_date",
+                    '#tg_channel_id': "tg_channel_id"# Use ExpressionAttributeNames to avoid conflicts with reserved words
                 },
                 ExpressionAttributeValues={
                     ':val1': "Running",
-                    ':val2': formatted_time
+                    ':val2': formatted_time,
+                    ':val3': str(tg_channel_id)
                 }
             )
         except Exception as e:
@@ -861,15 +911,17 @@ def start_test():
         if update_response['ResponseMetadata']['HTTPStatusCode'] == 200:
             try:
                 # Start the test using a function from the 'full' module
-                full.start_forward_test_thread(test_instance)
+                full.start_forward_test_thread(test_instance,client)
                 test_instance.edit_parameters(
                     {"state": "Running", "ft_start_date": datetime.strptime(formatted_time, '%Y-%m-%d')}
                 )  # Uncomment this line if you have the full module
             except Exception as e:
+                # test_instance.delete_test_channel()
                 return jsonify({"error": "Error starting forward test thread", "details": str(e)}), 500
 
         # Check if the update was successful
         if update_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            test_instance.delete_test_channel()
             return jsonify({"error": "Failed to update DynamoDB"}), 500
 
         # Return a success message indicating the test has started
@@ -1739,19 +1791,22 @@ def get_running_instances_and_run():
     
     for inst in test_instances :
         if inst["test_instance"].state == "Running":
-            full.start_forward_test_thread(inst["test_instance"])
+            full.start_forward_test_thread(inst["test_instance"],client)
             # print(inst)
 
 
 
 if __name__ == "__main__":
- 
-    states_to_query = ['Created', 'Running', 'End']
-    # delete_tests_by_state('state-index', states_to_query, test_instances)
-    created_and_running_tests = get_tests_by_state('state-index', states_to_query, test_instances)
-    get_running_instances_and_run()
+    # try:
+        states_to_query = ['Created', 'Running', 'End']
+        # delete_tests_by_state('state-index', states_to_query, test_instances)
+        created_and_running_tests = get_tests_by_state('state-index', states_to_query, test_instances)
+        get_running_instances_and_run()
+        
+        app.run(host="0.0.0.0", port=8000,debug=False, use_reloader=False)
     
-    app.run(host="0.0.0.0", port=8000,debug=False, use_reloader=False)
+    # finally:
+    #     client.disconnect()
     # app.run(port=8000,debug=False, use_reloader=False)
  
 

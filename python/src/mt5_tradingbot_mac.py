@@ -5,6 +5,7 @@ Created on Fri Oct  7 16:58:34 2022
 @author: Victor lee
 """
 
+
 from utils.trade_deal_to_json import trade_deals_to_json
 
 # import MetaTrader5 as mt5
@@ -17,6 +18,7 @@ import schedule
 import pytz
 import yfinance as yf
 import json
+import asyncio
 
 # import talib as ta
 # import yfinance as yf
@@ -44,7 +46,7 @@ deviation = 10
 
 # Function to start Meta Trader 5 (MT5)
 
-
+loop3 = asyncio.get_event_loop()
 # def start_mt5(username, password, server, path):
 def start_mt5():
     # Ensure that all variables are the correct type
@@ -635,12 +637,17 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
 
  #! add bt atr and multi para
 
-def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, magic, atr_period,multiplier):
+def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, magic, atr_period,multiplier,client, tg_channel_id=None ,send_msg_callback=None):
     start_mt5()
+    if tg_channel_id:
+        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"The Forward Test is about to start."))
+    # loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"test send_msg_callback"))
     for symbol_ft, df in symbol_data.items():
         df = add_super_trend_indicator(df,atr_period,multiplier)
         df = add_squeeze_momentum_indicator(df)
-
+        
+        
+        
         df["time"] = pd.to_datetime(df["time"], unit="s")
         df.rename(columns={'time': "date"}, inplace=True)
 
@@ -696,14 +703,17 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
             utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
                             hour=utc_from.hour, minute=utc_from.minute,tzinfo=timezone)
             utc_form_timestamp = utc_from.timestamp()
+            print('utc_form_timestamp: ', utc_form_timestamp)
             
             # utc_from = datetime(2023, 1, 1, tzinfo=pytz.timezone('Hongkong'))
             date_to = datetime.now().astimezone(pytz.timezone("Asia/Hong_Kong"))
             date_to = datetime(date_to.year, date_to.month, date_to.day,
                             hour=date_to.hour, minute=date_to.minute)
             date_to_timestamp = date_to.timestamp()
+            print('date_to_timestamp: ', date_to_timestamp)
             
             history_deals = mt5.history_deals_get(utc_form_timestamp, date_to_timestamp, group=symbol_ft)
+            print('history_deals: ', history_deals)
             # history_deals = mt5.history_deals_get(utc_from, date_to, group=pair)
             
             class_history_deals = filter(check_test_id, history_deals)
@@ -824,8 +834,10 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                     size1 = res1.volume
                     entry.append((date, res1.price))
                     # trade_OpenDate.append(date)
-                    print(
-                        f'Buy {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend UpTrend"')
+                    msg =f'Buy {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend UpTrend"'
+                    if tg_channel_id:
+                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg))
+                    print(msg)
                 else:
                     print("Failed to send BUY order")
                     print("The failure code is: "+str(res1.retcode))
@@ -847,8 +859,10 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                     size1 = res1.volume
                     entry.append((date, res1.price))
                     # trade_OpenDate.append(date)
-                    print(
-                        f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend Not DownTrend anymore"')
+                    msg=f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend Not DownTrend anymore"'
+                    if tg_channel_id:
+                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg))
+                    print(msg)
 
                 else:
                     print("Failed to send BUY order")
@@ -870,8 +884,10 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                     size1 = res1.volume
                     entry.append((date, res1.price))
                     # trade_OpenDate.append(date)
-                    print(
-                        f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend DownTrend"')
+                    msg =f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend DownTrend"'
+                    if tg_channel_id:
+                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg))
+                    print(msg)
                 else:
                     print("Failed to send SELL order")
                     print("The failure code is: "+str(res1.retcode))
