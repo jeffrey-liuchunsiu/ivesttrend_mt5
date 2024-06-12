@@ -7,13 +7,14 @@ import ollama
 
 def gemini_api(prompt,  google_api_key, temperature = 0, model="gemini-1.5-flash-latest"):
     if model == "gemini-1.5-flash-latest":
-        time.sleep(4)
+        time.sleep(5)
     if model == "gemini-1.5-pro-latest":
-        time.sleep(30)
+        time.sleep(31)
     if model == "gemini-1.0-pro-latest":
-        time.sleep(4)
+        time.sleep(5)
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={google_api_key}"
+    # url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={google_api_key}"
+    url = f"https://www.investtrend.tech/api/gemini"
     headers = {
         'Content-Type': 'application/json'
     }
@@ -132,9 +133,10 @@ def groq_api(user_prompt, system_prompt, groq_api_key, temperature=0, model="lla
     
     if response.status_code == 200:
         print(model,": ", response.json()['choices'][0]['message']['content'])
-        return response.json()
+        return response.json()['choices'][0]['message']['content']
     else:
         response.raise_for_status()
+        time.sleep(1)
     
 
 

@@ -1531,7 +1531,111 @@ def get_analyze_news():
 
     # Return an immediate response
     return jsonify(sorted_items), 200
- 
+
+@app.route("/get_multiple_ai_analyze_news", methods=["POST"])
+def get_analyze_news_combine():
+    test_id = request.json.get("test_id")
+    limit = request.json.get("limit")
+    start_date = request.json.get("start_date")
+    end_date = request.json.get("end_date")
+    symbol = request.json.get("symbol")
+    impact_above = request.json.get("impact_above")
+    impact_below = request.json.get("impact_below")
+    
+    table_name = 'InvestNewsMix-ambqia6vxrcgzfv4zl44ahmlp4-dev'
+    table = dynamodb.Table(table_name)
+    
+    if test_id is None:
+        return jsonify({"error": "Missing test_id"}), 400
+    
+    if limit is not None and (not isinstance(limit, int) or limit <= 0):
+        return jsonify({"error": "The limit value is invalid - the limit must be an integer and <= 0"}), 400
+    
+    if start_date is not None:
+        if not isinstance(start_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", start_date):
+            return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
+
+    if end_date is not None:
+        if not isinstance(end_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", end_date):
+            return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
+    
+        
+    if impact_above is not None:
+        if not isinstance(impact_above, int):
+            return jsonify({"error": "Invalid impact_above value - it must be an integer"}), 400
+
+    if impact_below is not None:
+        if not isinstance(impact_below, int):
+            return jsonify({"error": "Invalid impact_below value - it must be an integer"}), 400
+        
+    if impact_above and impact_below:
+        if impact_above < 0 or impact_below > 0:
+            return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
+    
+    test_instance_data = next(
+        (inst for inst in test_instances if inst["test_id"] == test_id), None)
+    if test_instance_data is None:
+        return jsonify({"error": "Test instance not found"}), 400
+    
+    test_instance = test_instance_data["test_instance"]
+    
+    if symbol == None:
+        symbol = getattr(test_instance, "ft_symbol")
+    if start_date == None:
+        start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
+    if end_date == None:    
+        end_date = datetime.now().strftime("%Y-%m-%d")
+    if impact_above == None:
+        impact_above = 50 
+    if impact_below == None:
+        impact_below = -50
+    if limit == None:
+        limit = 10
+    
+    # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
+    
+    # Paginate through the results manually to find the last 10 items
+    last_items = []
+    exclusive_start_key = None
+
+    while True:
+        scan_kwargs = {
+            'FilterExpression': Attr('date_time').between(start_date, end_date) &
+                        Attr('ticker_symbol').contains(symbol)
+        }
+        
+        # Only add ExclusiveStartKey to arguments if it's not None
+        if exclusive_start_key:
+            scan_kwargs['ExclusiveStartKey'] = exclusive_start_key
+
+        response = table.scan(**scan_kwargs)
+        
+        items = response.get('Items', [])
+        print('items: ', len(items))
+        
+        filtered_items = [
+                item for item in items 
+                if item['body_impact_overall'] >= impact_above or item['body_impact_overall'] <= impact_below
+            ]
+        
+        # Prepend to ensure latest items are kept if we exceed 10
+        last_items = filtered_items + last_items
+        last_items = last_items[-(limit):]  # Keep only the last 10 items
+
+        if 'LastEvaluatedKey' not in response or len(last_items) >= limit:
+            break
+        exclusive_start_key = response['LastEvaluatedKey']
+        
+    for item in last_items:
+        for key, value in item.items():
+            if isinstance(value, Decimal):
+                item[key] = decimal_default(value)
+        
+    # Sorting the items by 'date_time' from latest to earliest
+    sorted_items = sorted(last_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
+
+    # Return an immediate response
+    return jsonify(sorted_items), 200 
     
 @app.route('/remove_forward_test', methods=['POST'])
 def remove_test():
