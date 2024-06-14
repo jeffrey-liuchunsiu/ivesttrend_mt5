@@ -554,21 +554,22 @@ def get_find_best_parameters_progress_percentage():
         elapsed_time = test_instance.find_best_elapsed_time
         estimated_remaining_time = test_instance.find_best_estimated_remaining_time
         if elapsed_time and estimated_remaining_time : 
-            # Return an immediate response
-            return jsonify({"processing":True, 
-                            "percentage": percentage, 
-                            "elapsed_time":elapsed_time, 
-                            "estimated_remaining_time":estimated_remaining_time, 
-                            "current_atr" : None,
-                            "current_multiplier" : None,
-                            "message": "The find best parameters is calculating"}), 200
-    
-    # return jsonify({"processing":False, 
-    #                 "state":0, 
-    #                 "percentage": None,
-    #                 "elapsed_time":None, 
-    #                 "estimated_remaining_time":None,
-    #                 "message": "The forward test result have not been started yet."}), 206
+            if elapsed_time > 0 and estimated_remaining_time > 0 : 
+                # Return an immediate response
+                return jsonify({"processing":True, 
+                                "percentage": percentage, 
+                                "elapsed_time":elapsed_time, 
+                                "estimated_remaining_time":estimated_remaining_time, 
+                                "current_atr" : None,
+                                "current_multiplier" : None,
+                                "message": "The find best parameters is calculating"}), 200
+    else:
+        return jsonify({"processing":False, 
+                        "state":0, 
+                        "percentage": None,
+                        "elapsed_time":None, 
+                        "estimated_remaining_time":None,
+                        "message": "The forward test result have not been started yet."}), 206
     
 @app.route('/edit_test', methods=['POST'])
 def edit_test():
