@@ -44,6 +44,7 @@ def put_dynamodb_item(table, item):
     for i in range(retries):
         try:
             table.put_item(Item=item)
+            print("Item saved to DynamoDB")
             return
         except Exception as e:
             print(f"Error saving item to DynamoDB: {e}")
@@ -200,7 +201,7 @@ def analyze_news_combine_request(symbol, start_date, end_date, limit=3):
     
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     COZE_API_KEY = os.getenv('COZE_API_KEY')
-    GROQ_API_KEY = os.getenv('GROQ_API_KEY_yahoo')
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     # genai.configure(api_key=GOOGLE_API_KEY) 
     aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
     aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -214,13 +215,16 @@ def analyze_news_combine_request(symbol, start_date, end_date, limit=3):
     table = dynamodb.Table('InvestNewsMix-ambqia6vxrcgzfv4zl44ahmlp4-dev')
     
 
-    news_result = []
-
-    news = rest_client.get_news(symbol, start_date, end_date, limit=limit)
+    news = rest_client.get_news(symbol, start_date, end_date, limit=limit, sort="asc")
     print('news: ', len(news))
 
-    for item_news in news:
+    for index, item_news in enumerate(news, start=1):
         # print('item_news: ', item_news)
+        if index % 2 == 0:
+            GROQ_API_KEY = os.getenv('GROQ_API_KEY_yahoo')
+        if index % 2 == 1:
+            GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+            
         
         item_result = None
         current_event = item_news.__dict__["_raw"]
@@ -232,16 +236,16 @@ def analyze_news_combine_request(symbol, start_date, end_date, limit=3):
         
         if dynamo_item:
             print(f"{news_id}: the data from DynamoDB")
-            item_result = dynamo_item
+
         else:
 
         # Check if news ID is in DynamoDB
-        # dynamo_item = get_dynamodb_item(table, news_id)
-        
-        # if dynamo_item:
-        #     # print(" Use the data from DynamoDB")
-        #     item_result = dynamo_item
-        # else:
+            
+            old_table = dynamodb.Table('InvestNews-ambqia6vxrcgzfv4zl44ahmlp4-dev')
+            dynamo_item = get_dynamodb_item(old_table, news_id)
+            gemini_score = None
+            if dynamo_item:
+                gemini_score = int(dynamo_item['headline_impact'])
         
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
@@ -258,70 +262,74 @@ def analyze_news_combine_request(symbol, start_date, end_date, limit=3):
                 
                 article_content = soup.find(id='article-body')
                 # print(article_content.text if article_content else "Content not found")
-                article_content = article_content.text
+                if article_content:
+                    article_content = article_content.text
                 # print('article_content: ', article_content)
                 
-            print("")
-                
-                
-            system_prompt = f"is it commented news or news. if you think that is a new reutrn a score from -100 to 100. if it is a commented news return None .Only respond with a number from -100 to 100 detailing the impact of the content on the {symbol} price, with negative indicating price goes down, and positive indicating price goes up. Must only return number or None, not with other content"    
-            prompt = f"is it commented news or news. if you think that is a new reutrn a score from -100 to 100. if it is a commented news return None. Given the content '{article_content}', Please check if the content is a news or a comment.Then If the content is a comment return show me a number 0.  If the content is news, show me a number from -100 to 100 detailing the impact of this content on {symbol} price, with negative indicating price goes down, and positive indicating price goes up. Must only return number or None, not with other content"
-                
-            llama_score = groq_api (prompt, system_prompt, GROQ_API_KEY, 0,model="llama3-70b-8192")
-            gemini_score = gemini_api(prompt,GOOGLE_API_KEY,0,"gemini-1.5-flash-latest")
-            # coze_api (prompt, COZE_API_KEY)
-            
-    
-            print("")
-            
-            if llama_score and gemini_score:
-                try:
-                    int(gemini_score)
-                except ValueError:
-                    gemini_score = 0
+                        
+                        
+                    system_prompt = f"is it commented news or news. if you think that is a new reutrn a score from -100 to 100. if it is a commented news return None .Only respond with a number from -100 to 100 detailing the impact of the content on the {symbol} price, with negative indicating price goes down, and positive indicating price goes up. Must only return number or None, not with other content"    
+                    prompt = f"is it commented news or news. if you think that is a new reutrn a score from -100 to 100. if it is a commented news return None. Given the content '{article_content}', Please check if the content is a news or a comment.Then If the content is a comment return show me a number 0.  If the content is news, show me a number from -100 to 100 detailing the impact of this content on {symbol} price, with negative indicating price goes down, and positive indicating price goes up. Must only return number or None, not with other content"
+                        
+                    llama_score = groq_api (prompt, system_prompt, GROQ_API_KEY, 0,model="llama3-70b-8192")
+                    if gemini_score == None:
+                        print("Using Gemini api")
+                        gemini_score = gemini_api(prompt,GOOGLE_API_KEY,0,"gemini-1.5-flash-latest")
+                    else:
+                        print("gemini-1.5-flash-latest: " + str(gemini_score))
+                    # coze_api (prompt, COZE_API_KEY)
                     
-                try:
-                    int(llama_score)
-                except ValueError:
-                    llama_score = 0
-                
-                company_impact = round((int(llama_score) + int(gemini_score))/2)
-
             
-                
-            if company_impact > 100:
-                company_impact = 100
-            elif company_impact < -100:
-                company_impact = -100
-                
-            
+                    print("")
+                    
+                    if llama_score or gemini_score:
+                        try:
+                            int(gemini_score)
+                        except ValueError:
+                            gemini_score = 0
+                            
+                        try:
+                            int(llama_score)
+                        except ValueError:
+                            llama_score = 0
+                        
+                        company_impact = round((int(llama_score) + int(gemini_score))/2)
 
-                        # Save analyzed data
-            item_result = {
-                "id": str(news_id),
-                "date_time": current_event["created_at"],
-                "headline": current_event["headline"],
-                "body": article_content,
-                "body_impact_llama": int(llama_score),
-                "body_impact_gemini": int(gemini_score),
-                "body_impact_overall": int(company_impact),
-                "ticker_symbol": current_event["symbols"],
-                "url": current_event["url"],
-                "excerpt": "No action"
-            }
+                    
+                        
+                        if company_impact > 100:
+                            company_impact = 100
+                        elif company_impact < -100:
+                            company_impact = -100
+                            
+                        
 
-            if company_impact >= 50:
-                item_result["excerpt"] = "Buy Stock"
-                # Place buy order logic here
+                                    # Save analyzed data
+                        item_result = {
+                            "id": str(news_id),
+                            "date_time": current_event["created_at"],
+                            "headline": current_event["headline"],
+                            "body": article_content,
+                            "body_impact_llama": int(llama_score),
+                            "body_impact_gemini": int(gemini_score),
+                            "body_impact_overall": int(company_impact),
+                            "ticker_symbol": current_event["symbols"],
+                            "url": current_event["url"],
+                            "excerpt": "No action"
+                        }
 
-            elif company_impact <= -50:
-                item_result["excerpt"] = "Sell Stock"
-                # Place sell order logic here
+                        if company_impact >= 50:
+                            item_result["excerpt"] = "Buy Stock"
+                            # Place buy order logic here
 
-            # Save the result to DynamoDB
-            put_dynamodb_item(table, item_result)
-            print(current_event["created_at"])
-            time.sleep(1)
+                        elif company_impact <= -50:
+                            item_result["excerpt"] = "Sell Stock"
+                            # Place sell order logic here
+
+                        # Save the result to DynamoDB
+                        put_dynamodb_item(table, item_result)
+                        print(current_event["created_at"])
+                        time.sleep(1)
 
     #         news_result.append(item_result)
     print("Done News Task")
@@ -333,8 +341,8 @@ if __name__ == '__main__':
     
     # Define the start and end dates
     start_year = 2022
-    start_month = 3
-    start_day = 5
+    start_month = 1
+    start_day = 1
     end_year = date.today().year
     end_month = date.today().month
     end_day = date.today().day

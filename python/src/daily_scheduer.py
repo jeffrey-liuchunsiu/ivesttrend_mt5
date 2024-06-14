@@ -1,10 +1,11 @@
 import schedule
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import time
 import requests
 import pytz
 
 from get_news_history_for_OpenAI import analyze_news_gemini_request
+from test_ollama import analyze_news_combine_request
 from utils.mt5_utils import fetch_deals_in_chunks
 from server import get_tests_id_by_state
 
@@ -30,15 +31,16 @@ def job():
     make_api_calls(test_ids)
     
     # News
-    end_date = datetime.date.today()
-    start_date = end_date - datetime.timedelta(days=1)
+    end_date = date.today()
+    start_date = end_date - timedelta(days=1)
     currency_pair = 'BTCUSD'
-    analyze_news_gemini_request(currency_pair, start_date, end_date, limit=None)
+    # analyze_news_gemini_request(currency_pair, start_date, end_date, limit=None)
+    analyze_news_combine_request(currency_pair, start_date.isoformat(), end_date.isoformat(), limit=None)
 
 def another_job():
     timezone = pytz.timezone("Asia/Hong_Kong")
      # Calculate the start date for fetching historical deals
-    utc_from = datetime.now(tz=timezone) - timedelta(days=5)  # Adjust this as needed
+    utc_from = datetime.now(tz=timezone) - timedelta(days=3)  # Adjust this as needed
     print('utc_from: ', utc_from)
 
     # Convert utc_from to a timezone-aware datetime object
@@ -65,6 +67,7 @@ def run_scheduler():
         time.sleep(1)
 
 if __name__ == '__main__':
+    job()
     run_scheduler()
 
     # Loop so that the scheduling task keeps running
@@ -72,5 +75,5 @@ if __name__ == '__main__':
         schedule.run_pending()
         time.sleep(60)  # wait one minute
 
-if __name__ == "__main__":
-    run_scheduler()
+# if __name__ == "__main__":
+#     run_scheduler()

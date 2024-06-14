@@ -490,6 +490,19 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
     # investment = first_entry.price*first_entry.volume
     # df_mt5_deals.rename(columns={'Volume': 'Deal_Volume'}, inplace=True)
     # print(df_mt5_deals)
+    
+
+    # Check if start date is equal to end date
+    # Check if start date is equal to end date
+    print('test_end_date: ', end_date)
+    print('test_start_date: ', start_date)
+    if start_date == end_date - timedelta(days=1):
+        # Add one day to the end date
+        start_date -= timedelta(days=1)
+
+    # Convert the datetime objects to strings if needed
+    # start_date_str = start_date.strftime('%Y-%m-%d')
+    # end_date_str = end_date.strftime('%Y-%m-%d')
 
 
     # get past data from yFinance or MT5

@@ -8,6 +8,7 @@ import schedule
 import time
 import threading
 # import multiprocessing
+import math
 import asyncio
 import requests
 import json
@@ -67,6 +68,7 @@ class Test:
         self.bt_end_date = datetime.strptime(bt_end_date, "%Y-%m-%d") if isinstance(bt_end_date, str) else bt_end_date
         self.bt_2nd_start_date = datetime.strptime(bt_2nd_start_date, "%Y-%m-%d") if isinstance(bt_2nd_start_date, str) else bt_2nd_start_date
         self.bt_2nd_end_date = datetime.strptime(bt_2nd_end_date, "%Y-%m-%d") if isinstance(bt_2nd_end_date, str) else bt_2nd_end_date
+        self.validation_period = None
         self.bt_time_frame_backward = bt_time_frame_backward
         self.bt_initial_investment = bt_initial_investment
         self.bt_lot_size = bt_lot_size
@@ -202,6 +204,7 @@ class Test:
         self.ft_time_frame_forward = timeframe_minutes.get(self.ft_time_frame_forward) if isinstance(self.ft_time_frame_forward, str) else self.ft_time_frame_forward
 
         # Convert the initial investment, lot size, stop loss size, take profit size, and commission to integers if they are strings.
+        self.validation_period = int(self.validation_period) if isinstance(self.validation_period, str) else self.validation_period
         self.bt_initial_investment = int(self.bt_initial_investment) if isinstance(self.bt_initial_investment, str) else self.bt_initial_investment
         self.bt_lot_size = float(self.bt_lot_size) if isinstance(self.bt_lot_size, str) else self.bt_lot_size
         self.bt_sl_size = int(self.bt_sl_size) if isinstance(self.bt_sl_size, str) else self.bt_sl_size
@@ -505,8 +508,8 @@ class Test:
             end_date = self.ft_end_date
         
         # Debugging output
-        print('self.ft_start_date:', self.ft_start_date)
-        print('end_date:', end_date)
+        # print('self.ft_start_date:', self.ft_start_date)
+        # print('end_date:', end_date)
         
         # Get the forward test result
         history_orders = ft.get_forward_test_result(
@@ -525,7 +528,7 @@ class Test:
         # Process the results if available
         if history_orders:
             symbol_data = history_orders[str(self.ft_symbol)]
-            self.ft_roi = symbol_data['roi']
+            self.ft_roi = round(float(symbol_data['roi']),2)
             self.ft_entries = symbol_data['entry_of_deals']
             self.ft_exits = symbol_data['exit_of_deals']
             self.ft_equity_per_day = symbol_data['equity_per_day']

@@ -335,6 +335,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id, user):
             bt_end_date=data["bt_end_date"],
             bt_2nd_start_date=data["bt_2nd_start_date"],
             bt_2nd_end_date=data["bt_2nd_end_date"],
+            # validation_period=data["validation_period"],
             bt_time_frame_backward=data["bt_time_frame_backward"],
             bt_initial_investment=rounded_initial_investment,
             bt_lot_size=rounded_lots,
@@ -377,6 +378,7 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'bt_end_date': instance.bt_end_date.strftime("%Y-%m-%d"),
             'bt_2nd_start_date': instance.bt_2nd_start_date.strftime("%Y-%m-%d"),
             'bt_2nd_end_date': instance.bt_2nd_end_date.strftime("%Y-%m-%d"),
+            # 'validation_period': instance.validation_period,
             'bt_time_frame_backward': instance.bt_time_frame_backward,
             'bt_initial_investment': str(instance.bt_initial_investment),
             'bt_lot_size': str(instance.bt_lot_size),
@@ -657,6 +659,8 @@ def edit_test():
                 
         data = {
             "test_id": data.get('test_id'),
+            # "bt_atr_period": data.get('bt_atr_period'),
+            # "bt_multiplier": data.get('bt_multiplier'),
             "bt_start_date": data.get('bt_start_date'),
             "bt_end_date": data.get('bt_end_date'),
             "bt_2nd_start_date": data.get('bt_2nd_start_date'),
@@ -730,18 +734,21 @@ def edit_test():
             print('rounded_lots: ', rounded_lots) 
             
 
+        # test_instance.bt_atr_period= data.get('bt_atr_period')
+        # test_instance.bt_multiplier= data.get('bt_multiplier')
         test_instance.bt_start_date= data.get('bt_start_date')
         test_instance.bt_end_date= data.get('bt_end_date')
         test_instance.bt_2nd_start_date= data.get('bt_2nd_start_date')
         test_instance.bt_2nd_end_date= data.get('bt_2nd_end_date')
+        # test_instance.validation_period= data.get('validation_period')
         test_instance.bt_time_frame_backward= data.get('bt_time_frame_backward')
-        test_instance.bt_initial_investment= rounded_initial_investment
+        test_instance.bt_initial_investment= str(rounded_initial_investment)
         test_instance.bt_lot_size= rounded_lots
         test_instance.bt_sl_size= data.get('bt_sl_size')
         test_instance.bt_tp_size= data.get('bt_tp_size')
         test_instance.bt_commission= data.get('bt_commission') 
         test_instance.ft_time_frame_forward = time_frame_exchange[data['bt_time_frame_backward']]
-        test_instance.ft_initial_investment = rounded_initial_investment
+        test_instance.ft_initial_investment = str(rounded_initial_investment)
         test_instance.ft_lot_size = rounded_lots
         test_instance.ft_sl_size = data.get('bt_sl_size')
         test_instance.ft_tp_size = data.get('bt_tp_size')
@@ -755,6 +762,9 @@ def edit_test():
                 '#bt_end_date = :bt_end_date, '
                 '#bt_2nd_start_date = :bt_2nd_start_date, '
                 '#bt_2nd_end_date = :bt_2nd_end_date, '
+                # '#validation_period = :validation_period, '
+                # '#bt_atr_period = :bt_atr_period, '
+                # '#bt_multiplier = :bt_multiplier, '
                 '#bt_time_frame_backward = :bt_time_frame_backward, '
                 '#bt_initial_investment = :bt_initial_investment, '
                 '#bt_lot_size = :bt_lot_size, '
@@ -772,6 +782,9 @@ def edit_test():
                 '#bt_end_date': 'bt_end_date',
                 '#bt_2nd_start_date': 'bt_2nd_start_date',
                 '#bt_2nd_end_date': 'bt_2nd_end_date',
+                # '#validation_period': 'validation_period',
+                # '#bt_atr_period': 'bt_atr_period',
+                # '#bt_multiplier': 'bt_multiplier',
                 '#bt_time_frame_backward': 'bt_time_frame_backward',
                 '#bt_initial_investment': 'bt_initial_investment',
                 '#bt_lot_size': 'bt_lot_size',
@@ -789,6 +802,9 @@ def edit_test():
                 ':bt_end_date': test_instance.bt_end_date,
                 ':bt_2nd_start_date': test_instance.bt_2nd_start_date,
                 ':bt_2nd_end_date': test_instance.bt_2nd_end_date,
+                # ':validation_period': str(test_instance.validation_period),
+                # ':bt_atr_period': str(test_instance.bt_atr_period),
+                # ':bt_multiplier': str(test_instance.bt_multiplier),
                 ':bt_time_frame_backward': str(test_instance.bt_time_frame_backward),
                 ':bt_initial_investment': str(test_instance.bt_initial_investment),
                 ':bt_lot_size': str(test_instance.bt_lot_size),
@@ -810,6 +826,13 @@ def edit_test():
                 }), 400
             
         test_instance.parse_and_convert_parameters() 
+        test_instance.fetch_stock_price_and_volume()
+        
+        s3Key_stock_close_price = test_instance.s3Key_stock_close_price
+        save_dict_to_s3(s3_bucket_name, test_instance.stock_close_price, s3Key_stock_close_price)
+        
+        s3Key_stock_volume = test_instance.s3Key_stock_volume
+        save_dict_to_s3(s3_bucket_name, test_instance.stock_volume, s3Key_stock_volume)
 
         return jsonify({
             "success": True,
@@ -1382,13 +1405,14 @@ def get_forward_test_progress_percentage():
         elapsed_time = test_instance.elapsed_time
         estimated_remaining_time = test_instance.estimated_remaining_time
         if elapsed_time and estimated_remaining_time : 
-            # Return an immediate response
-            return jsonify({"processing":True, 
-                            "state":2, 
-                            "percentage": percentage, 
-                            "elapsed_time":elapsed_time, 
-                            "estimated_remaining_time":estimated_remaining_time, 
-                            "message": "The forward test result is calculating"}), 200
+            if elapsed_time > 0 and estimated_remaining_time > 0 : 
+                # Return an immediate response
+                return jsonify({"processing":True, 
+                                "state":2, 
+                                "percentage": percentage, 
+                                "elapsed_time":elapsed_time, 
+                                "estimated_remaining_time":estimated_remaining_time, 
+                                "message": "The forward test result is calculating"}), 200
         else :
             return jsonify({"processing":True, 
                             "state":1, 
