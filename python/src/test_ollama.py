@@ -340,7 +340,7 @@ if __name__ == '__main__':
     symbol = 'BTCUSD'
     
     # Define the start and end dates
-    start_year = 2022
+    start_year = 2024
     start_month = 1
     start_day = 1
     end_year = date.today().year

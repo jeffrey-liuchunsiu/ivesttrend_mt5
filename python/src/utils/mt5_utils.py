@@ -75,8 +75,8 @@ def connect():
     mt5.initialize()
 
 # Start MT5 and print account info
-start_mt5()
-print(mt5.account_info())
+# start_mt5()
+# print(mt5.account_info())
 
 timezone = pytz.timezone("Asia/Hong_Kong")
 
@@ -90,11 +90,11 @@ def fetch_deals_in_chunks(start_date, end_date, chunk_size_days=0.1):
     while current_start_date < end_date:
         
         current_end_date = current_start_date + timedelta(days=chunk_size_days)
-        print('current_start_date: ', current_start_date)
-        print('current_end_date: ', current_end_date)
+        # print('current_start_date: ', current_start_date)
+        # print('current_end_date: ', current_end_date)
         if current_end_date > end_date:
             current_end_date = end_date
-            print('current_end_date: ', current_end_date)
+            # print('current_end_date: ', current_end_date)
         
         utc_from_timestamp = current_start_date.timestamp()
         date_to_timestamp = current_end_date.timestamp()
@@ -103,12 +103,12 @@ def fetch_deals_in_chunks(start_date, end_date, chunk_size_days=0.1):
         if history_deals is not None:
             all_deals.extend(history_deals)
             for history_deal in history_deals:
-                print(history_deal.ticket)
+                # print(history_deal.ticket)
                 # Put deal into DynamoDB
                 put_deal_into_dynamodb(history_deal)
         
         current_start_date = current_end_date
-        print("Done")
+        print("fetch_deals_in_chunks Done")
     
     return tuple(all_deals)
 
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     magic_value = 7  # Replace with your actual partition key value
     
     # Calculate the start date for fetching historical deals
-    utc_from = datetime.now(tz=timezone) - timedelta(days=5)  # Adjust this as needed
+    utc_from = datetime.now(tz=timezone) - timedelta(days=3)  # Adjust this as needed
     print('utc_from: ', utc_from)
 
     # Convert utc_from to a timezone-aware datetime object
