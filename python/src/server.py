@@ -1615,7 +1615,7 @@ def get_analyze_news_combine():
     if impact_below == None:
         impact_below = -50
     if limit == None:
-        limit = 20
+        limit = 100
     
     # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
     
