@@ -1615,7 +1615,7 @@ def get_analyze_news_combine():
     if impact_below == None:
         impact_below = -50
     if limit == None:
-        limit = 10
+        limit = 20
     
     # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
     
@@ -1625,9 +1625,11 @@ def get_analyze_news_combine():
 
     while True:
         scan_kwargs = {
-            'FilterExpression': Attr('date_time').between(start_date, end_date) &
-                        Attr('ticker_symbol').contains(symbol)
-        }
+    'FilterExpression': Attr('date_time').between(start_date, end_date) &
+                        Attr('ticker_symbol').contains(symbol) &
+                        (Attr('body_impact_overall').gte(impact_above) | 
+                         Attr('body_impact_overall').lte(impact_below))
+}
         
         # Only add ExclusiveStartKey to arguments if it's not None
         if exclusive_start_key:
@@ -1636,7 +1638,7 @@ def get_analyze_news_combine():
         response = table.scan(**scan_kwargs)
         
         items = response.get('Items', [])
-        print('items: ', len(items))
+        # print('items: ', len(items))
         
         filtered_items = [
                 item for item in items 
@@ -1658,6 +1660,8 @@ def get_analyze_news_combine():
         
     # Sorting the items by 'date_time' from latest to earliest
     sorted_items = sorted(last_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
+    # sorted_items = sorted_items[-(limit):] 
+    print('sorted_items: ', len(sorted_items))
 
     # Return an immediate response
     return jsonify(sorted_items), 200 
@@ -1714,20 +1718,30 @@ def get_analyze_news_combine_test():
     scan_kwargs = {
         'FilterExpression': Attr('date_time').between(start_date, end_date) &
                             Attr('ticker_symbol').contains(symbol) &
-                            (Attr('body_impact_overall').gte(impact_above) | Attr('body_impact_overall').lte(impact_below))
+                            Attr('body_impact_overall').gte(impact_above) 
+    }
+    scan_kwargs2 = {
+        'FilterExpression': Attr('date_time').between(start_date, end_date) &
+                            Attr('ticker_symbol').contains(symbol) &
+                            Attr('body_impact_overall').lte(impact_below)
     }
 
     response = table.scan(**scan_kwargs)
+    response2 = table.scan(**scan_kwargs2)
     items = response.get('Items', [])
+    items2 = response2.get('Items', [])
+
+    # Combine items from both responses
+    combined_items = items + items2
     
     # Convert Decimal to float
-    for item in items:
+    for item in combined_items:
         for key, value in item.items():
             if isinstance(value, Decimal):
                 item[key] = float(value)
 
     # Sort and limit the items
-    sorted_items = sorted(items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
+    sorted_items = sorted(combined_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
     limited_items = sorted_items[:limit]
 
     return jsonify(limited_items), 200
