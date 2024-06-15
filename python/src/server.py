@@ -1562,7 +1562,7 @@ def get_analyze_news():
 def get_analyze_news_combine():
     data = request.json
     test_id = data.get("test_id")
-    limit = data.get("limit", 20)
+    limit = data.get("limit")
     start_date = data.get("start_date")
     end_date = data.get("end_date", datetime.now().strftime("%Y-%m-%d"))
     symbol = data.get("symbol")
