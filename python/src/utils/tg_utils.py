@@ -15,13 +15,17 @@ phone = os.getenv('phone')
 
 
 
-async def send_tg_message(client,channel_id, msg):
+async def send_tg_message(client, channel_id, msg, img_path=None):
     try:
-        # Send a message to the new channel
-        await client.send_message(channel_id, msg)
-        print('Message sent to the channel')
+        if img_path:
+            # Send an image to the channel
+            await client.send_file(channel_id, img_path, caption=msg)
+        else:
+            # Send a message to the channel
+            await client.send_message(channel_id, msg)
+        print('Message and image sent to the channel')
     except Exception as e:
-        print(f'Failed to send message: {e}')
+        print(f'Failed to send message or image: {e}')
 
 async def create_tg_channel(client, new_title, new_about=""):
     try:
@@ -107,16 +111,16 @@ if __name__ == '__main__':
     print('channel_id: ', type(channel_id))
     print('channel_id: ', str(channel_id))
     
-    if channel_id:
-        invite_link = loop2.run_until_complete(generate_invite_link(client, channel_id))
-        print('invite_link: ', invite_link)
-        if invite_link:
-            loop2.run_until_complete(send_tg_message(client, "mattchunghk", f"Join the channel using this link: {invite_link}"))
+    # if channel_id:
+    #     invite_link = loop2.run_until_complete(generate_invite_link(client, channel_id))
+    #     print('invite_link: ', invite_link)
+    #     if invite_link:
+    #         loop2.run_until_complete(send_tg_message(client, "mattchunghk", f"Join the channel using this link: {invite_link}"))
         # loop2.run_until_complete(delete_tg_channel(client, channel_id))
 
     #2181320450 2189347676
     # channel_id = -1002194270039
     # loop2.run_until_complete(add_user_to_channel(client,channel_id,"mattchungcn"))
-    # loop2.run_until_complete(send_tg_message(client,channel_id,"hi you"))
+    loop2.run_until_complete(send_tg_message(client,channel_id,"hi you","./python/src/it.jpeg"))
     # time.sleep(3)
     # loop2.run_until_complete(delete_tg_channel(client,channel_id))

@@ -865,7 +865,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                     # trade_OpenDate.append(date)
                     msg =f'Buy {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend UpTrend"'
                     if tg_channel_id:
-                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg))
+                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg,"./python/src/it.jpeg"))
                     print(msg)
                 else:
                     print("Failed to send BUY order")
@@ -890,7 +890,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                     # trade_OpenDate.append(date)
                     msg=f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend Not DownTrend anymore"'
                     if tg_channel_id:
-                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg))
+                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg,"./python/src/it.jpeg"))
                     print(msg)
 
                 else:
@@ -915,7 +915,7 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
                     # trade_OpenDate.append(date)
                     msg =f'Sell {size1} lots at {res1.price} on {date.strftime("%Y/%m/%d")}, reason "SuperTrend DownTrend"'
                     if tg_channel_id:
-                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg))
+                        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,msg,"./python/src/it.jpeg"))
                     print(msg)
                 else:
                     print("Failed to send SELL order")
