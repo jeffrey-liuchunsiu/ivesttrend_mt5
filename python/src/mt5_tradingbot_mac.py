@@ -666,8 +666,8 @@ def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, 
     if tg_channel_id:
         tg_channel_id = int(tg_channel_id)
     
-    if tg_channel_id:
-        loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"The Forward Test is about to start."))
+    # if tg_channel_id:
+    #     loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"The Forward Test is about to start."))
     # loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"test send_msg_callback"))
     for symbol_ft, df in symbol_data.items():
         df = add_super_trend_indicator(df,atr_period,multiplier)
