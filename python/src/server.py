@@ -894,6 +894,7 @@ def start_test():
         tg_invite_link = test_instance.tg_invite_link
         
         try:
+            tg_invite_link = loop.run_until_complete(generate_invite_link(client, tg_channel_id))
             if tg_channel_id == None and test_instance.tg_enable:
                 result = loop.run_until_complete(create_tg_channel(client, f'Invest Trend - {test_instance.test_name} (id#{test_instance.test_id})'))
                 tg_channel_id = test_instance.tg_channel_id = result
