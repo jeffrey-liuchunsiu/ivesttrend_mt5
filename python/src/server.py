@@ -896,7 +896,7 @@ def start_test():
             if tg_channel_id == None and test_instance.tg_enable and test_instance.tg_username:
                 result = loop.run_until_complete(create_tg_channel(client, f'Invest Trend - {test_instance.test_name} (id#{test_instance.test_id})'))
                 tg_channel_id = test_instance.tg_channel_id = result
-                loop.run_until_complete(add_user_to_channel(client, tg_channel_id, test_instance.tg_username))
+                # loop.run_until_complete(add_user_to_channel(client, tg_channel_id, test_instance.tg_username))
         except Exception as e:
             print(f"An error occurred: {e}")
 
