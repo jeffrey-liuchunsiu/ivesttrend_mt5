@@ -904,7 +904,7 @@ def start_test():
             print(f"An error occurred: {e}")
         try:    
             if tg_channel_id:
-                    tg_invite_link = loop.run_until_complete(generate_invite_link(client, tg_channel_id))
+                    tg_invite_link = loop.run_until_complete(generate_invite_link(client, int(tg_channel_id)))
         except Exception as e:
             print(f"An error occurred: {e}")
 
