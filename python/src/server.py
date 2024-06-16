@@ -23,7 +23,7 @@ from decimal import Decimal
 import asyncio
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
-from utils.tg_utils import add_user_to_channel, create_tg_channel
+from utils.tg_utils import add_user_to_channel, create_tg_channel, generate_invite_link
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3, get_json_data_from_s3
 
 mt5 = MetaTrader5(
@@ -891,11 +891,14 @@ def start_test():
             return jsonify({"error": "Please define ATR period and Multiplier"}), 400
         
         tg_channel_id = test_instance.tg_channel_id
+        tg_invite_link = test_instance.tg_invite_link
         
         try:
-            if tg_channel_id == None and test_instance.tg_enable and test_instance.tg_username:
+            if tg_channel_id == None and test_instance.tg_enable:
                 result = loop.run_until_complete(create_tg_channel(client, f'Invest Trend - {test_instance.test_name} (id#{test_instance.test_id})'))
                 tg_channel_id = test_instance.tg_channel_id = result
+                if tg_channel_id and tg_invite_link == None:
+                    tg_invite_link = loop.run_until_complete(generate_invite_link(client, tg_channel_id))
                 # loop.run_until_complete(add_user_to_channel(client, tg_channel_id, test_instance.tg_username))
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -914,16 +917,18 @@ def start_test():
             
             update_response = tests_table.update_item(
                 Key={'id': test_id},
-                UpdateExpression='SET #state = :val1, #ft_start_date = :val2, #tg_channel_id = :val3',
+                UpdateExpression='SET #state = :val1, #ft_start_date = :val2, #tg_channel_id = :val3, #tg_invite_link = :val4',
                 ExpressionAttributeNames={
                     '#state': 'state',
                     '#ft_start_date': "ft_start_date",
-                    '#tg_channel_id': "tg_channel_id"# Use ExpressionAttributeNames to avoid conflicts with reserved words
+                    '#tg_channel_id': "tg_channel_id",
+                    '#tg_invite_link': "tg_invite_link",# Use ExpressionAttributeNames to avoid conflicts with reserved words
                 },
                 ExpressionAttributeValues={
                     ':val1': "Running",
                     ':val2': formatted_time,
-                    ':val3': str(tg_channel_id)
+                    ':val3': str(tg_channel_id),
+                    ':val4': str(tg_invite_link)
                 }
             )
         except Exception as e:
@@ -934,7 +939,7 @@ def start_test():
                 # Start the test using a function from the 'full' module
                 full.start_forward_test_thread(test_instance,client)
                 test_instance.edit_parameters(
-                    {"state": "Running", "ft_start_date": datetime.strptime(formatted_time, '%Y-%m-%d')}
+                    {"state": "Running", "ft_start_date": datetime.strptime(formatted_time, '%Y-%m-%d'),"tg_invite_link":tg_invite_link}
                 )  # Uncomment this line if you have the full module
             except Exception as e:
                 # test_instance.delete_test_channel()
@@ -946,7 +951,8 @@ def start_test():
             return jsonify({"error": "Failed to update DynamoDB"}), 500
 
         # Return a success message indicating the test has started
-        return jsonify({"message": "Test started and DynamoDB updated"})
+        return jsonify({"message": "Test started and DynamoDB updated",
+                        'tg_invite_link':str(tg_invite_link)})
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 

@@ -157,6 +157,7 @@ class Test:
         self.tg_username = tg_username
         self.tg_channel_id = None
         self.tg_enable = tg_enable
+        self.tg_invite_link = None
         
     def create_test_channel(self,client):
         if self.tg_channel_id == None:
