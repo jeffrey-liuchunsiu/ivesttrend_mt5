@@ -169,6 +169,7 @@ def open_pending_position(symbol1, volume1, order_type, test_id, magic, tp_dista
         }
 
     info_order = mt5.order_send(request)
+    print('info_order: ', info_order)
     if info_order.retcode == 10009:
         print("### NEW Order for "+symbol1+" is sent and successful ###")
     else:
@@ -662,6 +663,9 @@ def get_forward_test_result(symbol_ft, symbol_bt, start_date, end_date, initial_
 
 def forward_trade(symbol_data, lot_size, sl_size, tp_size, start_date, test_id, magic, atr_period,multiplier,client, tg_channel_id=None ,send_msg_callback=None):
     start_mt5()
+    if tg_channel_id:
+        tg_channel_id = int(tg_channel_id)
+    
     if tg_channel_id:
         loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"The Forward Test is about to start."))
     # loop3.run_until_complete(send_msg_callback(client, tg_channel_id,"test send_msg_callback"))
