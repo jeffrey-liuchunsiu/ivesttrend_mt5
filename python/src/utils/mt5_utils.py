@@ -82,8 +82,7 @@ timezone = pytz.timezone("Asia/Hong_Kong")
 
 # Function to fetch deals in chunks of 10 days
 def fetch_deals_in_chunks(start_date, end_date, chunk_size_days=0.1):
-    start_mt5()
-    print(mt5.account_info())
+    
     all_deals = []
     current_start_date = start_date
     
@@ -98,7 +97,7 @@ def fetch_deals_in_chunks(start_date, end_date, chunk_size_days=0.1):
         
         utc_from_timestamp = current_start_date.timestamp()
         date_to_timestamp = current_end_date.timestamp()
-        
+        start_mt5()
         history_deals = mt5.history_deals_get(utc_from_timestamp, date_to_timestamp, group="BTCUSD")
         if history_deals is not None:
             all_deals.extend(history_deals)
