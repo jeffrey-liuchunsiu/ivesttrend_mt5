@@ -1741,12 +1741,11 @@ def get_analyze_news_combine_test():
         return jsonify({"error": "The limit value is invalid - the limit must be a positive integer"}), 400
     
     date_pattern = r"\d{4}-\d{2}-\d{2}"
-    if start_date is not None:
-        if not re.match(date_pattern, start_date):
-            return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
-    if end_date is not None:
-        if not re.match(date_pattern, end_date):
-            return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
+    if start_date and not re.match(date_pattern, start_date):
+        return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
+
+    if not re.match(date_pattern, end_date):
+        return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
 
     if not isinstance(impact_above, int) or not isinstance(impact_below, int):
         return jsonify({"error": "Invalid impact_above or impact_below value - it must be an integer"}), 400
@@ -1761,24 +1760,9 @@ def get_analyze_news_combine_test():
     
     test_instance = test_instance_data["test_instance"]
     
-   
-    
     # Use default values from test instance if not provided
     symbol = symbol or getattr(test_instance, "ft_symbol")
     start_date = start_date or getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
-    
-    if symbol == None:
-        symbol = getattr(test_instance, "ft_symbol")
-    if start_date == None:
-        start_date = getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
-    if end_date == None:    
-        end_date = datetime.now().strftime("%Y-%m-%d")
-    if impact_above == None:
-        impact_above = 80 
-    if impact_below == None:
-        impact_below = -70
-    if limit == None:
-        limit = 1000
     
     # Fetch news results from DynamoDB
     scan_kwargs = {
