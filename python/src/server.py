@@ -1631,11 +1631,13 @@ def get_analyze_news_combine():
     date_pattern = r"\d{4}-\d{2}-\d{2}"
 
     # Validate date formats
-    if start_date and (not isinstance(start_date, str) or not re.match(date_pattern, start_date)):
-        return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
+    if start_date:
+        if not isinstance(start_date, str) or not re.match(date_pattern, start_date):
+            return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
 
-    if end_date and (not isinstance(end_date, str) or not re.match(date_pattern, end_date)):
-        return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
+    if end_date:
+        if not isinstance(end_date, str) or not re.match(date_pattern, end_date):
+            return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
         
     if impact_above is not None:
         if not isinstance(impact_above, int):
