@@ -1716,13 +1716,15 @@ def get_analyze_news_combine():
     # Return an immediate response
     return jsonify(sorted_items), 200 
 
-@app.route("/get_multiple_ai_analyze_news_test", methods=["POST"])
+@@app.route("/get_multiple_ai_analyze_news_test", methods=["POST"])
 def get_analyze_news_combine_test():
     data = request.json
+    
+    # Extracting parameters from request
     test_id = data.get("test_id")
-    limit = data.get("limit")
+    limit = data.get("limit", 30)
     start_date = data.get("start_date")
-    end_date = data.get("end_date", datetime.now().strftime("%Y-%m-%d"))
+    end_date = data.get("end_date")
     symbol = data.get("symbol")
     impact_above = data.get("impact_above", 50)
     impact_below = data.get("impact_below", -50)
@@ -1734,17 +1736,16 @@ def get_analyze_news_combine_test():
     if not test_id:
         return jsonify({"error": "Missing test_id"}), 400
     
-    if not limit:
-        limit = 30
-    
     if not isinstance(limit, int) or limit <= 0:
         return jsonify({"error": "The limit value is invalid - the limit must be a positive integer"}), 400
     
     date_pattern = r"\d{4}-\d{2}-\d{2}"
     if start_date and not re.match(date_pattern, start_date):
         return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
-
-    if not re.match(date_pattern, end_date):
+    
+    if end_date is None:
+        end_date = datetime.now().strftime("%Y-%m-%d")
+    elif not isinstance(end_date, str) or not re.match(date_pattern, end_date):
         return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
 
     if not isinstance(impact_above, int) or not isinstance(impact_below, int):
@@ -1753,7 +1754,7 @@ def get_analyze_news_combine_test():
     if impact_above < 0 or impact_below > 0:
         return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
     
-    # Retrieve test instance data
+    # Retrieve test instance data, assuming `test_instances` is defined and accessible
     test_instance_data = next((inst for inst in test_instances if inst["test_id"] == test_id), None)
     if not test_instance_data:
         return jsonify({"error": "Test instance not found"}), 400
@@ -1778,10 +1779,10 @@ def get_analyze_news_combine_test():
 
     response = table.scan(**scan_kwargs)
     response2 = table.scan(**scan_kwargs2)
+    
+    # Combine items from both responses
     items = response.get('Items', [])
     items2 = response2.get('Items', [])
-
-    # Combine items from both responses
     combined_items = items + items2
     
     # Convert Decimal to float
