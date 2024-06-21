@@ -283,21 +283,24 @@ def get_stock_price_on_date(symbol, date):
 def round_down_to_appropriate(value):
     """Round down the value dynamically based on its magnitude."""
     if value >= 10000:
-        return math.floor(value / 10000) * 10000
+        result = math.floor(value / 10000) * 10000
     elif value >= 1000:
-        return math.floor(value / 1000) * 1000
+        result = math.floor(value / 1000) * 1000
     elif value >= 100:
-        return math.floor(value / 100) * 100
+        result = math.floor(value / 100) * 100
     elif value >= 10:
-        return math.floor(value / 10) * 10
+        result = math.floor(value / 10) * 10
     elif value >= 1:
-        return math.floor(value / 1) * 1
+        result = math.floor(value)
     elif value >= 0.1:
-        return math.floor(value / 0.1) * 0.1
+        result = math.floor(value / 0.1) * 0.1
     elif value >= 0.01:
-        return math.floor(value / 0.01) * 0.01
+        result = math.floor(value / 0.01) * 0.01
     else:
-        return math.floor(value / 0.01) * 0.01  # Consider the case for very small numbers
+        result = math.floor(value / 0.001) * 0.001  # Handle very small numbers
+
+    # Format the result to avoid floating-point precision issues
+    return float(f"{result:.12g}")
     
 def round_up_to_appropriate(value):
     """Round up the value dynamically based on its logarithmic magnitude."""

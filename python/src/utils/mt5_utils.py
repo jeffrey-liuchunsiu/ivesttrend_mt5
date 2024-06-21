@@ -213,29 +213,29 @@ def get_trade_deal_from_db_by_magic(magic_value,table_name="investtrend_mt5_hist
 if __name__ == "__main__":
     table_name = 'investtrend_mt5_history_deals'
     index_name = 'magic-index'
-    magic_value = 7  # Replace with your actual partition key value
+    magic_value = 61  # Replace with your actual partition key value
     
-    # Calculate the start date for fetching historical deals
-    utc_from = datetime.now(tz=timezone) - timedelta(days=3)  # Adjust this as needed
-    print('utc_from: ', utc_from)
+    # # Calculate the start date for fetching historical deals
+    # utc_from = datetime.now(tz=timezone) - timedelta(days=3)  # Adjust this as needed
+    # print('utc_from: ', utc_from)
 
-    # Convert utc_from to a timezone-aware datetime object
-    utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
-                        hour=utc_from.hour, minute=utc_from.minute, tzinfo=timezone)
+    # # Convert utc_from to a timezone-aware datetime object
+    # utc_from = datetime(utc_from.year, utc_from.month, utc_from.day,
+    #                     hour=utc_from.hour, minute=utc_from.minute, tzinfo=timezone)
 
-    # Get current date and time in Hong Kong timezone
-    date_to = datetime.now().astimezone(pytz.timezone("Asia/Hong_Kong"))
-    date_to = datetime(date_to.year, date_to.month, date_to.day,
-                    hour=date_to.hour, minute=date_to.minute, tzinfo=timezone)
+    # # Get current date and time in Hong Kong timezone
+    # date_to = datetime.now().astimezone(pytz.timezone("Asia/Hong_Kong"))
+    # date_to = datetime(date_to.year, date_to.month, date_to.day,
+    #                 hour=date_to.hour, minute=date_to.minute, tzinfo=timezone)
 
-    # Fetch historical deals in chunks of 10 days
-    deals=mt5.history_deals_total(utc_from.timestamp(), date_to.timestamp())
-    print('deals: ', deals)
-    # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
+    # # Fetch historical deals in chunks of 10 days
+    # deals=mt5.history_deals_total(utc_from.timestamp(), date_to.timestamp())
+    # print('deals: ', deals)
+    # # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
 
-    # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
-    # print('history_deals: ', history_deals)
-    all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.5)
-    print('all_deals: ', all_deals)
-    # result = get_trade_deal_from_db_by_magic(magic_value)
-    # print(result)
+    # # history_deals = mt5.history_deals_get(utc_from.timestamp(), date_to.timestamp(), group="BTCUSD")
+    # # print('history_deals: ', history_deals)
+    # all_deals = fetch_deals_in_chunks(utc_from, date_to, chunk_size_days=0.5)
+    # print('all_deals: ', all_deals)
+    result = get_trade_deal_from_db_by_magic(magic_value)
+    print(result)
