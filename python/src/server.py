@@ -1761,6 +1761,12 @@ def get_analyze_news_combine_test():
     
     test_instance = test_instance_data["test_instance"]
     
+   
+    
+    # Use default values from test instance if not provided
+    symbol = symbol or getattr(test_instance, "ft_symbol")
+    start_date = start_date or getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
+    
     if symbol == None:
         symbol = getattr(test_instance, "ft_symbol")
     if start_date == None:
@@ -1773,10 +1779,6 @@ def get_analyze_news_combine_test():
         impact_below = -70
     if limit == None:
         limit = 1000
-    
-    # Use default values from test instance if not provided
-    symbol = symbol or getattr(test_instance, "ft_symbol")
-    start_date = start_date or getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
     
     # Fetch news results from DynamoDB
     scan_kwargs = {
