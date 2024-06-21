@@ -1623,17 +1623,19 @@ def get_analyze_news_combine():
     if test_id is None:
         return jsonify({"error": "Missing test_id"}), 400
     
-    if limit is not None and (not isinstance(limit, int) or limit <= 0):
-        return jsonify({"error": "The limit value is invalid - the limit must be an integer and <= 0"}), 400
+        # Validate limit
+    if not isinstance(limit, int) or limit <= 0:
+        return jsonify({"error": "The limit must be a positive integer"}), 400
     
-    if start_date is not None:
-        if not isinstance(start_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", start_date):
-            return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
+    # Define regex patterns
+    date_pattern = r"\d{4}-\d{2}-\d{2}"
 
-    if end_date is not None:
-        if not isinstance(end_date, str) or not re.match(r"\d{4}-\d{2}-\d{2}", end_date):
-            return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
-    
+    # Validate date formats
+    if start_date and (not isinstance(start_date, str) or not re.match(date_pattern, start_date)):
+        return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
+
+    if end_date and (not isinstance(end_date, str) or not re.match(date_pattern, end_date)):
+        return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
         
     if impact_above is not None:
         if not isinstance(impact_above, int):
