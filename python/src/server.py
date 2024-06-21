@@ -1716,7 +1716,7 @@ def get_analyze_news_combine():
     # Return an immediate response
     return jsonify(sorted_items), 200 
 
-@@app.route("/get_multiple_ai_analyze_news_test", methods=["POST"])
+@app.route("/get_multiple_ai_analyze_news_test", methods=["POST"])
 def get_analyze_news_combine_test():
     data = request.json
     
