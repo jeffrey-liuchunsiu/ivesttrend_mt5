@@ -195,7 +195,7 @@ def create_test():
     except Exception as e:
         return jsonify({"success":False,"error": str(e)}), 500
     
-def create_new_magic_id():
+def create_new_magic_id_old():
     
     largest_mt5_magic = 0
 
@@ -217,6 +217,42 @@ def create_new_magic_id():
 
         for item in items:
             mt5_magic_value = item['mt5_magic_id']
+            if largest_mt5_magic is None or mt5_magic_value > largest_mt5_magic:
+                largest_mt5_magic = mt5_magic_value
+        
+        start_key = response.get('LastEvaluatedKey', None)
+        done = start_key is None
+
+
+    # Print the largest value
+    # print(largest_value)
+    
+    return int(largest_mt5_magic) + 1
+
+def create_new_magic_id():
+    
+    mt5_history_table = dynamodb.Table('investtrend_mt5_history_deals')
+    
+    largest_mt5_magic = 0
+
+    # Scan operation parameters
+    scan_kwargs = {
+        'ProjectionExpression': "magic",  # Only retrieve the 'mt5_magic' column
+        'FilterExpression': Attr('magic').exists()  # Filter out items where 'mt5_magic' may not exist
+    }
+
+    done = False
+    start_key = None
+
+    # Perform the scan
+    while not done:
+        if start_key:
+            scan_kwargs['ExclusiveStartKey'] = start_key
+        response = mt5_history_table.scan(**scan_kwargs)
+        items = response.get('Items', [])
+
+        for item in items:
+            mt5_magic_value = item['magic']
             if largest_mt5_magic is None or mt5_magic_value > largest_mt5_magic:
                 largest_mt5_magic = mt5_magic_value
         
