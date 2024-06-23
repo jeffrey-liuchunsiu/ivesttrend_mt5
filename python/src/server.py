@@ -112,9 +112,31 @@ loop = asyncio.get_event_loop()
 
 
 def decimal_default(obj):
-    if isinstance(obj, Decimal):
-        return float(obj)
-    raise TypeError("Object of type Decimal is not JSON serializable")
+    """
+    JSON serialization default handler for Decimal objects.
+
+    This function is used as a default handler for JSON serialization when 
+    encountering Decimal objects. It converts the Decimal object to a float 
+    for serialization. If the object is not a Decimal, it raises a TypeError.
+
+    Args:
+        obj: Object to be serialized.
+
+    Returns:
+        float: Serialized Decimal object.
+
+    Raises:
+        TypeError: If obj is not a Decimal object.
+    """
+
+    # Check if the object is an instance of Decimal
+    if isinstance(obj, Decimal):  # Check if obj is a Decimal object
+        # Convert the Decimal object to a float for serialization
+        return float(obj)  # Return the float value of the Decimal object
+
+    # Raise a TypeError if the object is not a Decimal
+    raise TypeError("Object of type Decimal is not JSON serializable")  # Raise an error for non-Decimal objects
+
 
 
 @app.route("/create_test", methods=["POST"])
@@ -282,25 +304,31 @@ def get_stock_price_on_date(symbol, date):
 
 def round_down_to_appropriate(value):
     """Round down the value dynamically based on its magnitude."""
-    if value >= 10000:
-        result = math.floor(value / 10000) * 10000
-    elif value >= 1000:
-        result = math.floor(value / 1000) * 1000
-    elif value >= 100:
-        result = math.floor(value / 100) * 100
-    elif value >= 10:
-        result = math.floor(value / 10) * 10
-    elif value >= 1:
-        result = math.floor(value)
-    elif value >= 0.1:
-        result = math.floor(value / 0.1) * 0.1
-    elif value >= 0.01:
-        result = math.floor(value / 0.01) * 0.01
-    else:
-        result = math.floor(value / 0.001) * 0.001  # Handle very small numbers
+    try:
+        if value >= 10000:
+            result = math.floor(value / 10000) * 10000
+        elif value >= 1000:
+            result = math.floor(value / 1000) * 1000
+        elif value >= 100:
+            result = math.floor(value / 100) * 100
+        elif value >= 10:
+            result = math.floor(value / 10) * 10
+        elif value >= 1:
+            result = math.floor(value)
+        elif value >= 0.1:
+            result = math.floor(value / 0.1) * 0.1
+        elif value >= 0.01:
+            result = math.floor(value / 0.01) * 0.01
+        else:
+            result = math.floor(value / 0.001) * 0.001  # Handle very small numbers
 
-    # Format the result to avoid floating-point precision issues
-    return float(f"{result:.12g}")
+        # Format the result to avoid floating-point precision issues
+        return float(f"{result:.12g}")
+    except TypeError:
+        return "Error: Input value must be a number."
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
     
 def round_up_to_appropriate(value):
     """Round up the value dynamically based on its logarithmic magnitude."""
@@ -374,7 +402,7 @@ def create_test_instance(data, uuid_id, mt5_magic_id, user):
             bt_end_date=data["bt_end_date"],
             bt_2nd_start_date=data["bt_2nd_start_date"],
             bt_2nd_end_date=data["bt_2nd_end_date"],
-            # validation_period=data["validation_period"],
+            validation_period=data["validation_period"],
             bt_time_frame_backward=data["bt_time_frame_backward"],
             bt_initial_investment=rounded_initial_investment,
             bt_lot_size=rounded_lots,
@@ -417,7 +445,7 @@ def save_test_instance(table, instance, user, uuid_id,mt5_magic_id):
             'bt_end_date': instance.bt_end_date.strftime("%Y-%m-%d"),
             'bt_2nd_start_date': instance.bt_2nd_start_date.strftime("%Y-%m-%d"),
             'bt_2nd_end_date': instance.bt_2nd_end_date.strftime("%Y-%m-%d"),
-            # 'validation_period': instance.validation_period,
+            'validation_period': instance.validation_period,
             'bt_time_frame_backward': instance.bt_time_frame_backward,
             'bt_initial_investment': str(instance.bt_initial_investment),
             'bt_lot_size': str(instance.bt_lot_size),
@@ -699,12 +727,13 @@ def edit_test():
                 
         data = {
             "test_id": data.get('test_id'),
-            # "bt_atr_period": data.get('bt_atr_period'),
-            # "bt_multiplier": data.get('bt_multiplier'),
+            "bt_atr_period": data.get('bt_atr_period'),
+            "bt_multiplier": data.get('bt_multiplier'),
             "bt_start_date": data.get('bt_start_date'),
             "bt_end_date": data.get('bt_end_date'),
             "bt_2nd_start_date": data.get('bt_2nd_start_date'),
             "bt_2nd_end_date": data.get('bt_2nd_end_date'),
+            "validation_period": data.get('validation_period'),
             "bt_time_frame_backward": data.get('bt_time_frame_backward'),
             "bt_initial_investment": data.get('bt_initial_investment'),
             "bt_lot_size": data.get('bt_lot_size'),
@@ -774,13 +803,13 @@ def edit_test():
             print('rounded_lots: ', rounded_lots) 
             
 
-        # test_instance.bt_atr_period= data.get('bt_atr_period')
-        # test_instance.bt_multiplier= data.get('bt_multiplier')
+        test_instance.bt_atr_period= data.get('bt_atr_period')
+        test_instance.bt_multiplier= data.get('bt_multiplier')
         test_instance.bt_start_date= data.get('bt_start_date')
         test_instance.bt_end_date= data.get('bt_end_date')
         test_instance.bt_2nd_start_date= data.get('bt_2nd_start_date')
         test_instance.bt_2nd_end_date= data.get('bt_2nd_end_date')
-        # test_instance.validation_period= data.get('validation_period')
+        test_instance.validation_period= data.get('validation_period')
         test_instance.bt_time_frame_backward= data.get('bt_time_frame_backward')
         test_instance.bt_initial_investment= str(rounded_initial_investment)
         test_instance.bt_lot_size= rounded_lots
@@ -802,9 +831,9 @@ def edit_test():
                 '#bt_end_date = :bt_end_date, '
                 '#bt_2nd_start_date = :bt_2nd_start_date, '
                 '#bt_2nd_end_date = :bt_2nd_end_date, '
-                # '#validation_period = :validation_period, '
-                # '#bt_atr_period = :bt_atr_period, '
-                # '#bt_multiplier = :bt_multiplier, '
+                '#validation_period = :validation_period, '
+                '#bt_atr_period = :bt_atr_period, '
+                '#bt_multiplier = :bt_multiplier, '
                 '#bt_time_frame_backward = :bt_time_frame_backward, '
                 '#bt_initial_investment = :bt_initial_investment, '
                 '#bt_lot_size = :bt_lot_size, '
@@ -822,9 +851,9 @@ def edit_test():
                 '#bt_end_date': 'bt_end_date',
                 '#bt_2nd_start_date': 'bt_2nd_start_date',
                 '#bt_2nd_end_date': 'bt_2nd_end_date',
-                # '#validation_period': 'validation_period',
-                # '#bt_atr_period': 'bt_atr_period',
-                # '#bt_multiplier': 'bt_multiplier',
+                '#validation_period': 'validation_period',
+                '#bt_atr_period': 'bt_atr_period',
+                '#bt_multiplier': 'bt_multiplier',
                 '#bt_time_frame_backward': 'bt_time_frame_backward',
                 '#bt_initial_investment': 'bt_initial_investment',
                 '#bt_lot_size': 'bt_lot_size',
@@ -842,9 +871,9 @@ def edit_test():
                 ':bt_end_date': test_instance.bt_end_date,
                 ':bt_2nd_start_date': test_instance.bt_2nd_start_date,
                 ':bt_2nd_end_date': test_instance.bt_2nd_end_date,
-                # ':validation_period': str(test_instance.validation_period),
-                # ':bt_atr_period': str(test_instance.bt_atr_period),
-                # ':bt_multiplier': str(test_instance.bt_multiplier),
+                ':validation_period': str(test_instance.validation_period),
+                ':bt_atr_period': str(test_instance.bt_atr_period),
+                ':bt_multiplier': str(test_instance.bt_multiplier),
                 ':bt_time_frame_backward': str(test_instance.bt_time_frame_backward),
                 ':bt_initial_investment': str(test_instance.bt_initial_investment),
                 ':bt_lot_size': str(test_instance.bt_lot_size),
@@ -1431,33 +1460,44 @@ def get_test_result():
 
 @app.route("/get_forward_test_progress_percentage", methods=["POST"])
 def get_forward_test_progress_percentage():
+    # Get the test ID from the request JSON
     test_id = request.json.get("test_id")
     if test_id is None:
+        # Return an error if the test ID is missing
         return jsonify({"error": "Missing test_id"}), 400
 
+    # Find the test instance data based on the test ID
     test_instance_data = next(
         (inst for inst in test_instances if inst["test_id"] == test_id), None)
     if test_instance_data is None:
+        # Return an error if the test instance is not found
         return jsonify({"error": "Test instance not found"}), 400
-    
-    # Start the background task for updating the test instance
+
+    # Get the test instance object
     test_instance = test_instance_data["test_instance"]
+
+    # Check if the test instance is in the "Created" state
     if test_instance.state == "Created":
-        jsonify({"processing":False, 
-                    "state":0, 
-                    "percentage": None,
-                    "elapsed_time":None, 
-                    "estimated_remaining_time":None,
-                    "message": "No forward test have been run or are currently running. Please start the forward test first."}), 403
-            
+        # Return an error if the forward test has not been started
+        return jsonify({"processing":False, 
+                        "state":0, 
+                        "percentage": None,
+                        "elapsed_time":None, 
+                        "estimated_remaining_time":None,
+                        "message": "No forward test have been run or are currently running. Please start the forward test first."}), 403
+
+    # Check if the test instance is processing the forward test result
     processing = test_instance.ft_result_processing
     if processing:
+        # Get the progress percentage, elapsed time, and estimated remaining time
         percentage = test_instance.ft_getting_result_progress_percentage
         elapsed_time = test_instance.elapsed_time
         estimated_remaining_time = test_instance.estimated_remaining_time
+
+        # Check if the elapsed time and estimated remaining time are available
         if elapsed_time and estimated_remaining_time : 
             if elapsed_time > 0 and estimated_remaining_time > 0 : 
-                # Return an immediate response
+                # Return the progress percentage and other details if the test is calculating
                 return jsonify({"processing":True, 
                                 "state":2, 
                                 "percentage": percentage, 
@@ -1465,19 +1505,22 @@ def get_forward_test_progress_percentage():
                                 "estimated_remaining_time":estimated_remaining_time, 
                                 "message": "The forward test result is calculating"}), 200
         else :
+            # Return the progress percentage and other details if the test is downloading
             return jsonify({"processing":True, 
                             "state":1, 
                             "percentage": percentage, 
                             "elapsed_time":elapsed_time, 
                             "estimated_remaining_time":estimated_remaining_time, 
                             "message": "The forward test result is downloading"}), 202
-    
+
+    # Return a default response if the test instance is not processing
     return jsonify({"processing":False, 
                     "state":0, 
                     "percentage": None,
                     "elapsed_time":None, 
                     "estimated_remaining_time":None,
                     "message": "The forward test result have not been started yet."}), 206
+
     
 
 @app.route("/get_test_result_not_thread", methods=["POST"])
@@ -1665,11 +1708,11 @@ def get_analyze_news_combine():
     if end_date == None:    
         end_date = datetime.now().strftime("%Y-%m-%d")
     if impact_above == None:
-        impact_above = 50 
+        impact_above = 80 
     if impact_below == None:
-        impact_below = -50
+        impact_below = -70
     if limit == None:
-        limit = 100
+        limit = 1000
     
     # news_results = analyze_news_gemini_request(symbol, start_date, end_date, limit)
     
@@ -1720,85 +1763,85 @@ def get_analyze_news_combine():
     # Return an immediate response
     return jsonify(sorted_items), 200 
 
-@app.route("/get_multiple_ai_analyze_news_test", methods=["POST"])
-def get_analyze_news_combine_test():
-    data = request.json
-    test_id = data.get("test_id")
-    limit = data.get("limit")
-    start_date = data.get("start_date")
-    end_date = data.get("end_date", datetime.now().strftime("%Y-%m-%d"))
-    symbol = data.get("symbol")
-    impact_above = data.get("impact_above", 50)
-    impact_below = data.get("impact_below", -50)
+# @app.route("/get_multiple_ai_analyze_news_test", methods=["POST"])
+# def get_analyze_news_combine_test():
+#     data = request.json
+#     test_id = data.get("test_id")
+#     limit = data.get("limit")
+#     start_date = data.get("start_date")
+#     end_date = data.get("end_date", datetime.now().strftime("%Y-%m-%d"))
+#     symbol = data.get("symbol")
+#     impact_above = data.get("impact_above", 50)
+#     impact_below = data.get("impact_below", -50)
     
-    table_name = 'InvestNewsMix-ambqia6vxrcgzfv4zl44ahmlp4-dev'
-    table = dynamodb.Table(table_name)
+#     table_name = 'InvestNewsMix-ambqia6vxrcgzfv4zl44ahmlp4-dev'
+#     table = dynamodb.Table(table_name)
     
-    # Validate input parameters
-    if not test_id:
-        return jsonify({"error": "Missing test_id"}), 400
+#     # Validate input parameters
+#     if not test_id:
+#         return jsonify({"error": "Missing test_id"}), 400
     
-    if not limit:
-        limit = 30
+#     if not limit:
+#         limit = 30
     
-    if not isinstance(limit, int) or limit <= 0:
-        return jsonify({"error": "The limit value is invalid - the limit must be a positive integer"}), 400
+#     if not isinstance(limit, int) or limit <= 0:
+#         return jsonify({"error": "The limit value is invalid - the limit must be a positive integer"}), 400
     
-    date_pattern = r"\d{4}-\d{2}-\d{2}"
-    if start_date and not re.match(date_pattern, start_date):
-        return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
+#     date_pattern = r"\d{4}-\d{2}-\d{2}"
+#     if start_date and not re.match(date_pattern, start_date):
+#         return jsonify({"error": "Invalid start_date format - format must be YYYY-MM-DD"}), 400
 
-    if not re.match(date_pattern, end_date):
-        return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
+#     if not re.match(date_pattern, end_date):
+#         return jsonify({"error": "Invalid end_date format - format must be YYYY-MM-DD"}), 400
 
-    if not isinstance(impact_above, int) or not isinstance(impact_below, int):
-        return jsonify({"error": "Invalid impact_above or impact_below value - it must be an integer"}), 400
+#     if not isinstance(impact_above, int) or not isinstance(impact_below, int):
+#         return jsonify({"error": "Invalid impact_above or impact_below value - it must be an integer"}), 400
     
-    if impact_above < 0 or impact_below > 0:
-        return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
+#     if impact_above < 0 or impact_below > 0:
+#         return jsonify({"error": "Invalid values for impact_above or impact_below - it must be an integer"}), 400
     
-    # Retrieve test instance data
-    test_instance_data = next((inst for inst in test_instances if inst["test_id"] == test_id), None)
-    if not test_instance_data:
-        return jsonify({"error": "Test instance not found"}), 400
+#     # Retrieve test instance data
+#     test_instance_data = next((inst for inst in test_instances if inst["test_id"] == test_id), None)
+#     if not test_instance_data:
+#         return jsonify({"error": "Test instance not found"}), 400
     
-    test_instance = test_instance_data["test_instance"]
+#     test_instance = test_instance_data["test_instance"]
     
-    # Use default values from test instance if not provided
-    symbol = symbol or getattr(test_instance, "ft_symbol")
-    start_date = start_date or getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
+#     # Use default values from test instance if not provided
+#     symbol = symbol or getattr(test_instance, "ft_symbol")
+#     start_date = start_date or getattr(test_instance, "bt_start_date").strftime("%Y-%m-%d")
     
-    # Fetch news results from DynamoDB
-    scan_kwargs = {
-        'FilterExpression': Attr('date_time').between(start_date, end_date) &
-                            Attr('ticker_symbol').contains(symbol) &
-                            Attr('body_impact_overall').gte(impact_above) 
-    }
-    scan_kwargs2 = {
-        'FilterExpression': Attr('date_time').between(start_date, end_date) &
-                            Attr('ticker_symbol').contains(symbol) &
-                            Attr('body_impact_overall').lte(impact_below)
-    }
+#     # Fetch news results from DynamoDB
+#     scan_kwargs = {
+#         'FilterExpression': Attr('date_time').between(start_date, end_date) &
+#                             Attr('ticker_symbol').contains(symbol) &
+#                             Attr('body_impact_overall').gte(impact_above) 
+#     }
+#     scan_kwargs2 = {
+#         'FilterExpression': Attr('date_time').between(start_date, end_date) &
+#                             Attr('ticker_symbol').contains(symbol) &
+#                             Attr('body_impact_overall').lte(impact_below)
+#     }
 
-    response = table.scan(**scan_kwargs)
-    response2 = table.scan(**scan_kwargs2)
-    items = response.get('Items', [])
-    items2 = response2.get('Items', [])
+#     response = table.scan(**scan_kwargs)
+#     response2 = table.scan(**scan_kwargs2)
+#     items = response.get('Items', [])
+#     items2 = response2.get('Items', [])
 
-    # Combine items from both responses
-    combined_items = items + items2
+#     # Combine items from both responses
+#     combined_items = items + items2
     
-    # Convert Decimal to float
-    for item in combined_items:
-        for key, value in item.items():
-            if isinstance(value, Decimal):
-                item[key] = float(value)
+#     # Convert Decimal to float
+#     for item in combined_items:
+#         for key, value in item.items():
+#             if isinstance(value, Decimal):
+#                 item[key] = float(value)
 
-    # Sort and limit the items
-    sorted_items = sorted(combined_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
-    limited_items = sorted_items[:limit]
+#     # Sort and limit the items
+#     sorted_items = sorted(combined_items, key=lambda x: datetime.strptime(x['date_time'], '%Y-%m-%dT%H:%M:%SZ'), reverse=True)
+#     limited_items = sorted_items[:limit]
 
-    return jsonify(limited_items), 200
+#     return jsonify(limited_items), 200
     
 @app.route('/remove_forward_test', methods=['POST'])
 def remove_test():
@@ -1914,6 +1957,8 @@ def gemini():
 
     # Return the JSON response from the Google API
     return response.json()
+
+
 
 def get_tests_id_by_state(index_name, states):
 

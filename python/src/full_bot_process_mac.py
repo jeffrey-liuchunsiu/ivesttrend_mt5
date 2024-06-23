@@ -55,7 +55,7 @@ loop = asyncio.get_event_loop()
 class Test:
     def __init__(self, test_strategy_name="SuperTrend", strategy_type = "Trend Following", test_id="TESTING", test_name = "Test", mt5_magic_id = None, bt_symbol='BTC-USD', bt_atr_period=6,bt_multiplier=10,
                  bt_start_date=datetime(2020, 1, 1), bt_end_date=datetime(2023, 3, 1),
-                 bt_2nd_start_date=datetime(2023, 3, 1), bt_2nd_end_date=datetime(2023, 6, 30), 
+                 bt_2nd_start_date=datetime(2023, 3, 1), bt_2nd_end_date=datetime(2023, 6, 30), validation_period=None,
                  bt_time_frame_backward='1d', bt_initial_investment=100000000,
                  bt_lot_size=2000, bt_sl_size=0, bt_tp_size=0, bt_commission = 5,
                  ft_symbol="BTCUSD", ft_start_date=None, ft_end_date=None,
@@ -68,7 +68,7 @@ class Test:
         self.bt_end_date = datetime.strptime(bt_end_date, "%Y-%m-%d") if isinstance(bt_end_date, str) else bt_end_date
         self.bt_2nd_start_date = datetime.strptime(bt_2nd_start_date, "%Y-%m-%d") if isinstance(bt_2nd_start_date, str) else bt_2nd_start_date
         self.bt_2nd_end_date = datetime.strptime(bt_2nd_end_date, "%Y-%m-%d") if isinstance(bt_2nd_end_date, str) else bt_2nd_end_date
-        self.validation_period = None
+        self.validation_period = validation_period
         self.bt_time_frame_backward = bt_time_frame_backward
         self.bt_initial_investment = bt_initial_investment
         self.bt_lot_size = bt_lot_size
