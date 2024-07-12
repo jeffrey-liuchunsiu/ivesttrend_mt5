@@ -8,3 +8,4 @@ constants.py
 .venv
 *.session
 *.session-journal
+*.h5
