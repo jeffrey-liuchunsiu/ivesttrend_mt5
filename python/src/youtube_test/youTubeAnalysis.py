@@ -17,7 +17,7 @@ import constants
 os.environ["YOUTUBE_API_KEY"] = constants.YOUTUBE_API_KEY
 
 # Ensure the model file exists
-model_path = os.path.abspath('/Users/mattchung/VSCLocal/ivesttrend_mt5/python/src/youtube_test/elon_musk_recognition_model.h5')
+model_path = os.path.abspath('/home/ubuntu/ivesttrend_mt5/python/src/youtube_test/elon_musk_recognition_model.h5')
 if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model file not found at {model_path}")
 
