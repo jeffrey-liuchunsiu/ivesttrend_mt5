@@ -17,7 +17,8 @@ import constants
 os.environ["YOUTUBE_API_KEY"] = constants.YOUTUBE_API_KEY
 
 # Ensure the model file exists
-model_path = os.path.abspath('/home/ubuntu/ivesttrend_mt5/python/src/youtube_test/elon_musk_recognition_model.h5')
+model_path = os.path.abspath('/Users/mattchung/VSCLocal/ivesttrend_mt5/python/src/youtube_analysis/elon_musk_recognition_model.h5')
+# model_path = os.path.abspath('/home/ubuntu/ivesttrend_mt5/python/src/youtube_analysis/elon_musk_recognition_model.h5')
 if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model file not found at {model_path}")
 
@@ -47,11 +48,17 @@ print('Model absolute path: ', model_path)
 
 # Function to preprocess the face image
 def preprocess_face(face_img, target_size=(224, 224)):
+    # Resize the face image to the target size
     face_img = face_img.resize(target_size)
+    # Convert the image to a NumPy array
     face_array = image.img_to_array(face_img)
+    # Expand the dimensions to add a batch dimension
     face_array = np.expand_dims(face_array, axis=0)
+    # Normalize the pixel values to be between 0 and 1
     face_array /= 255.0
-    return face_array
+    # Return the preprocessed face array
+    return face_array 
+
 
 # Function to detect faces and predict if Elon Musk is in the image
 def recognize_elon_musk(image_path):
@@ -95,7 +102,7 @@ API_KEY = os.environ["YOUTUBE_API_KEY"]
 CHANNEL_ID = 'UCvJJ_dzjViJCoLf5uKUTwoA'
 PUBLISHED_AFTER = '2024-07-04T00:00:00Z'  # Updated published after date
 MAX_PAGES = 1  # Maximum number of pages to fetch (updated)
-THUMBNAIL_FOLDER = 'thumbnails'  # Folder to save the thumbnails
+THUMBNAIL_FOLDER = 'youtube_analysis/thumbnails'  # Folder to save the thumbnails
 
 def get_channel_videos(api_key, channel_id, published_after):
     # Step 1: Get the channel's uploads playlist ID
