@@ -19,6 +19,12 @@ def save_dict_to_s3(bucket_name, dict_data, s3_key):
 
     s3.put_object(Body=json_data, Bucket=bucket_name, Key=s3_key)
     
+def upload_file_to_s3(bucket_name, filename, save_path):
+    s3 = boto3.client('s3',aws_access_key_id=aws_access_key_id, 
+                          aws_secret_access_key=aws_secret_access_key, 
+                          region_name=region_name)
+    s3.upload_file(save_path, bucket_name, filename)
+    
 def get_json_data_from_s3(bucket_name, s3_key):
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=bucket_name, Key=s3_key)

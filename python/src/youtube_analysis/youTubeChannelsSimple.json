@@ -1,0 +1,27 @@
+[
+    {
+        "country": "HK",
+        "channels": [
+            {
+                "name": "South China Morning Post",
+                "url": "https://www.youtube.com/@SouthChinaMorningPost",
+                "channel_id": "UC4SUWizzKc1tptprBkWjX2Q"
+            }
+        ]
+    },
+    {
+        "country": "Singapore",
+        "channels": [
+            {
+                "name": "CNA",
+                "url": "https://www.youtube.com/@channelnewsasia",
+                "channel_id": "UC83jt4dlz1Gjl58fzQrrKZg"
+            },
+            {
+                "name": "The Straits Times",
+                "url": "https://www.youtube.com/@straitstimesonline",
+                "channel_id": "UC4p_I9eiRewn2KoU-nawrDg"
+            }
+        ]
+    }
+]

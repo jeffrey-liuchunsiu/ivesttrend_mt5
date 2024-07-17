@@ -3,6 +3,10 @@ import os
 import urllib
 from datetime import datetime
 import cv2
+import boto3
+import json
+import os
+
 # from deepface import DeepFace
 # from imageRecognitionUpdated2 import recognize_elon_musk  # Import the recognize_elon_musk function
 
@@ -12,6 +16,16 @@ from tensorflow.keras.preprocessing import image
 from deepface import DeepFace
 from PIL import Image, ImageDraw
 import constants
+import json
+import boto3
+
+s3 = boto3.client('s3')
+
+from dotenv import find_dotenv, load_dotenv
+
+
+load_dotenv(find_dotenv())
+
 
 
 os.environ["YOUTUBE_API_KEY"] = constants.YOUTUBE_API_KEY
@@ -87,9 +101,11 @@ def recognize_elon_musk(image_path):
             if prediction[0][0] > 0.5:
                 print("Elon Musk detected!")
                 draw.rectangle([facial_area['x'], facial_area['y'], facial_area['x'] + facial_area['w'], facial_area['y'] + facial_area['h']], outline="green", width=2)
+                return True
             else:
                 print("Not Elon Musk.")
                 draw.rectangle([facial_area['x'], facial_area['y'], facial_area['x'] + facial_area['w'], facial_area['y'] + facial_area['h']], outline="red", width=2)
+                return False
         
         # Show the image with detected faces
         # original_img.show()
@@ -98,11 +114,7 @@ def recognize_elon_musk(image_path):
         print(f"An error occurred: {e}")
 
 
-API_KEY = os.environ["YOUTUBE_API_KEY"]
-CHANNEL_ID = 'UCvJJ_dzjViJCoLf5uKUTwoA'
-PUBLISHED_AFTER = '2024-07-04T00:00:00Z'  # Updated published after date
-MAX_PAGES = 1  # Maximum number of pages to fetch (updated)
-THUMBNAIL_FOLDER = 'youtube_analysis/thumbnails'  # Folder to save the thumbnails
+
 
 def get_channel_videos(api_key, channel_id, published_after):
     # Step 1: Get the channel's uploads playlist ID
@@ -152,58 +164,107 @@ def get_channel_videos(api_key, channel_id, published_after):
 
     return videos
 
-# Create the thumbnail folder if it doesn't exist
-if not os.path.exists(THUMBNAIL_FOLDER):
-    os.makedirs(THUMBNAIL_FOLDER)
-
-# Get all videos of the channel published within the specified period
-videos = get_channel_videos(API_KEY, CHANNEL_ID, PUBLISHED_AFTER)
-
-# Download and save the thumbnails, and analyze each thumbnail
-for video in videos:
-    title = video['snippet']['title']
-    video_id = video['snippet']['resourceId']['videoId']
-    published_at = video['snippet']['publishedAt']
-    thumbnail_url = video['snippet']['thumbnails']['high']['url']  # Change thumbnail quality to 'high'
-    video_url = f"https://www.youtube.com/watch?v={video_id}"
-
-    # Parse the publication date
-    published_date = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
-    
-    # Create the filename for the thumbnail with the publication date
-    filename = f"{published_date.strftime('%Y-%m-%d')}_{video_id}.jpg"
-
-    # Build the full path to save the thumbnail
-    save_path = os.path.join(THUMBNAIL_FOLDER, filename).replace("\\", "/")
-
-    # Download the thumbnail and save it to the specified folder
-    urllib.request.urlretrieve(thumbnail_url, save_path)
-
-    print(f"Title: {title}")
-    print(f"Published At: {published_at}")
-    print(f"Thumbnail URL: {thumbnail_url}")
-    print(f"Video URL: {video_url}")
-    print(f"Thumbnail saved to: {save_path}")
 
 
-    # Analyze the thumbnail for emotions
-    img = cv2.imread(save_path)
-    try:
-        analyze = DeepFace.analyze(img, actions=['emotion'], enforce_detection=True)
-        # Recognize Elon Musk in the thumbnail
-        print("Analyzing for Elon Musk in the thumbnail...")
+
+def process_channel_videos(api_key, channel_id, published_after, thumbnail_folder, s3_client, recognize_elon_musk_func):
+    if not os.path.exists(thumbnail_folder):
+        os.makedirs(thumbnail_folder)
+    # Get all videos of the channel published within the specified period
+    videos = get_channel_videos(api_key, channel_id, published_after)
+
+    for video in videos:
+        title = video['snippet']['title']
+        video_id = video['snippet']['resourceId']['videoId']
+        published_at = video['snippet']['publishedAt']
+        thumbnail_url = video['snippet']['thumbnails']['high']['url']  # Change thumbnail quality to 'high'
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
+
+        # Parse the publication date
+        published_date = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
+        
+        # Create the filename for the thumbnail with the publication date
+        filename = f"{published_date.strftime('%Y-%m-%d')}_{video_id}.jpg"
+
+        # Build the full path to save the thumbnail
+        save_path = os.path.join(thumbnail_folder, filename).replace("\\", "/")
+
+        # Download the thumbnail and save it to the specified folder
+        urllib.request.urlretrieve(thumbnail_url, save_path)
+
+        print(f"Title: {title}")
+        print(f"Published At: {published_at}")
+        print(f"Thumbnail URL: {thumbnail_url}")
+        print(f"Video URL: {video_url}")
+        print(f"Thumbnail saved to: {save_path}")
+
+        img = cv2.imread(save_path)
         try:
-            recognize_elon_musk(save_path)
-            # image_path = 'elon_musk_test/musk2.jpg'
-            # recognize_elon_musk(image_path)
+            analyze = DeepFace.analyze(img, actions=['emotion'], enforce_detection=True)
+            print('analyze: ', analyze)
+            img_s3_key = f"thumbnail/{filename}"
+                
+            date_str = published_date.strftime('%Y-%m-%d')
+            analysis_json_item = {
+                'video_id': video_id,
+                'title': title,
+                'published_at': published_at,
+                'img_s3_key': img_s3_key,
+                'analysis': analyze
+            }
+            json_string = json.dumps(analysis_json_item)
+            s3_client.put_object(Body=json_string, Bucket='investtrend-youtube-data', Key=f"{date_str}/{date_str}_{video_id}.json")   
+            
+            # Recognize Elon Musk in the thumbnail
+            print("Analyzing for Elon Musk in the thumbnail...")
+            try:
+                recognize_elon_musk_func(save_path)
+            except Exception as e:
+                print(f"Error recognizing Elon Musk in the thumbnail: {e}")
+            
+            print(f"Emotion Analysis: {analyze}")
         except Exception as e:
-            print(f"Error recognizing Elon Musk in the thumbnail: {e}")
-        print(f"Emotion Analysis: {analyze}")
-    except Exception as e:
-        print(f"Error analyzing image: {e}")
+            print(f"Error analyzing image: {e}")
 
-    print()
+        img_s3_key = f"thumbnail/{filename}"
+        # Save the image to S3
+        s3_client.upload_file(save_path, 'investtrend-youtube-img', img_s3_key)
+        
+        print(f"Image uploaded to S3: {filename}")
 
-# if __name__ == "__main__":
+        # Remove the image from the local folder
+        os.remove(save_path)
+        print(f"Image removed from folder: {save_path}")
+
+        print(f"Analysis saved to DynamoDB: {video_id}")
+
+PUBLISHED_AFTER = '2024-01-01T00:00:00Z'
+s3 = boto3.client('s3')
+
+
+
+
+    # Save analysis to DynamoDB
+    # table.put_item(
+    #     Item={
+    #         'video_id': video_id,
+    #         'title': title,
+    #         'published_at': published_at,
+    #         'img_s3_key': img_s3_key,
+    #         'analysis': analysis_json
+    #     }
+    # )
+
+
+if __name__ == "__main__":
+    API_KEY = os.environ["YOUTUBE_API_KEY"]
+    CHANNEL_ID = 'UCvJJ_dzjViJCoLf5uKUTwoA'
+    PUBLISHED_AFTER = '2024-07-01T00:00:00Z'  # Updated published after date
+    MAX_PAGES = 1  # Maximum number of pages to fetch (updated)
+    THUMBNAIL_FOLDER = 'python/src/youtube_analysis/thumbnails'  # Folder to save the thumbnails
+    # Create the thumbnail folder if it doesn't exist
+    if not os.path.exists(THUMBNAIL_FOLDER):
+        os.makedirs(THUMBNAIL_FOLDER)
+    process_channel_videos(API_KEY, CHANNEL_ID, PUBLISHED_AFTER, THUMBNAIL_FOLDER, s3, recognize_elon_musk)
 #     image_path = 'elon_musk_test/musk2.jpg'
 #     recognize_elon_musk(image_path)

@@ -2,7 +2,7 @@ import full_bot_process_mac as full
 import os
 from dotenv import load_dotenv
 import boto3
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, send_file
 from flask_cors import CORS
 from boto3 import resource
 from boto3.dynamodb.conditions import Key,Attr
@@ -21,6 +21,14 @@ from dateutil.parser import parse as parse_date
 import yfinance as yf
 from decimal import Decimal
 import asyncio
+import matplotlib.pyplot as plt
+from io import BytesIO
+import yfinance as yf
+import matplotlib
+matplotlib.use('Agg')  # Use the 'Agg' backend for non-GUI rendering
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+
 
 from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_request
 from utils.tg_utils import add_user_to_channel, create_tg_channel, generate_invite_link
@@ -2102,6 +2110,122 @@ def get_running_instances_and_run():
         if inst["test_instance"].state == "Running":
             full.start_forward_test_thread(inst["test_instance"],client)
             # print(inst)
+            
+            
+# Define a set of colors and a dictionary to map emotions to colors
+colors = list(mcolors.TABLEAU_COLORS.values())
+emotion_color_map = {}
+
+@app.route('/tsla-stock-chart', methods=['POST'])
+def get_tsla_stock_chart():
+    try:
+        # Extract start_date, end_date, and dominant_emotion from the POST request
+        data = request.json
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        dominant_emotion = data.get('dominant_emotion')
+        
+        # Validate and parse the dates
+        if not start_date or not end_date:
+            return jsonify({"error": "Please provide both start_date and end_date"}), 400
+
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        except ValueError:
+            return jsonify({"error": "Dates must be in YYYY-MM-DD format"}), 400
+        
+        # Fetch TSLA stock data using yfinance
+        tsla = yf.Ticker("TSLA")
+        tesla_data = tsla.history(start=start_date, end=end_date)
+        
+        # Handle case where no data is returned
+        if tesla_data.empty:
+            return jsonify({"error": "No data available for the provided date range"}), 404
+        
+        # Convert tesla_data index to naive datetime
+        tesla_data.index = tesla_data.index.tz_localize(None)
+        
+        # Plotting
+        plt.figure(figsize=(14, 7))
+        plt.plot(tesla_data.index, tesla_data['Close'], label='Tesla Stock Price')
+
+        # Annotate the graph with dominant emotions using scatter plot
+        index_dates = tesla_data.index
+        
+        youtube_table = dynamodb.Table('invest_trend_youtube_dataV3')
+        
+        if dominant_emotion:
+            # Query the DynamoDB table
+            response = youtube_table.scan(
+                FilterExpression=Attr('dominant_emotion').eq(dominant_emotion) &
+                                Attr('published_at').between(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+            )
+        else:
+             # Query the DynamoDB table
+            response = youtube_table.scan(
+                FilterExpression=Attr('published_at').between(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+            )
+        
+        # Get the items from the response
+        items = response['Items']
+        
+        # Convert published_at to datetime and extract dominant emotions
+        for video in items:
+            video['published_at'] = datetime.strptime(video['published_at'], '%Y-%m-%dT%H:%M:%SZ')
+            if isinstance(video['emotion_analysis'], list) and video['emotion_analysis']:
+                emotion_info = video['emotion_analysis'][0]
+                if 'dominant_emotion' in emotion_info and 'emotion' in emotion_info:
+                    video['dominant_emotion'] = emotion_info['dominant_emotion']
+                    video['dominant_emotion_value'] = emotion_info['emotion'][video['dominant_emotion']]
+                else:
+                    video['dominant_emotion'] = None
+                    video['dominant_emotion_value'] = None
+            else:
+                video['dominant_emotion'] = None
+                video['dominant_emotion_value'] = None
+                
+            if video['dominant_emotion']:
+                # Find the closest available date
+                target_date = video['published_at']
+                closest_index = index_dates.get_indexer([target_date], method='nearest')[0]
+                closest_date = index_dates[closest_index]
+                closest_price = tesla_data.loc[closest_date]['Close']
+                
+                # Assign a color to the dominant emotion if not already assigned
+                if video['dominant_emotion'] not in emotion_color_map:
+                    emotion_color_map[video['dominant_emotion']] = colors[len(emotion_color_map) % len(colors)]
+                
+                # Scatter plot for dominant emotions
+                plt.scatter(
+                    closest_date, 
+                    video['dominant_emotion_value'], 
+                    label=video['dominant_emotion'], 
+                    color=emotion_color_map[video['dominant_emotion']]
+                )
+        
+        plt.xlabel('Date')
+        plt.ylabel('Stock Price / Emotion Analysis Value')
+        plt.title('Tesla Stock Price and Dominant Emotions from Video Data')
+        
+        # Create a custom legend to avoid duplicate labels
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys())
+
+        plt.grid(True)
+        
+        # Save the plot to a BytesIO object
+        img_io = BytesIO()
+        plt.savefig(img_io, format='png')
+        img_io.seek(0)
+        plt.close()
+        
+        # Send the image as a response
+        return send_file(img_io, mimetype='image/png')
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
