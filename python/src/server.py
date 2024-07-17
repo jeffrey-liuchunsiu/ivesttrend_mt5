@@ -2155,20 +2155,25 @@ def get_tsla_stock_chart():
         
         youtube_table = dynamodb.Table('invest_trend_youtube_dataV3')
         
+        items = []
         if dominant_emotion:
+            for emotion in dominant_emotion:
             # Query the DynamoDB table
-            response = youtube_table.scan(
-                FilterExpression=Attr('dominant_emotion').eq(dominant_emotion) &
-                                Attr('published_at').between(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
-            )
+                response = youtube_table.scan(
+                    FilterExpression=Attr('dominant_emotion').eq(emotion) &
+                                    Attr('published_at').between(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+                )
+                item = response['Items']
+                items.extend(item)
         else:
              # Query the DynamoDB table
             response = youtube_table.scan(
                 FilterExpression=Attr('published_at').between(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
             )
+            items = response['Items']
         
         # Get the items from the response
-        items = response['Items']
+        
         
         # Convert published_at to datetime and extract dominant emotions
         for video in items:
