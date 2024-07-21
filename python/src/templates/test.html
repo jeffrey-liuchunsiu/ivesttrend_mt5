@@ -28,15 +28,14 @@
         background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
-        height: 100vh;
       }
 
       .fade-in {
         opacity: 0;
-        transition: opacity 2s ease-in-out;
+        transition: opacity 3s ease-in-out;
       }
       .fade-in.show {
-        opacity: 1;
+        opacity: 2;
       }
     </style>
   </head>
@@ -62,11 +61,11 @@
 
         return (
           <div className="min-h-screen">
-            <div className="top-bg ">
+            <div className="top-bg mx-auto">
               <header className="flex justify-between items-center p-4">
                 <div className="flex items-center">
                   <img
-                    src="https://placehold.co/30x30"
+                    src="https://mattchung-storage.s3.amazonaws.com/logo_plain.png"
                     alt="Invest Trend logo"
                     className="mr-2"
                   />
@@ -84,9 +83,9 @@
                 </div>
               </header>
 
-              <section className="flex flex-col sm:flex-row items-center justify-between py-16 px-10 top-bg">
+              <section className="flex flex-col md:flex-row items-center justify-between py-16 px-10 top-bg ">
                 <div className="sm:w-1/2 mb-8 sm:mb-0">
-                  <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4 py-10">
+                  <h1 className="text-5xl sm:text-10xl font-bold text-white mb-4 py-10">
                     Transforming Trading with AI
                   </h1>
                   <p className="text-white mb-6 py-10">
@@ -94,19 +93,19 @@
                     Worth Investors
                   </p>
                   <div>
-                    <button className="bg-orange-500 text-white px-6 py-3 rounded-full mr-4 mb-2 sm:mb-0">
-                      Coming Soon
-                    </button>
-                    <button className="border border-white text-white px-6 py-4 rounded-full">
+                    <a
+                      href="mailto:jeffrey.liu@investtrend.tech"
+                      className="bg-orange-500 hover:bg-orange-700 border border-orange-500 text-white px-6 py-4 rounded-full mr-4 mb-2 sm:mb-0"
+                    >
                       Contact Us
-                    </button>
+                    </a>
                   </div>
                 </div>
-                <div className="sm:w-1/2 sm:mr-8 mb-8 sm:mb-0 rounded-lg">
+                <div className="ml-5 sm:w-1/2  sm:my-5">
                   <img
-                    src="https://investtrend.pineapple.page/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1531297484001-80022131f5a1%3Fcrop%3Dentropy%26cs%3Dtinysrgb%26fit%3Dmax%26fm%3Djpg%26ixid%3DM3wyNjkzODh8MHwxfHNlYXJjaHwxMHx8ZmluYW5jaWFsJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3MTkxNTA1Njh8MA%26ixlib%3Drb-4.0.3%26q%3D80%26w%3D1080&w=3840&q=90"
+                    src="https://www.forbes.com/advisor/wp-content/uploads/2023/03/best_AI_stocks.jpeg.jpg"
                     alt="Abstract 3D shape representing AI in trading"
-                    className="w-full rounded-lg px-6"
+                    className="w-full rounded-lg "
                   />
                 </div>
               </section>
@@ -124,7 +123,7 @@
                 </div>
                 <p className="text-gray-300">
                   Invest Trend is a fin-based algorithmic trading firm founded
-                  in 2015. We develop quantitative strategies using machine
+                  in 2022. We develop quantitative strategies using machine
                   learning and artificial intelligence to generate alpha in
                   global financial markets. Our solutions cater to hedge funds,
                   asset managers, and high-net-worth individuals. Learn more
@@ -136,7 +135,7 @@
               <section className="py-12 flex flex-col sm:flex-row items-center bg-gray-800 rounded-lg p-8">
                 <div className="sm:w-1/2 sm:mr-8 mb-8 sm:mb-0">
                   <img
-                    src="https://placehold.co/300x200"
+                    src="https://www.starfetch.ai/_next/image?url=https%3A%2F%2Fcms.starfetch.ai%2Fassets%2F0335eaed-b373-4b22-b582-d8e280f226a8%3Ffit%3Dcover%26width%3D1920%26height%3D1080%26quality%3D80&w=1920&q=75"
                     alt="Abstract representation of AI-driven trading with purple bars and blue circles"
                     className="w-full rounded-lg fade-in"
                   />
@@ -174,7 +173,7 @@
                 </div>
                 <div className="sm:w-1/2">
                   <img
-                    src="https://placehold.co/400x300"
+                    src="https://investtrend.pineapple.page/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1563986768711-b3bde3dc821e%3Fcrop%3Dentropy%26cs%3Dtinysrgb%26fit%3Dmax%26fm%3Djpg%26ixid%3DM3wyNjkzODh8MHwxfHNlYXJjaHwxMHx8ZmluYW5jaWFsJTIwYWxnb3JpdGhtc3xlbnwwfHx8fDE3MTkxNTA1ODB8MA%26ixlib%3Drb-4.0.3%26q%3D80%26w%3D1080&w=1920&q=90"
                     alt="Laptop displaying trading charts and graphs on a wooden desk"
                     className="w-full rounded-lg fade-in"
                   />
@@ -184,7 +183,7 @@
               <section className="py-12 flex flex-col sm:flex-row items-center">
                 <div className="sm:w-1/2 sm:mr-8 mb-8 sm:mb-0">
                   <img
-                    src="https://placehold.co/400x300"
+                    src="https://media.licdn.com/dms/image/D5612AQETDbJ_cNZP7g/article-cover_image-shrink_720_1280/0/1706331854896?e=1727308800&v=beta&t=6jjod4Luh7fbZ-5iIOaSxpBrxhxy_-vMyeWqRydIgFM"
                     alt="Close-up of hands typing on a laptop keyboard with financial data on the screen"
                     className="w-full rounded-lg fade-in"
                   />
@@ -280,12 +279,12 @@
                   trading performance.
                 </p>
                 <div>
-                  <button className="bg-white text-orange-500 px-6 py-3 rounded-full mr-4 mb-2 sm:mb-0">
-                    Get Started Today
-                  </button>
-                  <button className="border border-white text-white px-6 py-3 rounded-full">
+                  <a
+                    href="mailto:jeffrey.liu@investtrend.tech"
+                    className="border border-white hover:bg-white text-white hover:text-orange-500 px-6 py-3 rounded-full"
+                  >
                     Contact Us
-                  </button>
+                  </a>
                 </div>
               </section>
             </main>
@@ -295,11 +294,11 @@
                 <div className="flex flex-col sm:flex-row justify-between items-start">
                   <div className="mb-8 sm:mb-0">
                     <img
-                      src="https://placehold.co/100x30"
+                      src="https://mattchung-storage.s3.amazonaws.com/logo_plain.png"
                       alt="Pineapple logo"
                       className="mb-4"
                     />
-                    <p>Elevate your company data.</p>
+                    <p>INVEST TREND</p>
                   </div>
                   <div className="mb-8 sm:mb-0">
                     <h3 className="font-bold mb-2">Company</h3>
@@ -363,15 +362,18 @@
                   </div>
                 </div>
                 <div className="mt-8 text-center text-gray-400">
-                  © 2023 Company Name. All rights reserved.
+                  © <span id="year"></span> Invest Trend Limited. All rights
+                  reserved.
                 </div>
               </div>
             </footer>
           </div>
         );
       }
-
       ReactDOM.render(<App />, document.getElementById("root"));
+      const currentYear = new Date().getFullYear();
+      document.getElementById("year").textContent = new Date().getFullYear();
     </script>
+    <script></script>
   </body>
 </html>

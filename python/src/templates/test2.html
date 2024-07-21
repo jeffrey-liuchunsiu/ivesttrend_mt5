@@ -1,0 +1,388 @@
+<html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .container {
+        max-width: 1280px;
+      }
+      .sticky {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 50;
+      }
+      #footer {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        transform: translateY(100%);
+        transition: transform 0.4s ease-out;
+      }
+      #footer.open {
+        transform: translateY(0);
+      }
+      .icon-circle {
+        transition: background-color 0.3s ease;
+      }
+      .icon-circle:hover {
+        background-color: #fbbf24;
+      }
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <header id="header" class="bg-white py-4 sticky shadow-md">
+      <div class="container mx-auto px-4 flex justify-between items-center">
+        <div
+          class="text-2xl font-bold text-purple-700 cursor-pointer"
+          id="logo"
+        >
+          Invest Trend
+        </div>
+        <a
+          href="#"
+          class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-full transition duration-300"
+          >BUY</a
+        >
+      </div>
+    </header>
+
+    <section
+      class="bg-gradient-to-r from-purple-800 to-purple-900 text-white py-48"
+    >
+      <div class="container mx-auto px-4">
+        <h1 class="text-5xl font-bold mb-6">Transforming Trading with AI</h1>
+        <h2 class="text-3xl mb-12">
+          Advanced Quantitative Strategies for Hedge Funds & High-Net-Worth
+          Investors
+        </h2>
+        <div class="flex">
+          <a
+            href="#unlock-market"
+            class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-10 rounded-full mr-6 transition duration-300"
+            >Coming Soon</a
+          >
+          <a
+            href="#"
+            class="bg-white text-purple-800 font-semibold py-4 px-10 rounded-full transition duration-300"
+            >Contact Us</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <section id="unlock-market" class="py-32">
+      <div class="container mx-auto px-4">
+        <h2 class="text-5xl font-bold mb-8">Unlock Market Potential with AI</h2>
+        <p class="text-2xl text-gray-600 mb-8">
+          Precision-Driven Trading Solutions for Elite Investors
+        </p>
+        <p class="text-xl text-gray-700 mb-12 max-w-4xl mx-auto">
+          Invest Trend is a HK-based algorithmic trading firm founded in 2019.
+          We develop quantitative strategies using machine learning and AI to
+          offer proprietary trading models, backtesting, and automated execution
+          to hedge funds, asset managers, and high-net-worth clients. Led by
+          experts, Invest Trend has won industry awards for its innovative use
+          of technology in algo trading.
+        </p>
+        <img
+          src="https://via.placeholder.com/1000x500?text=AI+Trading+Excellence"
+          alt="Placeholder image showing a stock chart overlaid with AI and machine learning visualizations, representing the concept of AI-driven algorithmic trading for superior investment performance."
+          class="mx-auto rounded-lg shadow-xl fade-in"
+        />
+      </div>
+    </section>
+
+    <section class="bg-gradient-to-r from-purple-800 to-purple-900 py-32">
+      <div class="container mx-auto px-4">
+        <h2 class="text-5xl text-white font-bold mb-8">
+          AI-Driven Trading Excellence
+        </h2>
+        <p class="text-2xl text-purple-200 mb-12">
+          Cutting-Edge Quantitative Models for Optimal Performance
+        </p>
+        <p class="text-xl text-purple-100 mb-16 max-w-4xl mx-auto">
+          Utilizing advanced machine learning and AI, we provide proprietary
+          trading models, comprehensive backtesting, and automated execution.
+          Our expert-led team has earned accolades for innovative technology in
+          algo trading.
+        </p>
+        <img
+          src="https://via.placeholder.com/600x400?text=AI+Models"
+          alt="Placeholder image depicting an abstract representation of AI-powered quantitative trading models, with a stylized human head containing stock tickers and chart visualizations."
+          class="mx-auto rounded-lg shadow-xl fade-in"
+        />
+      </div>
+    </section>
+
+    <section class="py-32">
+      <div class="container mx-auto px-4">
+        <h2 class="text-5xl font-bold mb-8">Elite Trading Models</h2>
+        <p class="text-2xl text-gray-600 mb-12">
+          Superior Performance Through Innovative AI Strategies
+        </p>
+        <p class="text-xl text-gray-700 mb-16 max-w-4xl mx-auto">
+          Invest Trend leverages cutting-edge machine learning and AI to develop
+          proprietary trading models, offering comprehensive backtesting and
+          automated execution for hedge funds, asset managers, and
+          high-net-worth clients.
+        </p>
+        <img
+          src="https://via.placeholder.com/1000x500?text=Elite+Trading"
+          alt="Placeholder image showing a professional stock trader intensely analyzing market data on multiple computer screens, representing the elite trading strategies and models offered."
+          class="mx-auto rounded-lg shadow-xl fade-in"
+        />
+      </div>
+    </section>
+
+    <section
+      class="bg-gradient-to-r from-purple-800 to-purple-900 text-white py-32"
+    >
+      <div class="container mx-auto px-4">
+        <h2 class="text-5xl font-bold mb-16">Transform Your Trading</h2>
+        <p class="text-2xl mb-16">AI-Powered Strategies for Market Leaders</p>
+        <p class="text-xl mb-24 max-w-4xl mx-auto">
+          Invest Trend leverages advanced machine learning and AI to develop
+          proprietary trading models. Our solutions include thorough backtesting
+          and automated execution, tailored for hedge funds, asset managers, and
+          high-net-worth clients.
+        </p>
+
+        <div class="grid grid-cols-3 gap-12">
+          <div class="text-center fade-in">
+            <div
+              class="bg-white text-purple-800 w-28 h-28 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto icon-circle"
+            >
+              <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Advanced AI Strategies</h3>
+            <p class="text-purple-100">
+              Harness the power of machine learning for superior trading models.
+            </p>
+          </div>
+
+          <div class="text-center fade-in">
+            <div
+              class="bg-white text-purple-800 w-28 h-28 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto icon-circle"
+            >
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Comprehensive Backtesting</h3>
+            <p class="text-purple-100">
+              Ensure strategy robustness with thorough historical data analysis.
+            </p>
+          </div>
+
+          <div class="text-center fade-in">
+            <div
+              class="bg-white text-purple-800 w-28 h-28 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto icon-circle"
+            >
+              <i class="fas fa-robot"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Automated Execution</h3>
+            <p class="text-purple-100">
+              Seamless integration for efficient and timely trades.
+            </p>
+          </div>
+
+          <div class="text-center fade-in">
+            <div
+              class="bg-white text-purple-800 w-28 h-28 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto icon-circle"
+            >
+              <i class="fas fa-trophy"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Award-Winning Experts</h3>
+            <p class="text-purple-100">
+              Recognized leaders in innovative algo trading solutions.
+            </p>
+          </div>
+
+          <div class="text-center fade-in">
+            <div
+              class="bg-white text-purple-800 w-28 h-28 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto icon-circle"
+            >
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">Custom Solutions</h3>
+            <p class="text-purple-100">
+              Tailored strategies to meet unique client needs.
+            </p>
+          </div>
+
+          <div class="text-center fade-in">
+            <div
+              class="bg-white text-purple-800 w-28 h-28 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto icon-circle"
+            >
+              <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4">
+              Institutional Grade Security
+            </h3>
+            <p class="text-purple-100">
+              Keep your investments safe with top-tier protection measures.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white py-32 text-center">
+      <h2 class="text-5xl font-bold mb-12">Maximize Your Returns</h2>
+      <p class="text-2xl text-gray-600 mb-16 max-w-2xl mx-auto">
+        Leverage cutting-edge AI and machine learning for superior trading
+        performance.
+      </p>
+      <div>
+        <a
+          href="#"
+          class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-2xl py-5 px-16 rounded-full inline-block mb-6 transition duration-300"
+          >Get Started Today</a
+        >
+        <a
+          href="#"
+          class="text-orange-500 hover:text-orange-600 font-semibold text-2xl block transition duration-300"
+          >CONTACT</a
+        >
+      </div>
+    </section>
+
+    <footer class="bg-white py-12">
+      <div class="container mx-auto px-4 text-center text-lg text-gray-600">
+        <span
+          class="font-bold text-purple-700 cursor-pointer hover:text-purple-800 transition duration-300"
+          id="open-footer"
+          >pineapple</span
+        >
+        <p class="mt-2">Explain what your company does.</p>
+        <p class="mt-2">&copy; 2023 Company Name</p>
+      </div>
+    </footer>
+
+    <div id="footer" class="bg-white py-16">
+      <div class="container mx-auto grid grid-cols-3 gap-16">
+        <div>
+          <h3 class="text-2xl font-bold mb-6">Company</h3>
+          <ul class="space-y-4 text-lg text-gray-600">
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              About Us
+            </li>
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Contact Us
+            </li>
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Terms of Service
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold mb-6">Services</h3>
+          <ul class="space-y-4 text-lg text-gray-600">
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Development
+            </li>
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Consulting
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold mb-6">Connect</h3>
+          <ul class="space-y-4 text-lg text-gray-600">
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Facebook
+            </li>
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              LinkedIn
+            </li>
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Twitter
+            </li>
+            <li
+              class="hover:text-purple-800 cursor-pointer transition duration-300"
+            >
+              Instagram
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Smooth scrolling for anchor links
+        $('a[href^="#"]').on("click", function (event) {
+          var target = $(this.getAttribute("href"));
+          if (target.length) {
+            event.preventDefault();
+            $("html, body").animate(
+              {
+                scrollTop: target.offset().top,
+              },
+              800
+            );
+          }
+        });
+
+        // Toggle footer visibility on logo click
+        $("#open-footer").on("click", function () {
+          $("#footer").toggleClass("open");
+        });
+
+        // Fade in elements on scroll
+        $(window).on("scroll", function () {
+          $(".fade-in").each(function () {
+            var elementTop = $(this).offset().top;
+            var elementBottom = elementTop + $(this).outerHeight();
+            var viewportTop = $(window).scrollTop();
+            var viewportBottom = viewportTop + $(window).height();
+            if (elementBottom > viewportTop && elementTop < viewportBottom) {
+              $(this).addClass("visible");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
