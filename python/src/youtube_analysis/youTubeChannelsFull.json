@@ -1,0 +1,267 @@
+[
+    {
+        "country": "US",
+        "channels": [
+            {
+                "name": "CNN",
+                "url": "https://www.youtube.com/@CNN",
+                "channel_id": "UCupvZG-5ko_eiXAupbDfxWw"
+            },
+            {
+                "name": "CNBC",
+                "url": "https://www.youtube.com/@CNBC",
+                "channel_id": "UCvJJ_dzjViJCoLf5uKUTwoA"
+            },
+            {
+                "name": "NBC",
+                "url": "https://www.youtube.com/@NBCNews",
+                "channel_id": "UCeY0bbntWzzVIaj2z3QigXg"
+            },
+            {
+                "name": "NBC Bay Area",
+                "url": "https://www.youtube.com/@NBCBayArea",
+                "channel_id": "UCmKKVuZrBfSGiuvtOuipoDA"
+            },
+            {
+                "name": "New York Post",
+                "url": "https://www.youtube.com/@nypost",
+                "channel_id": "UCrvhNP_lWuPIP6QZzJmM-bw"
+            },
+            {
+                "name": "CBS News",
+                "url": "https://www.youtube.com/@CBSNews",
+                "channel_id": "UC8p1vwvWtl6T73JiExfWs1g"
+            },
+            {
+                "name": "Fox News",
+                "url": "https://www.youtube.com/@FoxNews",
+                "channel_id": "UCXIJgqnII2ZOINSWNOGFThA"
+            }
+        ]
+    },
+    {
+        "country": "Canada",
+        "channels": [
+            {
+                "name": "CBC News: The National",
+                "url": "https://www.youtube.com/@CBCTheNational",
+                "channel_id": "UCKjU3KzdbJE1EFcHVqXC3_g"
+            },
+            {
+                "name": "TLDR News Global",
+                "url": "https://www.youtube.com/@TLDRnewsGLOBAL",
+                "channel_id": "UC-uhvujip5deVcEtLxnW8qg"
+            },
+            {
+                "name": "Canadian News Channel",
+                "url": "https://www.youtube.com/@CanadianNewsChannel",
+                "channel_id": "UCvQijX-nifeRiExsZfeskkQ"
+            },
+            {
+                "name": "Global News",
+                "url": "https://www.youtube.com/@globalnews",
+                "channel_id": "UChLtXXpo4Ge1ReTEboVvTDg"
+            },
+            {
+                "name": "CTV News",
+                "url": "https://www.youtube.com/@CTVNews",
+                "channel_id": "UCi7Zk9baY1tvdlgxIML8MXg"
+            },
+            {
+                "name": "CBC Vancouver",
+                "url": "https://www.youtube.com/@CBCVancouver",
+                "channel_id": "UCiKE6mqbKmGGlNAtccn04MA"
+            },
+            {
+                "name": "CBC News",
+                "url": "https://www.youtube.com/@CBCNews",
+                "channel_id": "UCuFFtHWoLl5fauMMD5Ww2jA"
+            }
+        ]
+    },
+    {
+        "country": "UK",
+        "channels": [
+            {
+                "name": "euronews",
+                "url": "https://www.youtube.com/@euronews",
+                "channel_id": "UCSrZ3UV4jOidv8ppoVuvW9Q"
+            },
+            {
+                "name": "The Independent",
+                "url": "https://www.youtube.com/@theindependent",
+                "channel_id": "UCshwRhftzkiov5wKR7M_LsQ"
+            },
+            {
+                "name": "Sky News",
+                "url": "https://www.youtube.com/@SkyNews",
+                "channel_id": "UCoMdktPbSTixAyNGwb-UYkQ"
+            },
+            {
+                "name": "BBC News",
+                "url": "https://www.youtube.com/@BBCNews",
+                "channel_id": "UC16niRr50-MSBwiO3YDb3RA"
+            },
+            {
+                "name": "The Guardian",
+                "url": "https://www.youtube.com/@theGuardian",
+                "channel_id": "UCHpw8xwDNhU9gdohEcJu4aA"
+            },
+            {
+                "name": "ITV",
+                "url": "https://www.youtube.com/@itv",
+                "channel_id": "UCoEqHpK5VNVEBRvwL0EW8Gw"
+            },
+            {
+                "name": "Channel 4 News",
+                "url": "https://www.youtube.com/@Channel4News",
+                "channel_id": "UCTrQ7HXWRRxr7OsOtodr2_w"
+            }
+        ]
+    },
+    {
+        "country": "France",
+        "channels": [
+            {
+                "name": "FRANCE 24 English",
+                "url": "https://www.youtube.com/@France24_en",
+                "channel_id": "UCQfwfsi5VrQ8yKZ-UWmAEFg"
+            },
+            {
+                "name": "AFP News Agency",
+                "url": "https://www.youtube.com/@AFP",
+                "channel_id": "UC86dbj-lbDks_hZ5gRKL49Q"
+            }
+        ]
+    },
+    {
+        "country": "Germany",
+        "channels": [
+            {
+                "name": "DW News",
+                "url": "https://www.youtube.com/@dwnews",
+                "channel_id": "UCknLrEdhRCp1aegoMqRaCZg"
+            },
+            {
+                "name": "NATO News",
+                "url": "https://www.youtube.com/@NATONews",
+                "channel_id": "UC3z9S2WXr6BRZm5bAU3DS6Q"
+            }
+        ]
+    },
+    {
+        "country": "Australia",
+        "channels": [
+            {
+                "name": "60 minutes Australia",
+                "url": "https://www.youtube.com/@60MinutesAU",
+                "channel_id": "UC0L1suV8pVgO4pCAIBNGx5w"
+            },
+            {
+                "name": "9 News Australia",
+                "url": "https://www.youtube.com/@9NewsAUS",
+                "channel_id": "UCIYLOcEUX6TbBo7HQVF2PKA"
+            },
+            {
+                "name": "ABC News",
+                "url": "https://www.youtube.com/@ABCNews",
+                "channel_id": "UCBi2mrWuNuyYy4gbM6fU18Q"
+            },
+            {
+                "name": "Sky News Australia",
+                "url": "https://www.youtube.com/@SkyNewsAustralia",
+                "channel_id": "UCO0akufu9MOzyz3nvGIXAAw"
+            },
+            {
+                "name": "ABC News In-depth",
+                "url": "https://www.youtube.com/@ABCNewsIndepth",
+                "channel_id": "UCxcrzzhQDj5zKJbXfIscCtg"
+            }
+        ]
+    },
+    {
+        "country": "New Zealand",
+        "channels": [
+            {
+                "name": "1News",
+                "url": "https://www.youtube.com/@1NewsNZ",
+                "channel_id": "UCxPAYgO8OpFev3PUTKbsxNw"
+            },
+            {
+                "name": "Newshub",
+                "url": "https://www.youtube.com/@newshubnz",
+                "channel_id": "UCWq564ONoREJprMNhewS6Sw"
+            }
+        ]
+    },
+    {
+        "country": "India",
+        "channels": [
+            {
+                "name": "DD India",
+                "url": "https://www.youtube.com/@DDIndia",
+                "channel_id": "UCGDQNvybfDDeGTf4GtigXaw"
+            },
+            {
+                "name": "Hindustan Times",
+                "url": "https://www.youtube.com/@HT-Videos",
+                "channel_id": "UCUmhg3QldZiYoO9mKGpumBA"
+            },
+            {
+                "name": "India Today",
+                "url": "https://www.youtube.com/@indiatoday",
+                "channel_id": "UCYPvAwZP8pZhSMW8qs7cVCw"
+            },
+            {
+                "name": "News18 India",
+                "url": "https://www.youtube.com/@news18India",
+                "channel_id": "UCPP3etACgdUWvizcES1dJ8Q"
+            }
+        ]
+    },
+    {
+        "country": "Arabic",
+        "channels": [
+            {
+                "name": "Al Jazeera English",
+                "url": "https://www.youtube.com/@aljazeeraenglish",
+                "channel_id": "UCNye-wNBqNL5ZzHSJj3l8Bg"
+            },
+            {
+                "name": "Arab News",
+                "url": "https://www.youtube.com/@arabnews",
+                "channel_id": "UCI8DegIWgK51cGakXcf1dOQ"
+            },
+            {
+                "name": "Al Arabiya English",
+                "url": "https://www.youtube.com/@AlArabiyaEnglish",
+                "channel_id": "UCIZJ9a6P_nxCFJTmL0gh_IQ"
+            }
+        ]
+    },
+    {
+        "country": "HK",
+        "channels": [
+            {
+                "name": "South China Morning Post",
+                "url": "https://www.youtube.com/@SouthChinaMorningPost",
+                "channel_id": "UC4SUWizzKc1tptprBkWjX2Q"
+            }
+        ]
+    },
+    {
+        "country": "Singapore",
+        "channels": [
+            {
+                "name": "CNA",
+                "url": "https://www.youtube.com/@channelnewsasia",
+                "channel_id": "UC83jt4dlz1Gjl58fzQrrKZg"
+            },
+            {
+                "name": "The Straits Times",
+                "url": "https://www.youtube.com/@straitstimesonline",
+                "channel_id": "UC4p_I9eiRewn2KoU-nawrDg"
+            }
+        ]
+    }
+]

@@ -23,5 +23,15 @@
                 "channel_id": "UC4p_I9eiRewn2KoU-nawrDg"
             }
         ]
+    },
+    {
+        "country": "US",
+        "channels": [
+            {
+                "name": "CNN",
+                "url": "https://www.youtube.com/@CNN",
+                "channel_id": "UCupvZG-5ko_eiXAupbDfxWw"
+            }
+        ]
     }
 ]
