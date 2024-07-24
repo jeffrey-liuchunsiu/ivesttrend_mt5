@@ -2153,7 +2153,7 @@ def get_tsla_stock_chart():
         # Annotate the graph with dominant emotions using scatter plot
         index_dates = tesla_data.index
         
-        youtube_table = dynamodb.Table('invest_trend_youtube_dataV3')
+        youtube_table = dynamodb.Table('invest_trend_youtube_dataV4')
         
         items = []
         if dominant_emotion:
