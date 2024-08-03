@@ -10,3 +10,4 @@ constants.py
 *.session-journal
 *.h5
 thumbnails
+google_sea.py

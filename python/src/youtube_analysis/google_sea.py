@@ -1,6 +1,6 @@
 from googleapiclient.discovery import build
 
-my_api_key = "" #The API_KEY you acquired
+my_api_key = "AIzaSyAkHYR1XJIxVIeXkKDpiS6Lc38DzDBR8Iw" #The API_KEY you acquired
 my_cse_id = "1579873697282499a" #The search-engine-ID you created
 
 
