@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import cv2
 import tensorflow as tf
 import numpy as np
-from tensorflow.keras.preprocessing import image
+from tensorflow.keras.preprocessing import image # type: ignore
 from deepface import DeepFace
 from PIL import Image, ImageDraw
 import json
@@ -66,7 +66,7 @@ key = os.getenv('GOOGLE_API_KEY')
 
 
 def check_elon_musk_in_image(file_path):
-    """
+    """          
     Checks if Elon Musk is present in an image.
 
     Args:
@@ -135,8 +135,8 @@ for i, filename in enumerate(os.listdir(source_dir)):
     model_name='gemini-1.5-pro-latest',
     system_instruction="""You are an Elon Musk (Founder of Tesla) video/image recognizer. Determine if the provided video/image contains Elon Musk, and analyze his emotion if detected.
                             - Please check very carefully if Elon Musk is present in the video/image.
-                            - Return a JSON object with "elon_musk_detected": true, "elon_musk_emotion": "<emotion>", and "emotion": { "angry": <value>, "disgust": <value>, "fear": <value>, "happy": <value>, "sad": <value>, "surprise": <value>, "neutral": <value> } if Elon Musk is present in the video/image, where <emotion> represents his detected predominant emotion (e.g., "happy", "sad", "neutral") and the values represent the corresponding probabilities.
-                            - Return a JSON object with "elon_musk_detected": false, "elon_musk_emotion": null and "emotion": { "angry": null, "disgust": null, "fear": null, "happy": null, "sad": null, "surprise": null, "neutral": null } if Elon Musk is not present in the video/image.
+                            - Return a JSON object with "elon_musk_detected": true, "elon_musk_emotion": "<emotion>", and "emotion": { "angry": <value>, "disgust": <value>, "fear": <value>, "happy": <value>, "sad": <value>, "surprise": <value>, "neutral": <value>, "confident": <value> } if Elon Musk is present in the video/image, where <emotion> represents his detected predominant emotion (e.g., "happy", "sad", "neutral") and the values represent the corresponding probabilities.
+                            - Return a JSON object with "elon_musk_detected": false, "elon_musk_emotion": null and "emotion": { "angry": null, "disgust": null, "fear": null, "happy": null, "sad": null, "surprise": null, "neutral": null, "confident": null } if Elon Musk is not present in the video/image.
                             - If the video/image is too blurry or you are not very sure if Elon Musk is present in the video/image, return "elon_musk_detected": false, "elon_musk_emotion": null and "emotion": { "angry": null, "disgust": null, "fear": null, "happy": null, "sad": null, "surprise": null, "neutral": null } .
                             - Only return the JSON object, avoid any additional text and avoid ``` or ```json.
                             """,

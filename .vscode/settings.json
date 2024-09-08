@@ -1,5 +1,7 @@
 {
-    "CodeGPT.apiKey": "Groq"
+    "CodeGPT.apiKey": "Ollama",
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.autoImportCompletions": true
 
 
 }
