@@ -266,7 +266,8 @@ def main():
     global ticket, in_position
     ticket = execute_trade()
     in_position = True
-    print(ticket)
+    if ticket is not None:
+        print(ticket)
 
     # Run the scheduler
     try:
