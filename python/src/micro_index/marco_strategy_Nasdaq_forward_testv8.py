@@ -72,12 +72,44 @@ def execute_trade():
 
     result = mt5.order_send(request)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
-        print(f"Order failed, retcode={result.retcode}")
+        error_messages = {
+            10004: "Requote",
+            10006: "Request rejected",
+            10007: "Request canceled by trader",
+            10011: "Request processing error",
+            10012: "Request canceled by timeout",
+            10013: "Invalid request",
+            10014: "Invalid volume in the request",
+            10015: "Invalid price in the request",
+            10016: "Invalid stops in the request",
+            10017: "Trade is disabled",
+            10018: "Market is closed",
+            10019: "Not enough money to complete the request",
+            10020: "Prices changed",
+            10021: "No quotes to process the request",
+            10022: "Invalid order expiration date in the request",
+            10024: "Too frequent requests",
+            10026: "Autotrading disabled by server",
+            10027: "Autotrading disabled by client terminal",
+            10031: "No connection with the trade server",
+            10032: "Operation is allowed only for live accounts",
+        }
+        reason = error_messages.get(result.retcode, "Unknown error")
+        print(f"Order failed, retcode={result.retcode}, reason={reason}")
     else:
         print(f"Order succeeded, retcode={result.retcode}")
         return result.order
 
-def close_open_position(ticket):
+def close_open_position(ticket: int) -> None:
+    """
+    Closes an open trading position.
+
+    Parameters:
+    ticket (int): The ticket number of the position to close.
+    
+    Returns:
+    None
+    """
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": SYMBOL,
@@ -97,11 +129,30 @@ def close_open_position(ticket):
     else:
         print("Order successfully closed!")
 
-def get_csv_file_path(filename):
+def get_csv_file_path(filename: str) -> str:
+    """
+    Returns the full path to a CSV file located in the script directory.
+
+    Parameters:
+    filename (str): The name of the CSV file.
+
+    Returns:
+    str: The full path to the CSV file.
+    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(script_dir, filename)
 
-def download_and_process_CPI_excel(url, sheet_name):
+def download_and_process_CPI_excel(url: str, sheet_name: str) -> pd.DataFrame:
+    """
+    Downloads and processes CPI data from an Excel file.
+
+    Parameters:
+    url (str): The URL of the Excel file containing CPI data.
+    sheet_name (str): The name of the sheet in the Excel file to process.
+
+    Returns:
+    DataFrame: A pandas DataFrame containing the processed CPI data with columns 'DATE' and 'CORESTICKM159SFRBATL'.
+    """
     df = pd.read_excel(url, sheet_name=sheet_name)
     df = df.iloc[:, [0, 16]]
     df = df.rename(columns={"Date": "DATE", "12mo.3": "CORESTICKM159SFRBATL"})
@@ -109,10 +160,23 @@ def download_and_process_CPI_excel(url, sheet_name):
     df = df[["DATE", "CORESTICKM159SFRBATL"]].reset_index(drop=True)
     return df[df["CORESTICKM159SFRBATL"] != "na"]
 
-def save_to_csv(df, file_path):
+def save_to_csv(df: pd.DataFrame, file_path: str) -> None:
+    """
+    Saves the given DataFrame to a CSV file at the specified file path.
+
+    Parameters:
+    df (pd.DataFrame): The DataFrame to save.
+    file_path (str): The path where the CSV file will be saved.
+    """
     df.to_csv(file_path, index=False)
 
-def download_unrate_csv():
+def download_unrate_csv() -> None:
+    """
+    Downloads the unemployment rate (UNRATE) data from the FRED website and saves it as a CSV file.
+
+    Returns:
+    None
+    """
     yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
     url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23e1e9f0&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=1320&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=UNRATE&scale=left&cosd=1948-01-01&coed={yesterday}&line_color=%234572a7&link_values=false&line_style=solid&mark_type=none&mw=3&lw=2&ost=-99999&oet=99999&mma=0&fml=a&fq=Monthly&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date={yesterday}&revision_date={yesterday}&nd=1948-01-01"
     
@@ -125,15 +189,25 @@ def download_unrate_csv():
     else:
         print(f"Failed to download UNRATE.csv. Status code: {response.status_code}")
 
-def process_unrate_csv():
+def process_unrate_csv() -> pd.DataFrame:
+    """
+    Processes the unemployment rate (UNRATE) CSV file.
+
+    Returns:
+    pd.DataFrame: A pandas DataFrame containing the processed unemployment rate data.
+    """
     unrate_file_path = get_csv_file_path('UNRATE.csv')
     df = pd.read_csv(unrate_file_path)
-    print("UNRATE.csv head:")
-    print(df.head())
-    print("\nUNRATE.csv tail:")
-    print(df.tail())
+    return df
 
-def check_market_conditions():
+def check_market_conditions() -> None:
+    """
+    Checks the current market conditions based on CPI and unemployment rate data,
+    and executes trades based on predefined entry and exit conditions.
+
+    Returns:
+    None
+    """
     global in_position, ticket
 
     # Download, process, and save CPI data
@@ -141,7 +215,6 @@ def check_market_conditions():
     url = "https://www.atlantafed.org/-/media/documents/datafiles/research/inflationproject/stickprice/stickyprice.xlsx"
     df = download_and_process_CPI_excel(url, "Data")
     save_to_csv(df, csv_file_path)
-    print(df.tail())
 
     # Download and process unemployment rate data
     download_unrate_csv()
