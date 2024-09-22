@@ -138,18 +138,35 @@ def gemini_singals():
 
 # SuperTrend calculation function
 def supertrend(df, atr_period=7, multiplier=3):
+    """
+    Calculate the SuperTrend indicator.
+
+    Args:
+        df (pd.DataFrame): DataFrame with 'High', 'Low', and 'Close' columns.
+        atr_period (int, optional): ATR period. Defaults to 7.
+        multiplier (int, optional): Multiplier for ATR. Defaults to 3.
+
+    Returns:
+        pd.DataFrame: DataFrame with SuperTrend column added.
+    """
     high = df['High']
     low = df['Low']
     close = df['Close']
-    atr_name = 'ATR_' + str(atr_period)
-    st_name = 'SuperTrend_' + str(atr_period) + '_' + str(multiplier)
-    
+    atr_name = 'ATR_' + str(atr_period)  # Name for ATR column
+    st_name = 'SuperTrend_' + str(atr_period) + '_' + str(multiplier)  # Name for SuperTrend column
+
+    # Calculate ATR
     df[atr_name] = df['High'].rolling(atr_period).std()
-    df[st_name] = np.nan
     
+    # Initialize SuperTrend column with NaN
+    df[st_name] = np.nan
+
+    # Calculate SuperTrend for each bar
     for i in range(atr_period, len(df)):
+        # If previous close is below previous SuperTrend or SuperTrend is NaN, calculate basic upper band
         if (close.iloc[i-1] <= df.at[df.index[i-1], st_name]) or pd.isna(df.at[df.index[i-1], st_name]):
             df.at[df.index[i], st_name] = (high.iloc[i] + low.iloc[i]) / 2 + multiplier * df.at[df.index[i], atr_name]
+        # Otherwise, calculate basic lower band
         else:
             df.at[df.index[i], st_name] = (high.iloc[i] + low.iloc[i]) / 2 - multiplier * df.at[df.index[i], atr_name]
     

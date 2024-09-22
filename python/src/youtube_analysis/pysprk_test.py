@@ -8,7 +8,7 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 import os
 os.environ['HADOOP_HOME'] = "/opt/homebrew/Cellar/hadoop/3.4.0/libexec"
 os.environ['JAVA_HOME'] = "/Library/Java/JavaVirtualMachines/jdk-22.jdk/Contents/Home"
-os.environ['SPARK_LOCAL_IP'] = '10.250.84.76'  # Add this line
+# os.environ['SPARK_LOCAL_IP'] = '192.168.99.196'  # Add this line
 
 # Common data generation function
 def generate_data_batches(num_rows, batch_size=100000):
@@ -22,7 +22,7 @@ def generate_data_batches(num_rows, batch_size=100000):
         yield batch
 
 # Number of rows in the dataset
-NUM_ROWS = 100000
+NUM_ROWS = 10000000
 
 print(f"Processing {NUM_ROWS} rows of data")
 
@@ -39,6 +39,14 @@ spark = SparkSession.builder \
     .config("spark.driver.extraJavaOptions", "-Xms1g") \
     .config("spark.executor.extraJavaOptions", "-Xms1g") \
     .config("spark.driver.host", "localhost") \
+    .config("spark.executor.cores", "4") \
+    .config("spark.executor.instances", "2") \
+    .config("spark.cores.max", "8") \
+    .config("spark.sql.adaptive.enabled", "true") \
+    .config("spark.memory.offHeap.enabled", "true") \
+    .config("spark.memory.offHeap.size", "2g") \
+    .config("spark.driver.extraClassPath", "/opt/homebrew/Cellar/apache-spark/3.4.0/libexec/jars/*") \
+    .config("spark.executor.extraClassPath", "/opt/homebrew/Cellar/apache-spark/3.4.0/libexec/jars/*") \
     .master("local[*]") \
     .getOrCreate()
 
