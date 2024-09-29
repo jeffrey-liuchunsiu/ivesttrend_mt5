@@ -163,7 +163,7 @@ def log_trade(action: str, price: float, ticket: int, status: str, reason: str =
 def check_market_conditions() -> None:
     global in_position, ticket
 
-    rates = mt5.copy_rates_from_pos(SYMBOL, mt5.TIMEFRAME_H1, 0, BAND_PERIOD + 1)
+    rates = mt5.copy_rates_from_pos(SYMBOL, mt5.TIMEFRAME_M1, 0, BAND_PERIOD + 1)
     df = pd.DataFrame(rates)
     df['time'] = pd.to_datetime(df['time'], unit='s')
     
@@ -211,11 +211,9 @@ def main():
                 time.sleep(10)
                 continue
 
-            schedule.every(1).hours.do(check_market_conditions)
-
             while True:
-                schedule.run_pending()
-                time.sleep(1)
+                check_market_conditions()
+                time.sleep(60)  # Wait for 1 minute before checking again
 
         except KeyboardInterrupt:
             print("Script terminated by user")
