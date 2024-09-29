@@ -293,8 +293,8 @@ def main():
     while True:
         try:
             if not start_mt5():
-                print("Failed to start MT5. Retrying in 60 seconds...")
-                time.sleep(60)
+                print("Failed to start MT5. Retrying in 10 seconds...")
+                time.sleep(10)
                 continue
 
             # Schedule the task every minute
