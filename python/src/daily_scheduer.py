@@ -83,6 +83,7 @@ if __name__ == '__main__':
             logging.error(f'Critical error: {str(e)}')
             logging.info('Restarting the scheduler...')
             time.sleep(30)  # Wait for a minute before restarting
+            
 
 # if __name__ == "__main__":
 #     run_scheduler()
