@@ -1,0 +1,163 @@
+Type,Content
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""buy_stock_with_usd""
+  args {
+    fields {
+      key: ""usd_amount""
+      value {
+        number_value: 20000
+      }
+    }
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""buy_stock_with_usd""
+  args {
+    fields {
+      key: ""usd_amount""
+      value {
+        number_value: 2000
+      }
+    }
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+    fields {
+      key: ""price""
+      value {
+        number_value: 1000
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""buy_stock_with_usd""
+  args {
+    fields {
+      key: ""usd_amount""
+      value {
+        number_value: 2000
+      }
+    }
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+    fields {
+      key: ""price""
+      value {
+        null_value: NULL_VALUE
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"
+<class 'google.ai.generativelanguage_v1beta.types.content.Part'>,"function_call {
+  name: ""get_stock_price""
+  args {
+    fields {
+      key: ""symbol""
+      value {
+        string_value: ""TSLA""
+      }
+    }
+  }
+}
+"

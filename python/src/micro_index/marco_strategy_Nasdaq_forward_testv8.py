@@ -300,11 +300,11 @@ def main():
             # Schedule the task every minute
             schedule.every(1).minutes.do(check_market_conditions)
 
-            global ticket, in_position
-            ticket = execute_trade()
-            in_position = True if ticket is not None else False
-            if ticket is not None:
-                print(f"Initial trade executed with ticket: {ticket}")
+            # global ticket, in_position
+            # ticket = execute_trade()
+            # in_position = True if ticket is not None else False
+            # if ticket is not None:
+            #     print(f"Initial trade executed with ticket: {ticket}")
 
             # Run the scheduler
             while True:
