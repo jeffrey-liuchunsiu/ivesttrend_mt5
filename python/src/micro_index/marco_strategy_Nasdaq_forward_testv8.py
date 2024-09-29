@@ -6,6 +6,8 @@ import pandas as pd
 import schedule
 from dotenv import load_dotenv, find_dotenv
 from mt5linux import MetaTrader5
+import sys
+import csv
 
 # Load environment variables
 load_dotenv(find_dotenv())
@@ -38,10 +40,10 @@ def start_mt5():
             return True
         else:
             print("Login Failed")
-            return PermissionError
+            return False
     else:
         print("MT5 Initialization Failed")
-        return ConnectionAbortedError
+        return False
 
 def execute_trade():
     symbol_info = mt5.symbol_info(SYMBOL)
@@ -68,6 +70,7 @@ def execute_trade():
         "deviation": 20,
         "comment": "Buy order",
         "type_time": mt5.ORDER_TIME_GTC,
+        "magic": 80001234,
     }
 
     result = mt5.order_send(request)
@@ -96,8 +99,10 @@ def execute_trade():
         }
         reason = error_messages.get(result.retcode, "Unknown error")
         print(f"Order failed, retcode={result.retcode}, reason={reason}")
+        log_trade("BUY", price, 0, "FAILED", reason)
     else:
         print(f"Order succeeded, retcode={result.retcode}")
+        log_trade("BUY", price, result.order, "SUCCESS")
         return result.order
 
 def close_open_position(ticket: int) -> None:
@@ -126,8 +131,10 @@ def close_open_position(ticket: int) -> None:
 
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         print(f"Failed to close order. The failure code is: {result.retcode}")
+        log_trade("SELL", mt5.symbol_info_tick(SYMBOL).bid, ticket, "FAILED", f"Failure code: {result.retcode}")
     else:
         print("Order successfully closed!")
+        log_trade("SELL", mt5.symbol_info_tick(SYMBOL).bid, ticket, "SUCCESS")
 
 def get_csv_file_path(filename: str) -> str:
     """
@@ -200,6 +207,32 @@ def process_unrate_csv() -> pd.DataFrame:
     df = pd.read_csv(unrate_file_path)
     return df
 
+def log_trade(action: str, price: float, ticket: int, status: str, reason: str = "") -> None:
+    """
+    Logs trade information to a CSV file.
+
+    Parameters:
+    action (str): The trade action (BUY or SELL).
+    price (float): The price at which the trade was executed.
+    ticket (int): The ticket number of the trade.
+    status (str): The status of the trade (SUCCESS or FAILED).
+    reason (str, optional): The reason for failure if the trade failed.
+
+    Returns:
+    None
+    """
+    log_file_path = get_csv_file_path('trade_log.csv')
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    if not os.path.exists(log_file_path):
+        with open(log_file_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Timestamp', 'Action', 'Price', 'Ticket', 'Status', 'Reason'])
+
+    with open(log_file_path, 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([timestamp, action, price, ticket, status, reason])
+
 def check_market_conditions() -> None:
     """
     Checks the current market conditions based on CPI and unemployment rate data,
@@ -257,28 +290,37 @@ def check_market_conditions() -> None:
             in_position = False
 
 def main():
-    if not start_mt5():
-        return
+    while True:
+        try:
+            if not start_mt5():
+                print("Failed to start MT5. Retrying in 60 seconds...")
+                time.sleep(60)
+                continue
 
-    # Schedule the task every minute
-    schedule.every(1).minutes.do(check_market_conditions)
+            # Schedule the task every minute
+            schedule.every(1).minutes.do(check_market_conditions)
 
-    global ticket, in_position
-    ticket = execute_trade()
-    in_position = True
-    if ticket is not None:
-        print(ticket)
+            global ticket, in_position
+            ticket = execute_trade()
+            in_position = True if ticket is not None else False
+            if ticket is not None:
+                print(f"Initial trade executed with ticket: {ticket}")
 
-    # Run the scheduler
-    try:
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("Script terminated by user")
-    finally:
-        # Shutdown MT5 connection
-        mt5.shutdown()
+            # Run the scheduler
+            while True:
+                schedule.run_pending()
+                time.sleep(1)
+
+        except KeyboardInterrupt:
+            print("Script terminated by user")
+            break
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            print("Restarting the script in 10 seconds...")
+            time.sleep(10)
+        finally:
+            # Shutdown MT5 connection
+            mt5.shutdown()
 
 if __name__ == "__main__":
     main()
