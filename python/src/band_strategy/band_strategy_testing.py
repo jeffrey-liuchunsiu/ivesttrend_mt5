@@ -15,7 +15,7 @@ load_dotenv(find_dotenv())
 
 # Define parameters
 SYMBOL = "EURUSD"
-LOT_SIZE = 1.0
+LOT_SIZE = 1
 STOP_LOSS_PIPS = 50
 TAKE_PROFIT_PIPS = 140
 BAND_PERIOD = 20
@@ -106,6 +106,7 @@ def execute_trade(order_type):
             10024: "Too frequent requests",
             10026: "Autotrading disabled by server",
             10027: "Autotrading disabled by client terminal",
+            10030: "Invalid volume",
             10031: "No connection with the trade server",
             10032: "Operation is allowed only for live accounts",
         }
