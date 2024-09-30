@@ -125,7 +125,7 @@ def close_open_position(ticket: int) -> None:
             "action": mt5.TRADE_ACTION_DEAL,
             "position": ticket,
             "symbol": SYMBOL,
-            "volume": position[0].volume,
+            "volume": float(position[0].volume),
             "type": mt5.ORDER_TYPE_BUY if position[0].type == 1 else mt5.ORDER_TYPE_SELL,
             "price": mt5.symbol_info_tick(SYMBOL).ask if position[0].type == 1 else mt5.symbol_info_tick(SYMBOL).bid,
             "deviation": 20,
