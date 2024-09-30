@@ -14,10 +14,10 @@ import csv
 load_dotenv(find_dotenv())
 
 # Define parameters
-SYMBOL = "USDHKD"
+SYMBOL = "EURUSD"
 LOT_SIZE = 1.0
 STOP_LOSS_PIPS = 50
-TAKE_PROFIT_PIPS = 100
+TAKE_PROFIT_PIPS = 140
 BAND_PERIOD = 20
 BAND_DEVIATION = 2
 

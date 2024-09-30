@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 load_dotenv(find_dotenv())
 
 # Define parameters
-SYMBOL = "USDHKD"
+SYMBOL = "EURUSD"
 LOT_SIZE = 1.0
 STOP_LOSS_PIPS = 50
-TAKE_PROFIT_PIPS = 100
-BAND_PERIOD = 100
+TAKE_PROFIT_PIPS = 10
+BAND_PERIOD = 140
 BAND_DEVIATION = 2
-INITIAL_CAPITAL = 100000  # Set initial capital to 100000 HKD
+INITIAL_CAPITAL = 10000  # Set initial capital to 10000 USD
 
 # MT5 connection parameters
 MT5_HOST = '18.141.245.200'
@@ -53,7 +53,7 @@ def load_historical_data() -> pd.DataFrame:
         return pd.DataFrame()
 
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=60)  # Fetch data for the last 30 days
+    start_date = end_date - timedelta(days=30)  # Fetch data for the last 30 days
 
     # Convert datetime to UNIX timestamp
     start_timestamp = int(start_date.timestamp())
@@ -196,17 +196,17 @@ def backtest_strategy(data: pd.DataFrame) -> None:
         plt.plot(trades_df['Exit Time'], trades_df['Cumulative Profit'], marker='o')
         plt.title('Cumulative Profit Over Time')
         plt.xlabel('Time')
-        plt.ylabel('Cumulative Profit (HKD)')
+        plt.ylabel('Cumulative Profit (USD)')
         plt.grid(True)
-        plt.text(0.05, 0.95, f"Total Profit: {total_profit:.2f} HKD", transform=plt.gca().transAxes, verticalalignment='top')
-        plt.text(0.05, 0.90, f"Initial Capital: {INITIAL_CAPITAL:.2f} HKD", transform=plt.gca().transAxes, verticalalignment='top')
-        plt.text(0.05, 0.85, f"Final Capital: {current_capital:.2f} HKD", transform=plt.gca().transAxes, verticalalignment='top')
+        plt.text(0.05, 0.95, f"Total Profit: {total_profit:.2f} USD", transform=plt.gca().transAxes, verticalalignment='top')
+        plt.text(0.05, 0.90, f"Initial Capital: {INITIAL_CAPITAL:.2f} USD", transform=plt.gca().transAxes, verticalalignment='top')
+        plt.text(0.05, 0.85, f"Final Capital: {current_capital:.2f} USD", transform=plt.gca().transAxes, verticalalignment='top')
         plt.show()
         # Calculate ROI
         roi = ((current_capital - INITIAL_CAPITAL) / INITIAL_CAPITAL) * 100
-        print(f"Total Profit: {total_profit:.2f} HKD")
-        print(f"Initial Capital: {INITIAL_CAPITAL:.2f} HKD")
-        print(f"Final Capital: {current_capital:.2f} HKD")
+        print(f"Total Profit: {total_profit:.2f} USD")
+        print(f"Initial Capital: {INITIAL_CAPITAL:.2f} USD")
+        print(f"Final Capital: {current_capital:.2f} USD")
         print(f"Final ROI: {roi:.2f}%")
     else:
         print("No trades were made.")
