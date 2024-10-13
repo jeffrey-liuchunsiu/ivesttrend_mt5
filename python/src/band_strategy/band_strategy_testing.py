@@ -86,6 +86,11 @@ def execute_trade(order_type):
     }
 
     result = mt5.order_send(request)
+    if result is None:
+        print("Order failed: result is None")
+        log_trade("BUY" if order_type == mt5.ORDER_TYPE_BUY else "SELL", price, 0, "FAILED", "Result is None")
+        return None
+    
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         error_messages = {
             10004: "Requote",

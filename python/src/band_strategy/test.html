@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Phone Data Trends 2018-2021 and 2022 Strategy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            min-height: 400px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .strategy-container,
+        .strategy-details {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .strategy-item {
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .strategy-item h3 {
+            color: #2980b9;
+            margin-top: 0;
+        }
+
+        .strategy-item p {
+            margin-bottom: 0;
+        }
+
+        .strategy-details h3 {
+            color: #2980b9;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .strategy-details ul {
+            padding-left: 20px;
+        }
+
+        .strategy-details li {
+            margin-bottom: 10px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Mobile Phone Data Trends 2018-2021</h1>
+
+    <div class="chart-container">
+        <canvas id="growthRatesChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="revenuePerConnectionChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="dataPerConnectionChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="planDistributionChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="revenueContributionChart"></canvas>
+    </div>
+
+    <div class="strategy-container">
+        <h2>2022 Marketing Strategy</h2>
+        <p>Based on the trend analysis, we propose the following marketing strategy for 2022 to achieve the highest
+            revenue and maximize the total number of mobile phone numbers:</p>
+        <div class="strategy-grid">
+            <div class="strategy-item">
+                <h3>Focus on Plan A</h3>
+                <p>Promote Plan A aggressively as it shows the highest growth and revenue contribution.</p>
+            </div>
+            <div class="strategy-item">
+                <h3>Data-Centric Packages</h3>
+                <p>Introduce new data-centric packages to capitalize on the increasing data consumption trend.</p>
+            </div>
+            <div class="strategy-item">
+                <h3>Loyalty Programs</h3>
+                <p>Implement loyalty programs to reduce churn and increase customer lifetime value.</p>
+            </div>
+            <div class="strategy-item">
+                <h3>Upselling Campaigns</h3>
+                <p>Launch targeted upselling campaigns to move customers from Plan B and C to Plan A.</p>
+            </div>
+            <div class="strategy-item">
+                <h3>Digital Innovation and IoT Integration</h3>
+                <p>Develop innovative digital services and integrate IoT solutions to create new revenue streams.</p>
+            </div>
+            <div class="strategy-item">
+                <h3>Bundle Services</h3>
+                <p>Offer bundled services (e.g., mobile + home internet) to increase revenue per connection.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="strategy-details">
+        <h2>Detailed 2022 Marketing Strategy</h2>
+
+        <h3>1. Focus on Plan A</h3>
+        <ul>
+            <li>Develop targeted advertising campaigns highlighting the benefits of Plan A.</li>
+            <li>Offer limited-time promotions for new customers signing up for Plan A.</li>
+            <li>Create a referral program that rewards existing Plan A customers for bringing in new subscribers.</li>
+            <li>Analyze the features that make Plan A attractive and emphasize these in marketing materials.</li>
+        </ul>
+
+        <h3>2. Data-Centric Packages</h3>
+        <ul>
+            <li>Introduce tiered data plans with generous data allowances to cater to different usage patterns.</li>
+            <li>Partner with popular streaming services to offer data-free streaming as part of premium packages.</li>
+            <li>Develop and promote mobile apps that help customers manage and optimize their data usage.</li>
+            <li>Create special data packages for specific user groups (e.g., students, remote workers, gamers).</li>
+        </ul>
+
+        <h3>3. Loyalty Programs</h3>
+        <ul>
+            <li>Implement a points-based loyalty system where customers earn rewards for continued subscription and
+                usage.</li>
+            <li>Offer exclusive perks to long-term customers, such as priority customer service or early access to new
+                features.</li>
+            <li>Develop partnerships with popular brands to provide discounts or special offers to loyal customers.</li>
+            <li>Create a tiered loyalty program that encourages customers to maintain their subscription and increase
+                usage.</li>
+        </ul>
+
+        <h3>4. Upselling Campaigns</h3>
+        <ul>
+            <li>Analyze usage patterns of Plan B and C customers to identify those who could benefit from upgrading to
+                Plan A.</li>
+            <li>Develop personalized offers for potential upgraders, highlighting the specific benefits they would gain.
+            </li>
+            <li>Create an easy upgrade process with incentives like waived fees or bonus data for a limited time.</li>
+            <li>Train customer service representatives to identify upselling opportunities during customer interactions.
+            </li>
+        </ul>
+
+        <h3>5. Digital Innovation and IoT Integration</h3>
+        <ul>
+            <li>Develop a suite of IoT services for smart homes, including security systems, energy management, and home
+                automation.</li>
+            <li>Create specialized plans for IoT devices, such as smart watches, fitness trackers, and connected cars.
+            </li>
+            <li>Partner with IoT device manufacturers to offer bundled services and exclusive connectivity solutions.
+            </li>
+            <li>Invest in cloud services and edge computing capabilities to support IoT applications and attract
+                enterprise customers.</li>
+            <li>Develop an app ecosystem that integrates various digital services and IoT devices for a seamless user
+                experience.</li>
+        </ul>
+
+        <h3>6. Bundle Services</h3>
+        <ul>
+            <li>Develop attractive bundles that combine mobile plans with home internet, TV, or other digital services.
+            </li>
+            <li>Offer family plans that allow multiple lines to be managed under a single account with shared benefits.
+            </li>
+            <li>Create business-focused bundles that combine mobile plans with productivity tools and enterprise
+                solutions.</li>
+            <li>Implement a flexible bundle system that allows customers to customize their package based on their
+                needs.</li>
+        </ul>
+
+        <p>By implementing these strategies, we aim to capitalize on the growth trends observed in the data, with a
+            particular focus on increasing Plan A adoption, boosting data usage, and improving customer retention. The
+            addition of digital innovation and IoT integration will help create new revenue streams and position us as a
+            leader in the evolving telecommunications landscape. This comprehensive approach should lead to higher
+            revenue per connection and an overall increase in the total number of mobile phone subscriptions.</p>
+    </div>
+
+
+    <script>
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    font: {
+                        size: 16
+                    }
+                },
+            }
+        };
+
+        // Year-on-Year Growth Rates Chart
+        new Chart(document.getElementById('growthRatesChart'), {
+            type: 'bar',
+            data: {
+                labels: ['2019', '2020', '2021'],
+                datasets: [
+                    {
+                        label: 'Connections Growth',
+                        data: [136.17, 67.57, 48.76],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    },
+                    {
+                        label: 'Revenue Growth',
+                        data: [74.94, 65.42, 49.73],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    },
+                    {
+                        label: 'Data Consumption Growth',
+                        data: [37.48, 67.95, 18.21],
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        text: 'Year-on-Year Growth Rates (%)'
+                    },
+                }
+            }
+        });
+
+        // Revenue per Connection Chart
+        new Chart(document.getElementById('revenuePerConnectionChart'), {
+            type: 'line',
+            data: {
+                labels: ['2018', '2019', '2020', '2021'],
+                datasets: [{
+                    label: 'Revenue per Connection ($)',
+                    data: [185.67, 137.54, 135.77, 136.66],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        text: 'Revenue per Connection ($)'
+                    },
+                }
+            }
+        });
+
+        // Data Consumption per Connection Chart
+        new Chart(document.getElementById('dataPerConnectionChart'), {
+            type: 'line',
+            data: {
+                labels: ['2018', '2019', '2020', '2021'],
+                datasets: [{
+                    label: 'Data per Connection (GB)',
+                    data: [30.53, 17.77, 17.81, 14.16],
+                    borderColor: 'rgb(54, 162, 235)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        text: 'Data Consumption per Connection (GB)'
+                    },
+                }
+            }
+        });
+
+        // Plan Distribution Chart
+        new Chart(document.getElementById('planDistributionChart'), {
+            type: 'bar',
+            data: {
+                labels: ['2018', '2019', '2020', '2021'],
+                datasets: [
+                    {
+                        label: 'Plan A',
+                        data: [3589288, 8748663, 14988698, 22445851],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    },
+                    {
+                        label: 'Plan B',
+                        data: [3589288, 8748663, 14988698, 22445851],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    },
+                    {
+                        label: 'Plan C',
+                        data: [2256692, 4786144, 7363072, 10655570],
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        text: 'Plan Distribution'
+                    },
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true
+                    }
+                }
+            }
+        });
+
+        // Revenue Contribution Chart
+        new Chart(document.getElementById('revenueContributionChart'), {
+            type: 'line',
+            data: {
+                labels: ['2018', '2019', '2020', '2021'],
+                datasets: [
+                    {
+                        label: 'Plan A Revenue',
+                        data: [1055878003, 1832864470, 3041907188, 4554574985],
+                        borderColor: 'rgb(255, 99, 132)',
+                        fill: true,
+                    },
+                    {
+                        label: 'Plan B Revenue',
+                        data: [531064026, 916432235, 1520953594, 2277287492],
+                        borderColor: 'rgb(54, 162, 235)',
+                        fill: true,
+                    },
+                    {
+                        label: 'Plan C Revenue',
+                        data: [164966680, 315477413, 506984531, 759095831],
+                        borderColor: 'rgb(75, 192, 192)',
+                        fill: true,
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    title: {
+                        ...commonOptions.plugins.title,
+                        text: 'Revenue Contribution by Plan ($)'
+                    },
+                },
+                scales: {
+                    y: {
+                        stacked: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
