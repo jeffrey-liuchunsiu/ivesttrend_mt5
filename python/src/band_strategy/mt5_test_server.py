@@ -7,11 +7,13 @@ app = Flask(__name__)
 def get_order():
     # This is a simple example. In a real scenario, you'd have more complex logic here.
     order = {
-        'symbol': 'EURUSD',
-        'type': random.choice(['BUY', 'SELL']),
-        'volume': round(random.uniform(0.01, 0.1), 2),
-        'price': round(random.uniform(1.0, 1.5), 5)
-    }
+    "action": "BUY",
+    "symbol": "EURUSD",
+    "volume": 0.1,
+    "price": 1.8600,
+    "sl": 1.0990,
+    "tp": 1.1010
+}
     return jsonify(order)
 
 if __name__ == '__main__':
