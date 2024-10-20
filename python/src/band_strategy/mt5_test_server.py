@@ -8,11 +8,11 @@ def get_order():
     # This is a simple example. In a real scenario, you'd have more complex logic here.
     order = {
     "action": "BUY",
-    "symbol": "EURUSD",
-    "volume": 0.1,
-    "price": 1.8600,
-    "sl": 1.0990,
-    "tp": 1.1010
+    "symbol": "BTCUSD",
+    "volume": float(0.1),
+    "price": float(68320.0),
+    "sl": float(68300.0),
+    "tp": float(68321.0)
 }
     return jsonify(order)
 
