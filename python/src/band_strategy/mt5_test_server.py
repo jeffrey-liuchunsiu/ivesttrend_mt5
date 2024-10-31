@@ -12,7 +12,7 @@ def get_order():
     "volume": float(1.00),
     "price": float(1.0854),
     "sl": float(1.0820),
-    "tp": float(1.0900)
+    "tp": float(1.0950)
 }
     return jsonify(order)
 
