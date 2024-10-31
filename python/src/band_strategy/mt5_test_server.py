@@ -9,7 +9,7 @@ def get_order():
     order = {
     "action": "BUY",
     "symbol": "EURUSD",
-    "volume": float(0.01),
+    "volume": float(1.00),
     "price": float(1.0854),
     "sl": float(1.0820),
     "tp": float(1.0870)
