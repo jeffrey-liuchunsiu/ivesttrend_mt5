@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Chart and Table</title>
+    <style>
+        /* Add some basic styling to the chart */
+        canvas {
+            border: 1px solid #ddd;
+            width: 400px;
+            height: 200px;
+            margin: 20px auto;
+        }
+
+        .chart-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .legend-label {
+            font-size: 16px;
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .legend-line {
+            stroke-width: 2;
+            fill: none;
+            position: relative;
+            top: -50%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Offline Chart and Table</h1>
+
+    <!-- Static HTML table -->
+    <table id="sales-trend-table">
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Sales Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>2018</td>
+                <td>$120,000,000</td>
+            </tr>
+            <tr>
+                <td>2019</td>
+                <td>$130,000,000</td>
+            </tr>
+            <tr>
+                <td>2020</td>
+                <td>$118,000,000</td>
+            </tr>
+            <tr>
+                <td>2021</td>
+                <td>$142,000,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Chart -->
+    <canvas id="sales-trend-chart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script>
+        const salesData = [
+            { year: 2018, revenue: 1200000000 },
+            { year: 2019, revenue: 1300000000 },
+            { year: 2020, revenue: 1180000000 },
+            { year: 2021, revenue: 1420000000 }
+        ];
+
+        const ctx = document.getElementById('sales-trend-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Sales Trend',
+                    data: salesData.map(d => d.revenue),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                title: {
+                    display: true,
+                    text: 'Sales Trend'
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        filter: function (label) {
+                            return label.text !== '';
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
