@@ -48,6 +48,24 @@ async def place_order():
     
     return jsonify({"status": "success"})
 
+@app.route('/test_websocket', methods=['GET'])
+async def test_websocket():
+    test_message = "TEST,BUY,0.1,0,0\n"
+    logger.debug(f"Sending test message: {test_message}")
+    
+    for client_id, websocket in clients.items():
+        try:
+            await websocket.send(test_message)
+            logger.debug(f"Test message sent to {client_id}")
+        except Exception as e:
+            logger.error(f"Error sending test message to {client_id}: {str(e)}")
+    
+    return jsonify({"status": "test message sent"})
+
+@app.route('/list_clients', methods=['GET'])
+def list_clients():
+    return jsonify({"clients": list(clients.keys())})
+
 if __name__ == '__main__':
     server = websockets.serve(handle_client, "0.0.0.0", 5000)
     asyncio.get_event_loop().run_until_complete(server)
