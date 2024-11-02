@@ -21,37 +21,73 @@ app = Flask(__name__)
 # Global variables
 connected_clients = {}
 server_socket = None
+socket_thread = None
+is_socket_server_running = False
 
 def start_socket_server():
-    global server_socket
+    global server_socket, is_socket_server_running
+    
+    # Check if socket server is already running
+    if is_socket_server_running:
+        return
+        
     try:
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind(('0.0.0.0', 5000))
         server_socket.listen(5)
+        is_socket_server_running = True
         logger.info("Socket server started on port 5000")
 
-        while True:
-            client_socket, address = server_socket.accept()
-            client_id = f"{address[0]}:{address[1]}"
-            connected_clients[client_id] = {
-                'socket': client_socket,
-                'address': address,
-                'connected_at': datetime.now()
-            }
-            logger.info(f"New client connected: {client_id}")
-            
-            # Start a thread to handle client messages
-            threading.Thread(target=handle_client, args=(client_socket, client_id)).start()
+        while is_socket_server_running:
+            try:
+                client_socket, address = server_socket.accept()
+                client_id = f"{address[0]}:{address[1]}"
+                connected_clients[client_id] = {
+                    'socket': client_socket,
+                    'address': address,
+                    'connected_at': datetime.now()
+                }
+                logger.info(f"New client connected: {client_id}")
+                
+                # Start a thread to handle client messages
+                threading.Thread(target=handle_client, args=(client_socket, client_id)).start()
+            except Exception as e:
+                if is_socket_server_running:
+                    logger.error(f"Error accepting client connection: {str(e)}")
 
     except Exception as e:
         logger.error(f"Socket server error: {str(e)}")
+    finally:
         if server_socket:
             server_socket.close()
+        is_socket_server_running = False
+
+def stop_socket_server():
+    global server_socket, is_socket_server_running
+    is_socket_server_running = False
+    
+    # Close all client connections
+    for client_id, client_data in list(connected_clients.items()):
+        try:
+            client_data['socket'].close()
+        except:
+            pass
+    connected_clients.clear()
+    
+    # Close server socket
+    if server_socket:
+        try:
+            server_socket.close()
+        except:
+            pass
+        server_socket = None
+    
+    logger.info("Socket server stopped")
 
 def handle_client(client_socket, client_id):
     try:
-        while True:
+        while is_socket_server_running:
             data = client_socket.recv(1024)
             if not data:
                 break
@@ -109,6 +145,7 @@ def place_order():
 def status():
     return jsonify({
         'status': 'online',
+        'socket_server_running': is_socket_server_running,
         'connected_clients': len(connected_clients),
         'client_details': {
             client_id: {
@@ -119,9 +156,16 @@ def status():
         }
     })
 
+def cleanup():
+    stop_socket_server()
+
 if __name__ == '__main__':
     # Start socket server in a separate thread
-    threading.Thread(target=start_socket_server, daemon=True).start()
+    socket_thread = threading.Thread(target=start_socket_server, daemon=True)
+    socket_thread.start()
     
-    # Start Flask server
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    try:
+        # Start Flask server
+        app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
+    finally:
+        cleanup()
