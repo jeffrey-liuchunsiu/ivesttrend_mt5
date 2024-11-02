@@ -3,11 +3,13 @@ import websockets
 import logging
 from flask import Flask, request, jsonify
 import json
+from quart import Quart
+from functools import wraps
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Quart(__name__)  # Changed from Flask to Quart
 clients = {}
 
 async def handle_client(websocket, path):
@@ -32,7 +34,7 @@ async def handle_client(websocket, path):
 
 @app.route('/place_order', methods=['POST'])
 async def place_order():
-    order = request.json
+    order = await request.get_json()
     logger.debug(f"Received order: {order}")
     
     order_message = f"{order['symbol']},{order['type']},{order['volume']},{order['sl']},{order['tp']}\n"
@@ -63,10 +65,24 @@ async def test_websocket():
     return jsonify({"status": "test message sent"})
 
 @app.route('/list_clients', methods=['GET'])
-def list_clients():
+async def list_clients():
     return jsonify({"clients": list(clients.keys())})
 
+async def start_websocket_server():
+    server = await websockets.serve(handle_client, "0.0.0.0", 5000)
+    await server.wait_closed()
+
+@app.before_serving
+async def startup():
+    app.websocket_task = asyncio.create_task(start_websocket_server())
+
+@app.after_serving
+async def shutdown():
+    app.websocket_task.cancel()
+    try:
+        await app.websocket_task
+    except asyncio.CancelledError:
+        pass
+
 if __name__ == '__main__':
-    server = websockets.serve(handle_client, "0.0.0.0", 5000)
-    asyncio.get_event_loop().run_until_complete(server)
     app.run(host='0.0.0.0', port=5001)
