@@ -5,6 +5,8 @@ import json
 import logging
 from datetime import datetime
 import time
+import signal
+import sys
 
 # Configure logging
 logging.basicConfig(
@@ -25,11 +27,23 @@ server_socket = None
 socket_thread = None
 is_socket_server_running = False
 trading_history = {}  # Store trading history for each client
+should_exit = False  # Flag to control graceful shutdown
+
+def signal_handler(sig, frame):
+    """Handle Ctrl+C gracefully"""
+    global should_exit, is_socket_server_running
+    logger.info("Shutting down gracefully...")
+    should_exit = True
+    is_socket_server_running = False
+    cleanup()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def start_socket_server():
     global server_socket, is_socket_server_running
     
-    while True:  # Keep trying to start the server
+    while not should_exit:  # Keep trying to start the server
         try:
             # Check if socket server is already running
             if is_socket_server_running:
@@ -43,7 +57,7 @@ def start_socket_server():
             is_socket_server_running = True
             logger.info("Socket server started on port 5000")
 
-            while is_socket_server_running:
+            while is_socket_server_running and not should_exit:
                 try:
                     client_socket, address = server_socket.accept()
                     client_id = address[0]
@@ -114,7 +128,7 @@ def handle_client(client_socket, client_id):
     if client_id not in trading_history:
         trading_history[client_id] = []
         
-    while is_socket_server_running:
+    while is_socket_server_running and not should_exit:
         try:
             data = client_socket.recv(1024)
             if not data:
@@ -236,18 +250,19 @@ def get_client_details(client_id):
 
 def cleanup():
     stop_socket_server()
+    logger.info("Server shutdown complete")
 
 if __name__ == '__main__':
     # Start socket server in a separate thread
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
     socket_thread.start()
     
-    while True:  # Keep Flask server running
-        try:
-            # Start Flask server
-            app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
-        except Exception as e:
-            logger.error(f"Flask server error: {str(e)}")
-            time.sleep(5)  # Wait before attempting to restart
-        finally:
-            cleanup()
+    try:
+        # Start Flask server
+        app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
+    except KeyboardInterrupt:
+        logger.info("Received keyboard interrupt, shutting down...")
+    except Exception as e:
+        logger.error(f"Flask server error: {str(e)}")
+    finally:
+        cleanup()
