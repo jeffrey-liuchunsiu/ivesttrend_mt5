@@ -4,6 +4,7 @@ import threading
 import json
 import logging
 from datetime import datetime
+import time
 
 # Configure logging
 logging.basicConfig(
@@ -27,41 +28,56 @@ is_socket_server_running = False
 def start_socket_server():
     global server_socket, is_socket_server_running
     
-    # Check if socket server is already running
-    if is_socket_server_running:
-        return
-        
-    try:
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind(('0.0.0.0', 5000))
-        server_socket.listen(5)
-        is_socket_server_running = True
-        logger.info("Socket server started on port 5000")
-
-        while is_socket_server_running:
-            try:
-                client_socket, address = server_socket.accept()
-                client_id = f"{address[0]}:{address[1]}"
-                connected_clients[client_id] = {
-                    'socket': client_socket,
-                    'address': address,
-                    'connected_at': datetime.now()
-                }
-                logger.info(f"New client connected: {client_id}")
+    while True:  # Keep trying to start the server
+        try:
+            # Check if socket server is already running
+            if is_socket_server_running:
+                time.sleep(5)  # Wait before retry
+                continue
                 
-                # Start a thread to handle client messages
-                threading.Thread(target=handle_client, args=(client_socket, client_id)).start()
-            except Exception as e:
-                if is_socket_server_running:
-                    logger.error(f"Error accepting client connection: {str(e)}")
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server_socket.bind(('0.0.0.0', 5000))
+            server_socket.listen(5)
+            is_socket_server_running = True
+            logger.info("Socket server started on port 5000")
 
-    except Exception as e:
-        logger.error(f"Socket server error: {str(e)}")
-    finally:
-        if server_socket:
-            server_socket.close()
-        is_socket_server_running = False
+            while is_socket_server_running:
+                try:
+                    client_socket, address = server_socket.accept()
+                    client_id = f"{address[0]}:{address[1]}"
+                    connected_clients[client_id] = {
+                        'socket': client_socket,
+                        'address': address,
+                        'connected_at': datetime.now()
+                    }
+                    logger.info(f"New client connected: {client_id}")
+                    
+                    # Start a thread to handle client messages
+                    client_thread = threading.Thread(target=handle_client, args=(client_socket, client_id))
+                    client_thread.daemon = True
+                    client_thread.start()
+                except Exception as e:
+                    logger.error(f"Error accepting client connection: {str(e)}")
+                    time.sleep(1)  # Wait before retrying
+                    continue
+
+        except Exception as e:
+            logger.error(f"Socket server error: {str(e)}")
+            is_socket_server_running = False
+            if server_socket:
+                try:
+                    server_socket.close()
+                except:
+                    pass
+            time.sleep(5)  # Wait before attempting to restart
+        finally:
+            if server_socket:
+                try:
+                    server_socket.close()
+                except:
+                    pass
+            is_socket_server_running = False
 
 def stop_socket_server():
     global server_socket, is_socket_server_running
@@ -86,19 +102,24 @@ def stop_socket_server():
     logger.info("Socket server stopped")
 
 def handle_client(client_socket, client_id):
-    try:
-        while is_socket_server_running:
+    while is_socket_server_running:
+        try:
             data = client_socket.recv(1024)
             if not data:
                 break
             logger.info(f"Received from {client_id}: {data.decode()}")
+        except Exception as e:
+            logger.error(f"Error handling client {client_id}: {str(e)}")
+            break
+    
+    try:
+        client_socket.close()
     except:
         pass
-    finally:
-        client_socket.close()
-        if client_id in connected_clients:
-            del connected_clients[client_id]
-        logger.info(f"Client disconnected: {client_id}")
+        
+    if client_id in connected_clients:
+        del connected_clients[client_id]
+    logger.info(f"Client disconnected: {client_id}")
 
 @app.route('/place_order', methods=['POST'])
 def place_order():
@@ -127,7 +148,10 @@ def place_order():
                 logger.info(f"Order sent to client {client_id}")
             except Exception as e:
                 logger.error(f"Error sending to client {client_id}: {str(e)}")
-                client_data['socket'].close()
+                try:
+                    client_data['socket'].close()
+                except:
+                    pass
                 del connected_clients[client_id]
 
         return jsonify({
@@ -164,8 +188,12 @@ if __name__ == '__main__':
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
     socket_thread.start()
     
-    try:
-        # Start Flask server
-        app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
-    finally:
-        cleanup()
+    while True:  # Keep Flask server running
+        try:
+            # Start Flask server
+            app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
+        except Exception as e:
+            logger.error(f"Flask server error: {str(e)}")
+            time.sleep(5)  # Wait before attempting to restart
+        finally:
+            cleanup()
