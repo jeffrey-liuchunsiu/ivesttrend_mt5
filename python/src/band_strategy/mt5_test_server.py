@@ -181,7 +181,8 @@ def status():
         'connected_clients': len(connected_clients),
         'client_details': {
             client_id: {
-                'address': f"{client_data['address'][0]}",
+                'ip': client_id,
+                'full_address': f"{client_data['address'][0]}:{client_data['address'][1]}",
                 'connected_at': client_data['connected_at'].isoformat()
             }
             for client_id, client_data in connected_clients.items()
