@@ -45,7 +45,15 @@ def start_socket_server():
             while is_socket_server_running:
                 try:
                     client_socket, address = server_socket.accept()
-                    client_id = f"{address[0]}:{address[1]}"
+                    client_id = address[0]
+                    
+                    if client_id in connected_clients:
+                        try:
+                            old_socket = connected_clients[client_id]['socket']
+                            old_socket.close()
+                        except:
+                            pass
+                    
                     connected_clients[client_id] = {
                         'socket': client_socket,
                         'address': address,
@@ -173,7 +181,7 @@ def status():
         'connected_clients': len(connected_clients),
         'client_details': {
             client_id: {
-                'address': f"{client_data['address'][0]}:{client_data['address'][1]}",
+                'address': f"{client_data['address'][0]}",
                 'connected_at': client_data['connected_at'].isoformat()
             }
             for client_id, client_data in connected_clients.items()

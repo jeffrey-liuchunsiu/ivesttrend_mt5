@@ -1,7 +1,8 @@
 {
     "CodeGPT.apiKey": "Ollama",
     "python.analysis.typeCheckingMode": "off",
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "C_Cpp.errorSquiggles": "disabled"
 
 
 }
