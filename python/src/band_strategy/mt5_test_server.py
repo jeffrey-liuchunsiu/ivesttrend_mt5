@@ -24,6 +24,7 @@ connected_clients = {}
 server_socket = None
 socket_thread = None
 is_socket_server_running = False
+trading_history = {}  # Store trading history for each client
 
 def start_socket_server():
     global server_socket, is_socket_server_running
@@ -110,12 +111,26 @@ def stop_socket_server():
     logger.info("Socket server stopped")
 
 def handle_client(client_socket, client_id):
+    if client_id not in trading_history:
+        trading_history[client_id] = []
+        
     while is_socket_server_running:
         try:
             data = client_socket.recv(1024)
             if not data:
                 break
-            logger.info(f"Received from {client_id}: {data.decode()}")
+                
+            message = data.decode()
+            logger.info(f"Received from {client_id}: {message}")
+            
+            # Store trade execution responses
+            if message.startswith("TRADE_EXECUTED:"):
+                trade_details = message.replace("TRADE_EXECUTED:", "").strip()
+                trading_history[client_id].append({
+                    'timestamp': datetime.now().isoformat(),
+                    'details': trade_details
+                })
+                
         except Exception as e:
             logger.error(f"Error handling client {client_id}: {str(e)}")
             break
@@ -188,6 +203,36 @@ def status():
             for client_id, client_data in connected_clients.items()
         }
     })
+
+@app.route('/client/<client_id>', methods=['GET'])
+def get_client_details(client_id):
+    try:
+        # Check if client exists
+        if client_id not in connected_clients:
+            return jsonify({
+                'error': 'Client not found',
+                'message': f'No active client with ID: {client_id}'
+            }), 404
+            
+        client_data = connected_clients[client_id]
+        
+        # Get client's trading history
+        client_history = trading_history.get(client_id, [])
+        
+        return jsonify({
+            'client_details': {
+                'ip': client_id,
+                'full_address': f"{client_data['address'][0]}:{client_data['address'][1]}",
+                'connected_at': client_data['connected_at'].isoformat(),
+                'connection_status': 'connected'
+            },
+            'trading_history': client_history,
+            'total_trades': len(client_history)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting client details: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 def cleanup():
     stop_socket_server()

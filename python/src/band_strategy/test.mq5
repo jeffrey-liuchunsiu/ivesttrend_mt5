@@ -155,10 +155,31 @@ void ExecuteOrder(string message)
     if (!trade.PositionOpen(symbol, order_type, volume, price, sl, tp))
     {
         Print("Error opening position: ", GetLastError());
+        // Send error response to server
+        string error_message = StringFormat("TRADE_EXECUTED:ERROR %s %s %.2f @ %.5f SL:%.5f TP:%.5f",
+                                            symbol, action, volume, price, sl, tp);
+        SendResponse(error_message);
     }
     else
     {
         Print("Order executed successfully");
+        // Send success response to server
+        string success_message = StringFormat("TRADE_EXECUTED:SUCCESS %s %s %.2f @ %.5f SL:%.5f TP:%.5f",
+                                              symbol, action, volume, price, sl, tp);
+        SendResponse(success_message);
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Send response to server                                           |
+//+------------------------------------------------------------------+
+void SendResponse(string message)
+{
+    if (socket_connected)
+    {
+        uchar data[];
+        StringToCharArray(message, data);
+        SocketSend(socket, data, ArraySize(data));
     }
 }
 
