@@ -130,7 +130,6 @@ def stop_socket_server():
 def handle_client(client_socket, client_id):
     if client_id not in trading_history:
         trading_history[client_id] = []
-        logger.info(f"Initialized empty trading history for client {client_id}")
         
     while is_socket_server_running and not should_exit:
         try:
@@ -139,42 +138,35 @@ def handle_client(client_socket, client_id):
                 break
                 
             message = data.decode()
-            logger.info(f"Received from {client_id}: {message}")
+            logger.info(f"Received message: {message}")
             
             # Handle trade execution messages
             if message.startswith("TRADE_EXECUTED:"):
                 trade_details = parse_trade_message(message.replace("TRADE_EXECUTED:", ""))
                 trade_details['timestamp'] = datetime.now().isoformat()
                 trading_history[client_id].append(trade_details)
-                logger.info(f"Added trade execution to history for {client_id}: {trade_details}")
-                
-            # Handle positions update messages
-            elif message.startswith("POSITIONS_UPDATE:"):
-                positions = parse_positions_message(message.replace("POSITIONS_UPDATE:", ""))
-                client_positions[client_id] = positions
-                logger.info(f"Updated positions for {client_id}: {positions}")
+                logger.info(f"\nNew Trade Executed:")
+                logger.info(f"  Symbol: {trade_details.get('symbol')}")
+                logger.info(f"  Type: {trade_details.get('type')}")
+                logger.info(f"  Volume: {trade_details.get('volume')}")
+                logger.info(f"  Price: {trade_details.get('price')}")
+                logger.info(f"  Magic: {trade_details.get('magic')}")
+                logger.info(f"  Time: {trade_details.get('timestamp')}\n")
                 
             # Handle history update messages
             elif message.startswith("HISTORY_UPDATE:"):
                 history = parse_history_message(message.replace("HISTORY_UPDATE:", ""))
-                if history:  # Only update if we got valid history
+                if history:
                     trading_history[client_id] = history
-                    logger.info(f"Updated trading history for {client_id}: {len(history)} trades")
-                else:
-                    logger.warning(f"Received empty history update for {client_id}")
+                    logger.info("\n=== Received Trade History Update ===")
+                    logger.info(f"Total Trades: {len(history)}")
+                    for trade in history:
+                        logger.info(f"Trade: {trade}")
+                    logger.info("=== End History Update ===\n")
                 
         except Exception as e:
-            logger.error(f"Error handling client {client_id}: {str(e)}")
+            logger.error(f"Error handling message: {str(e)}")
             break
-    
-    try:
-        client_socket.close()
-    except:
-        pass
-        
-    if client_id in connected_clients:
-        del connected_clients[client_id]
-    logger.info(f"Client disconnected: {client_id}")
 
 def parse_trade_message(message):
     """Parse trade execution message into dictionary"""
@@ -500,7 +492,53 @@ def bad_request_handler(error):
         'raw_data': request.get_data(as_text=True)
     }), 400
 
+# Add these functions after the global variables
+
+def load_and_print_all_trades():
+    """Load and print all trades in the system"""
+    logger.info("\n=== All Trading History ===")
+    all_trades = []
+    
+    # Collect all trades from all clients
+    for client_trades in trading_history.values():
+        all_trades.extend(client_trades)
+    
+    # Sort trades by timestamp if available
+    try:
+        all_trades.sort(key=lambda x: x.get('time', ''), reverse=True)
+    except:
+        pass
+    
+    if all_trades:
+        logger.info(f"Total Trades Found: {len(all_trades)}")
+        for trade in all_trades:
+            logger.info(f"Trade: {trade}")
+    else:
+        logger.info("No trades found in the system")
+    
+    logger.info("=== End Trading History ===\n")
+    return all_trades
+
+# Add this new endpoint to get all trades
+@app.route('/trades', methods=['GET'])
+def get_all_trades():
+    """Get all trades in the system"""
+    try:
+        all_trades = load_and_print_all_trades()
+        return jsonify({
+            'total_trades': len(all_trades),
+            'trades': all_trades
+        })
+    except Exception as e:
+        logger.error(f"Error getting all trades: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
+    logger.info("Starting trading server...")
+    
+    # Print all existing trades at startup
+    load_and_print_all_trades()
+    
     # Start socket server in a separate thread
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
     socket_thread.start()
@@ -510,6 +548,8 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
     except KeyboardInterrupt:
         logger.info("Received keyboard interrupt, shutting down...")
+        # Print final trade status before shutdown
+        load_and_print_all_trades()
     except Exception as e:
         logger.error(f"Flask server error: {str(e)}")
     finally:
