@@ -120,18 +120,30 @@ void OnTimer()
 //+------------------------------------------------------------------+
 //| Connect to WebSocket server                                        |
 //+------------------------------------------------------------------+
-void ConnectToServer()
+bool ConnectToServer()
 {
     if (SocketConnect(socket, ServerAddress, 5000, 1000))
     {
         Print("Connected to server");
         socket_connected = true;
         last_heartbeat = TimeLocal();
+
+        // Send initial connection message
+        string connect_msg = "CONNECTION_ESTABLISHED";
+        uchar connect_data[];
+        StringToCharArray(connect_msg, connect_data);
+        SocketSend(socket, connect_data, ArraySize(connect_data));
+
+        // Send immediate history update
+        Print("Sending initial history update...");
+        SendHistoryUpdate();
+        return true;
     }
     else
     {
         Print("Connection failed, error: ", GetLastError());
         socket_connected = false;
+        return false;
     }
 }
 
@@ -267,10 +279,9 @@ void SendPositionsUpdate()
 void SendHistoryUpdate()
 {
     datetime end_time = TimeCurrent();
-    datetime start_time = end_time - PeriodSeconds(PERIOD_D1) * 7; // Last 7 days
+    datetime start_time = end_time - PeriodSeconds(PERIOD_D1) * 30; // Last 30 days for more history
 
     Print("Fetching history from ", TimeToString(start_time), " to ", TimeToString(end_time));
-    Print("Using magic number: ", client_magic);
 
     if (!HistorySelect(start_time, end_time))
     {
@@ -289,32 +300,29 @@ void SendHistoryUpdate()
         ulong ticket = HistoryDealGetTicket(i);
         if (ticket > 0)
         {
+            // Include all trades regardless of magic number for complete history
+            deals_found++;
+            string deal_type = (HistoryDealGetInteger(ticket, DEAL_TYPE) == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+            string deal_entry = (HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_IN) ? "IN" : "OUT";
+            string symbol = HistoryDealGetString(ticket, DEAL_SYMBOL);
+            double volume = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+            double price = HistoryDealGetDouble(ticket, DEAL_PRICE);
+            double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+            datetime deal_time = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
             long deal_magic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
-            Print("Found deal #", ticket, " with magic: ", deal_magic, " (looking for: ", client_magic, ")");
+            string deal_comment = HistoryDealGetString(ticket, DEAL_COMMENT);
 
-            if (deal_magic == client_magic)
-            {
-                deals_found++;
-                string deal_type = (HistoryDealGetInteger(ticket, DEAL_TYPE) == DEAL_TYPE_BUY) ? "BUY" : "SELL";
-                string deal_entry = (HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_IN) ? "IN" : "OUT";
-                string symbol = HistoryDealGetString(ticket, DEAL_SYMBOL);
-                double volume = HistoryDealGetDouble(ticket, DEAL_VOLUME);
-                double price = HistoryDealGetDouble(ticket, DEAL_PRICE);
-                double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
-                datetime deal_time = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
+            string deal_info = StringFormat(
+                "ticket=%llu,symbol=%s,type=%s,entry=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s,magic=%d,comment=%s;",
+                ticket, symbol, deal_type, deal_entry, volume, price, profit,
+                TimeToString(deal_time), deal_magic, deal_comment);
 
-                string deal_info = StringFormat(
-                    "ticket=%llu,symbol=%s,type=%s,entry=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s,magic=%d;",
-                    ticket, symbol, deal_type, deal_entry, volume, price, profit,
-                    TimeToString(deal_time), client_magic);
-
-                Print("Adding deal to history: ", deal_info);
-                history_msg += deal_info;
-            }
+            Print("Adding deal to history: ", deal_info);
+            history_msg += deal_info;
         }
     }
 
-    Print("Found ", deals_found, " deals with magic number ", client_magic);
+    Print("Found ", deals_found, " total deals");
 
     if (deals_found > 0)
     {
@@ -332,7 +340,7 @@ void SendHistoryUpdate()
     }
     else
     {
-        Print("No historical deals found for magic number: ", client_magic);
+        Print("No historical deals found");
     }
 }
 
