@@ -151,6 +151,12 @@ def handle_client(client_socket, client_id):
                 positions = parse_positions_message(message.replace("POSITIONS_UPDATE:", ""))
                 client_positions[client_id] = positions
                 
+            # Handle history update messages
+            elif message.startswith("HISTORY_UPDATE:"):
+                history = parse_history_message(message.replace("HISTORY_UPDATE:", ""))
+                if history:  # Only update if we got valid history
+                    trading_history[client_id] = history
+                
         except Exception as e:
             logger.error(f"Error handling client {client_id}: {str(e)}")
             break
@@ -187,6 +193,23 @@ def parse_positions_message(message):
                     position[key.strip()] = value.strip()
                 positions.append(position)
     return positions
+
+def parse_history_message(message):
+    """Parse history update message into list of trades"""
+    trades = []
+    if message:
+        trade_strings = message.split(';')
+        for trade_str in trade_strings:
+            if trade_str:
+                trade = {}
+                parts = trade_str.split(',')
+                for part in parts:
+                    if '=' in part:
+                        key, value = part.split('=')
+                        trade[key.strip()] = value.strip()
+                if trade:  # Only append if we got valid trade data
+                    trades.append(trade)
+    return trades
 
 @app.route('/place_order', methods=['POST'])
 def place_order():
@@ -341,6 +364,18 @@ def get_client_magic(client_id):
 def cleanup():
     stop_socket_server()
     logger.info("Server shutdown complete")
+
+# Add this function to help with debugging
+@app.route('/debug/messages/<client_id>', methods=['GET'])
+def get_debug_messages(client_id):
+    """Endpoint to help debug message processing"""
+    return jsonify({
+        'client_id': client_id,
+        'positions': client_positions.get(client_id, []),
+        'history': trading_history.get(client_id, []),
+        'magic_number': client_magic_numbers.get(client_id),
+        'is_connected': client_id in connected_clients
+    })
 
 if __name__ == '__main__':
     # Start socket server in a separate thread

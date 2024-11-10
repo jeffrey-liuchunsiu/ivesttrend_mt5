@@ -96,6 +96,7 @@ void OnTimer()
     if (TimeLocal() - last_positions_update > 60)
     {
         SendPositionsUpdate();
+        SendHistoryUpdate(); // Add history update
         last_positions_update = TimeLocal();
     }
 }
@@ -125,17 +126,45 @@ void SendHeartbeat()
 {
     if (socket_connected)
     {
-        string heartbeat = "HEARTBEAT";
-        uchar data[];
-        StringToCharArray(heartbeat, data);
+        datetime end_time = TimeCurrent();
+        datetime start_time = end_time - PeriodSeconds(PERIOD_D1); // Last 24 hours
 
-        if (SocketSend(socket, data, ArraySize(data)))
+        HistorySelect(start_time, end_time);
+        int total = HistoryDealsTotal();
+        string history_msg = "HISTORY_UPDATE:";
+
+        for (int i = 0; i < total; i++)
         {
-            last_heartbeat = TimeLocal();
+            ulong ticket = HistoryDealGetTicket(i);
+            if (HistoryDealGetInteger(ticket, DEAL_MAGIC) == 123456)
+            {
+                history_msg += StringFormat("ticket=%llu,symbol=%s,type=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s;",
+                                            ticket,
+                                            HistoryDealGetString(ticket, DEAL_SYMBOL),
+                                            HistoryDealGetInteger(ticket, DEAL_TYPE) == DEAL_TYPE_BUY ? "BUY" : "SELL",
+                                            HistoryDealGetDouble(ticket, DEAL_VOLUME),
+                                            HistoryDealGetDouble(ticket, DEAL_PRICE),
+                                            HistoryDealGetDouble(ticket, DEAL_PROFIT),
+                                            TimeToString(HistoryDealGetInteger(ticket, DEAL_TIME)));
+            }
+        }
+
+        if (history_msg != "HISTORY_UPDATE:")
+        {
+            uchar data[];
+            StringToCharArray(history_msg, data);
+            if (SocketSend(socket, data, ArraySize(data)))
+            {
+                last_heartbeat = TimeLocal();
+            }
+            else
+            {
+                socket_connected = false;
+            }
         }
         else
         {
-            socket_connected = false;
+            last_heartbeat = TimeLocal(); // Update heartbeat even if no history to send
         }
     }
 }
@@ -263,5 +292,60 @@ void SendPositionsUpdate()
         uchar data[];
         StringToCharArray(positions_msg, data);
         SocketSend(socket, data, ArraySize(data));
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Send trade history to server                                     |
+//+------------------------------------------------------------------+
+void SendHistoryUpdate()
+{
+    datetime end_time = TimeCurrent();
+    datetime start_time = end_time - PeriodSeconds(PERIOD_D1) * 7; // Last 7 days for more history
+
+    if (!HistorySelect(start_time, end_time))
+    {
+        Print("Failed to select history");
+        return;
+    }
+
+    int total = HistoryDealsTotal();
+    string history_msg = "HISTORY_UPDATE:";
+
+    Print("Processing ", total, " historical deals");
+
+    for (int i = 0; i < total; i++)
+    {
+        ulong ticket = HistoryDealGetTicket(i);
+        if (ticket > 0 && HistoryDealGetInteger(ticket, DEAL_MAGIC) == client_magic)
+        {
+            string deal_type = (HistoryDealGetInteger(ticket, DEAL_TYPE) == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+            string deal_entry = (HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_IN) ? "IN" : "OUT";
+
+            history_msg += StringFormat("ticket=%llu,symbol=%s,type=%s,entry=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s;",
+                                        ticket,
+                                        HistoryDealGetString(ticket, DEAL_SYMBOL),
+                                        deal_type,
+                                        deal_entry,
+                                        HistoryDealGetDouble(ticket, DEAL_VOLUME),
+                                        HistoryDealGetDouble(ticket, DEAL_PRICE),
+                                        HistoryDealGetDouble(ticket, DEAL_PROFIT),
+                                        TimeToString((datetime)HistoryDealGetInteger(ticket, DEAL_TIME)));
+        }
+    }
+
+    if (history_msg != "HISTORY_UPDATE:")
+    {
+        Print("Sending history update: ", history_msg);
+        uchar data[];
+        StringToCharArray(history_msg, data);
+        if (!SocketSend(socket, data, ArraySize(data)))
+        {
+            Print("Failed to send history update");
+        }
+    }
+    else
+    {
+        Print("No historical deals found for magic number: ", client_magic);
     }
 }
