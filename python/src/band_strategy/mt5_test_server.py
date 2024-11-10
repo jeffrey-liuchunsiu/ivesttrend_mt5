@@ -30,7 +30,7 @@ is_socket_server_running = False
 trading_history = {}  # Store trading history for each client
 should_exit = False  # Flag to control graceful shutdown
 client_positions = defaultdict(dict)  # Store current positions for each client
-client_magic_numbers = {}  # Store custom magic numbers for clients
+client_magic_numbers = {"124.244.251.186":123456}  # Store custom magic numbers for clients
 
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully"""

@@ -1,0 +1,10 @@
+2024-11-10 09:39:18,352 - __main__ - ERROR - Socket server error: [Errno 48] Address already in use
+2024-11-10 09:39:20,333 - werkzeug - INFO -  * Running on http://0.0.0.0:5001/ (Press CTRL+C to quit)
+2024-11-10 09:39:23,358 - __main__ - ERROR - Socket server error: [Errno 48] Address already in use
+2024-11-10 09:39:28,366 - __main__ - ERROR - Socket server error: [Errno 48] Address already in use
+2024-11-10 09:39:33,371 - __main__ - ERROR - Socket server error: [Errno 48] Address already in use
+2024-11-10 09:39:35,313 - __main__ - INFO - Shutting down gracefully...
+2024-11-10 09:39:35,314 - __main__ - INFO - Socket server stopped
+2024-11-10 09:39:35,314 - __main__ - INFO - Server shutdown complete
+2024-11-10 09:39:35,314 - __main__ - INFO - Socket server stopped
+2024-11-10 09:39:35,314 - __main__ - INFO - Server shutdown complete
