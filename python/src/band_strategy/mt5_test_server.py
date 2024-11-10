@@ -390,6 +390,116 @@ def get_debug_messages(client_id):
         'is_connected': client_id in connected_clients
     })
 
+# Add this new route for handling MT5 signals
+@app.route('/mt5/signal', methods=['POST'])
+def handle_mt5_signal():
+    try:
+        # Log the raw request data and headers
+        raw_data = request.get_data(as_text=True)
+        logger.info(f"Received raw data: {raw_data}")
+        logger.info(f"Content-Type: {request.headers.get('Content-Type')}")
+        logger.info(f"All Headers: {dict(request.headers)}")
+
+        # First try to get the data as-is
+        try:
+            data = request.get_json(force=True)  # force=True will try to parse even if content-type is not application/json
+        except Exception as json_error:
+            logger.error(f"Initial JSON parsing error: {str(json_error)}")
+            
+            # Clean up the data
+            try:
+                # Remove any whitespace
+                cleaned_data = raw_data.strip()
+                
+                # Log the cleaning process
+                logger.info(f"Cleaning data. Original length: {len(raw_data)}")
+                logger.info(f"First 100 chars: {raw_data[:100]}")
+                logger.info(f"Last 100 chars: {raw_data[-100:] if len(raw_data) > 100 else raw_data}")
+                
+                # Check for and remove BOM if present
+                if cleaned_data.startswith('\ufeff'):
+                    cleaned_data = cleaned_data[1:]
+                
+                # Remove any trailing commas before the last }
+                if cleaned_data.rstrip().endswith(',}'):
+                    cleaned_data = cleaned_data.rstrip()[:-2] + '}'
+                
+                # Ensure proper JSON structure
+                if not cleaned_data.startswith('{'):
+                    cleaned_data = '{' + cleaned_data
+                if not cleaned_data.endswith('}'):
+                    cleaned_data = cleaned_data + '}'
+                
+                logger.info(f"Cleaned data: {cleaned_data}")
+                
+                # Try to parse the cleaned data
+                data = json.loads(cleaned_data)
+                
+            except Exception as clean_error:
+                logger.error(f"Failed to clean and parse JSON: {str(clean_error)}")
+                # Try to parse as key-value pairs
+                try:
+                    pairs = raw_data.split(',')
+                    data = {}
+                    for pair in pairs:
+                        if '=' in pair:
+                            key, value = pair.split('=', 1)
+                            data[key.strip()] = value.strip()
+                    logger.info(f"Parsed as key-value pairs: {data}")
+                except Exception as kv_error:
+                    logger.error(f"Failed to parse as key-value pairs: {str(kv_error)}")
+                    return jsonify({
+                        'error': 'Invalid data format',
+                        'raw_data': raw_data,
+                        'message': 'Could not parse data in any format'
+                    }), 400
+
+        # Log the successfully parsed data
+        logger.info(f"Successfully parsed data: {data}")
+
+        # Process the signal data
+        # Add your signal processing logic here
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Signal received and processed',
+            'data': data
+        })
+
+    except Exception as e:
+        logger.error(f"Error processing MT5 signal: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'raw_data': request.get_data(as_text=True)
+        }), 500
+
+# Add this helper endpoint to test the signal processing
+@app.route('/test/signal', methods=['POST'])
+def test_signal():
+    """Endpoint to test signal processing with various formats"""
+    try:
+        raw_data = request.get_data(as_text=True)
+        return jsonify({
+            'received_data': raw_data,
+            'content_type': request.headers.get('Content-Type'),
+            'headers': dict(request.headers),
+            'size': len(raw_data)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Update the error handler to provide more information
+@app.errorhandler(400)
+def bad_request_handler(error):
+    logger.error(f"Bad Request: {str(error)}")
+    logger.error(f"Request data: {request.get_data(as_text=True)}")
+    logger.error(f"Headers: {dict(request.headers)}")
+    return jsonify({
+        'error': 'Bad Request',
+        'message': str(error),
+        'raw_data': request.get_data(as_text=True)
+    }), 400
+
 if __name__ == '__main__':
     # Start socket server in a separate thread
     socket_thread = threading.Thread(target=start_socket_server, daemon=True)
