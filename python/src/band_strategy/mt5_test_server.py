@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 import signal
 import sys
+from collections import defaultdict
 
 # Configure logging
 logging.basicConfig(
@@ -28,6 +29,8 @@ socket_thread = None
 is_socket_server_running = False
 trading_history = {}  # Store trading history for each client
 should_exit = False  # Flag to control graceful shutdown
+client_positions = defaultdict(dict)  # Store current positions for each client
+client_magic_numbers = {}  # Store custom magic numbers for clients
 
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully"""
@@ -137,13 +140,16 @@ def handle_client(client_socket, client_id):
             message = data.decode()
             logger.info(f"Received from {client_id}: {message}")
             
-            # Store trade execution responses
+            # Handle trade execution messages
             if message.startswith("TRADE_EXECUTED:"):
-                trade_details = message.replace("TRADE_EXECUTED:", "").strip()
-                trading_history[client_id].append({
-                    'timestamp': datetime.now().isoformat(),
-                    'details': trade_details
-                })
+                trade_details = parse_trade_message(message.replace("TRADE_EXECUTED:", ""))
+                trade_details['timestamp'] = datetime.now().isoformat()
+                trading_history[client_id].append(trade_details)
+                
+            # Handle positions update messages
+            elif message.startswith("POSITIONS_UPDATE:"):
+                positions = parse_positions_message(message.replace("POSITIONS_UPDATE:", ""))
+                client_positions[client_id] = positions
                 
         except Exception as e:
             logger.error(f"Error handling client {client_id}: {str(e)}")
@@ -157,6 +163,30 @@ def handle_client(client_socket, client_id):
     if client_id in connected_clients:
         del connected_clients[client_id]
     logger.info(f"Client disconnected: {client_id}")
+
+def parse_trade_message(message):
+    """Parse trade execution message into dictionary"""
+    parts = message.split(',')
+    trade_dict = {}
+    for part in parts:
+        key, value = part.split('=')
+        trade_dict[key.strip()] = value.strip()
+    return trade_dict
+
+def parse_positions_message(message):
+    """Parse positions update message into dictionary"""
+    positions = []
+    if message:
+        position_strings = message.split(';')
+        for pos_str in position_strings:
+            if pos_str:
+                position = {}
+                parts = pos_str.split(',')
+                for part in parts:
+                    key, value = part.split('=')
+                    position[key.strip()] = value.strip()
+                positions.append(position)
+    return positions
 
 @app.route('/place_order', methods=['POST'])
 def place_order():
@@ -229,16 +259,17 @@ def get_client_details(client_id):
             }), 404
             
         client_data = connected_clients[client_id]
-        
-        # Get client's trading history
         client_history = trading_history.get(client_id, [])
+        magic_number = client_magic_numbers.get(client_id)
         
         return jsonify({
             'client_details': {
                 'ip': client_id,
                 'full_address': f"{client_data['address'][0]}:{client_data['address'][1]}",
                 'connected_at': client_data['connected_at'].isoformat(),
-                'connection_status': 'connected'
+                'connection_status': 'connected',
+                'magic_number': magic_number,
+                'is_auto_generated': magic_number is None
             },
             'trading_history': client_history,
             'total_trades': len(client_history)
@@ -246,6 +277,65 @@ def get_client_details(client_id):
         
     except Exception as e:
         logger.error(f"Error getting client details: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/client/<client_id>/trades', methods=['GET'])
+def get_client_trades(client_id):
+    try:
+        # Get client's trading history
+        client_history = trading_history.get(client_id, [])
+        
+        # Get client's current positions
+        current_positions = client_positions.get(client_id, [])
+        
+        return jsonify({
+            'client_id': client_id,
+            'trading_history': client_history,
+            'current_positions': current_positions,
+            'total_trades': len(client_history),
+            'total_open_positions': len(current_positions)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting client trades: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/client/<client_id>/magic', methods=['POST'])
+def set_client_magic(client_id):
+    try:
+        data = request.get_json()
+        if 'magic_number' not in data:
+            return jsonify({'error': 'magic_number is required'}), 400
+            
+        magic_number = int(data['magic_number'])
+        if magic_number <= 0:
+            return jsonify({'error': 'magic_number must be positive'}), 400
+            
+        client_magic_numbers[client_id] = magic_number
+        
+        return jsonify({
+            'status': 'success',
+            'client_id': client_id,
+            'magic_number': magic_number
+        })
+        
+    except ValueError:
+        return jsonify({'error': 'Invalid magic number format'}), 400
+    except Exception as e:
+        logger.error(f"Error setting magic number: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/client/<client_id>/magic', methods=['GET'])
+def get_client_magic(client_id):
+    try:
+        magic_number = client_magic_numbers.get(client_id)
+        return jsonify({
+            'client_id': client_id,
+            'magic_number': magic_number,
+            'is_auto_generated': magic_number is None
+        })
+    except Exception as e:
+        logger.error(f"Error getting magic number: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 def cleanup():

@@ -19,36 +19,13 @@ int socket;
 bool socket_connected = false;
 datetime last_heartbeat;
 string received_data;
-string client_ip;
-int client_magic;
-
-// Add this with other input parameters at the top
-input int CustomMagicNumber = 0; // Set to 0 for auto-generated magic number from IP
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                     |
 //+------------------------------------------------------------------+
 int OnInit()
 {
-    client_ip = TerminalInfoString(TERMINAL_IP_ADDRESS);
-
-    // Set magic number based on input or generate from IP
-    if (CustomMagicNumber > 0)
-    {
-        client_magic = CustomMagicNumber;
-    }
-    else
-    {
-        // Auto-generate from IP
-        string ip_parts[];
-        StringSplit(client_ip, '.', ip_parts);
-        client_magic = 1000000 + StringToInteger(ip_parts[3]);
-    }
-
-    Print("Using magic number: ", client_magic);
-    Print("Client IP: ", client_ip);
-
-    EventSetTimer(1);
+    EventSetTimer(1); // Set timer for connection check and heartbeat
     socket = SocketCreate();
 
     if (socket != INVALID_HANDLE)
@@ -90,13 +67,6 @@ void OnTimer()
     if (TimeLocal() - last_heartbeat > HeartbeatSeconds)
     {
         SendHeartbeat();
-    }
-
-    static datetime last_positions_update = 0;
-    if (TimeLocal() - last_positions_update > 60)
-    {
-        SendPositionsUpdate();
-        last_positions_update = TimeLocal();
     }
 }
 
@@ -181,23 +151,14 @@ void ExecuteOrder(string message)
 
     double price = (order_type == ORDER_TYPE_BUY) ? last_tick.ask : last_tick.bid;
 
-    trade.SetExpertMagicNumber(client_magic);
+    trade.SetExpertMagicNumber(123456);
     if (!trade.PositionOpen(symbol, order_type, volume, price, sl, tp))
     {
         Print("Error opening position: ", GetLastError());
-        string error_msg = "TRADE_ERROR:" + IntegerToString(GetLastError());
-        uchar data[];
-        StringToCharArray(error_msg, data);
-        SocketSend(socket, data, ArraySize(data));
     }
     else
     {
         Print("Order executed successfully");
-        string trade_msg = StringFormat("TRADE_EXECUTED:symbol=%s,type=%s,volume=%.2f,price=%.5f,sl=%.5f,tp=%.5f,magic=%d",
-                                        symbol, action, volume, price, sl, tp, client_magic);
-        uchar data[];
-        StringToCharArray(trade_msg, data);
-        SocketSend(socket, data, ArraySize(data));
     }
 }
 
@@ -227,41 +188,5 @@ void OnTick()
                 ExecuteOrder(message);
             }
         }
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Send current positions to server                                 |
-//+------------------------------------------------------------------+
-void SendPositionsUpdate()
-{
-    int total = PositionsTotal();
-    string positions_msg = "POSITIONS_UPDATE:";
-
-    for (int i = 0; i < total; i++)
-    {
-        ulong ticket = PositionGetTicket(i);
-        if (PositionSelectByTicket(ticket))
-        {
-            if (PositionGetInteger(POSITION_MAGIC) == client_magic)
-            {
-                positions_msg += StringFormat("ticket=%llu,symbol=%s,type=%s,volume=%.2f,price=%.5f,sl=%.5f,tp=%.5f,profit=%.2f;",
-                                              ticket,
-                                              PositionGetString(POSITION_SYMBOL),
-                                              PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? "BUY" : "SELL",
-                                              PositionGetDouble(POSITION_VOLUME),
-                                              PositionGetDouble(POSITION_PRICE_OPEN),
-                                              PositionGetDouble(POSITION_SL),
-                                              PositionGetDouble(POSITION_TP),
-                                              PositionGetDouble(POSITION_PROFIT));
-            }
-        }
-    }
-
-    if (positions_msg != "POSITIONS_UPDATE:")
-    {
-        uchar data[];
-        StringToCharArray(positions_msg, data);
-        SocketSend(socket, data, ArraySize(data));
     }
 }
