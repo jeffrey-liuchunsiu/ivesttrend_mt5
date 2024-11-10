@@ -136,7 +136,7 @@ void SendHeartbeat()
         for (int i = 0; i < total; i++)
         {
             ulong ticket = HistoryDealGetTicket(i);
-            if (HistoryDealGetInteger(ticket, DEAL_MAGIC) == 123456)
+            if (HistoryDealGetInteger(ticket, DEAL_MAGIC) == client_magic)
             {
                 history_msg += StringFormat("ticket=%llu,symbol=%s,type=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s;",
                                             ticket,
@@ -312,25 +312,34 @@ void SendHistoryUpdate()
     int total = HistoryDealsTotal();
     string history_msg = "HISTORY_UPDATE:";
 
-    Print("Processing ", total, " historical deals");
+    Print("Processing ", total, " historical deals for magic number: ", client_magic);
 
     for (int i = 0; i < total; i++)
     {
         ulong ticket = HistoryDealGetTicket(i);
-        if (ticket > 0 && HistoryDealGetInteger(ticket, DEAL_MAGIC) == client_magic)
+        if (ticket > 0)
         {
-            string deal_type = (HistoryDealGetInteger(ticket, DEAL_TYPE) == DEAL_TYPE_BUY) ? "BUY" : "SELL";
-            string deal_entry = (HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_IN) ? "IN" : "OUT";
+            long deal_magic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
+            Print("Checking deal ticket: ", ticket, " with magic: ", deal_magic);
 
-            history_msg += StringFormat("ticket=%llu,symbol=%s,type=%s,entry=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s;",
-                                        ticket,
-                                        HistoryDealGetString(ticket, DEAL_SYMBOL),
-                                        deal_type,
-                                        deal_entry,
-                                        HistoryDealGetDouble(ticket, DEAL_VOLUME),
-                                        HistoryDealGetDouble(ticket, DEAL_PRICE),
-                                        HistoryDealGetDouble(ticket, DEAL_PROFIT),
-                                        TimeToString((datetime)HistoryDealGetInteger(ticket, DEAL_TIME)));
+            if (deal_magic == client_magic)
+            {
+                string deal_type = (HistoryDealGetInteger(ticket, DEAL_TYPE) == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+                string deal_entry = (HistoryDealGetInteger(ticket, DEAL_ENTRY) == DEAL_ENTRY_IN) ? "IN" : "OUT";
+
+                string deal_info = StringFormat("ticket=%llu,symbol=%s,type=%s,entry=%s,volume=%.2f,price=%.5f,profit=%.2f,time=%s;",
+                                                ticket,
+                                                HistoryDealGetString(ticket, DEAL_SYMBOL),
+                                                deal_type,
+                                                deal_entry,
+                                                HistoryDealGetDouble(ticket, DEAL_VOLUME),
+                                                HistoryDealGetDouble(ticket, DEAL_PRICE),
+                                                HistoryDealGetDouble(ticket, DEAL_PROFIT),
+                                                TimeToString((datetime)HistoryDealGetInteger(ticket, DEAL_TIME)));
+
+                Print("Adding deal to history: ", deal_info);
+                history_msg += deal_info;
+            }
         }
     }
 

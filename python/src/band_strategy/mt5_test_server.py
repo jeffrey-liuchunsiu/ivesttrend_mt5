@@ -130,6 +130,7 @@ def stop_socket_server():
 def handle_client(client_socket, client_id):
     if client_id not in trading_history:
         trading_history[client_id] = []
+        logger.info(f"Initialized empty trading history for client {client_id}")
         
     while is_socket_server_running and not should_exit:
         try:
@@ -145,17 +146,22 @@ def handle_client(client_socket, client_id):
                 trade_details = parse_trade_message(message.replace("TRADE_EXECUTED:", ""))
                 trade_details['timestamp'] = datetime.now().isoformat()
                 trading_history[client_id].append(trade_details)
+                logger.info(f"Added trade execution to history for {client_id}: {trade_details}")
                 
             # Handle positions update messages
             elif message.startswith("POSITIONS_UPDATE:"):
                 positions = parse_positions_message(message.replace("POSITIONS_UPDATE:", ""))
                 client_positions[client_id] = positions
+                logger.info(f"Updated positions for {client_id}: {positions}")
                 
             # Handle history update messages
             elif message.startswith("HISTORY_UPDATE:"):
                 history = parse_history_message(message.replace("HISTORY_UPDATE:", ""))
                 if history:  # Only update if we got valid history
                     trading_history[client_id] = history
+                    logger.info(f"Updated trading history for {client_id}: {len(history)} trades")
+                else:
+                    logger.warning(f"Received empty history update for {client_id}")
                 
         except Exception as e:
             logger.error(f"Error handling client {client_id}: {str(e)}")
@@ -197,8 +203,12 @@ def parse_positions_message(message):
 def parse_history_message(message):
     """Parse history update message into list of trades"""
     trades = []
+    logger.info(f"Parsing history message: {message}")
+    
     if message:
         trade_strings = message.split(';')
+        logger.info(f"Found {len(trade_strings)} trade strings")
+        
         for trade_str in trade_strings:
             if trade_str:
                 trade = {}
@@ -209,6 +219,9 @@ def parse_history_message(message):
                         trade[key.strip()] = value.strip()
                 if trade:  # Only append if we got valid trade data
                     trades.append(trade)
+                    logger.info(f"Added trade to history: {trade}")
+    
+    logger.info(f"Parsed {len(trades)} trades from history message")
     return trades
 
 @app.route('/place_order', methods=['POST'])
