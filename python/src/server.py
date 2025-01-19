@@ -34,6 +34,8 @@ from get_news_history_for_OpenAI import analyze_news, analyze_news_gemini_reques
 from utils.tg_utils import add_user_to_channel, create_tg_channel, generate_invite_link
 from utils.s3_utils import save_dict_to_s3, delete_object_from_s3, delete_folder_from_s3, get_json_data_from_s3
 
+print("Matt Hello")
+
 mt5 = MetaTrader5(
     # host = 'localhost',
     host = '18.141.245.200',
